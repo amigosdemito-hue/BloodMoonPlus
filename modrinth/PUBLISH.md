@@ -35,7 +35,8 @@ Todo lo necesario para publicar el plugin ya está preparado. Sigue esta lista.
 | **Environment** | **Server** (no cliente) |
 
 ### Categorías sugeridas
-`adventure`, `mobs`, `game-mechanics`, `equipment`, `magic`, `utility`
+**Máximo 3** destacadas: `adventure`, `mobs`, `game-mechanics`
+Adicionales (`additional_categories`): `equipment`, `magic`, `utility`
 
 ### Etiquetas (tags) manuales (en inglés)
 `blood moon`, `bloodmoon`, `bosses`, `loot`, `waves`, `hordes`, `schedules`,
@@ -81,7 +82,7 @@ Hay un script que **crea el proyecto y sube la versión** de una sola pasada:
 # 1) Crea un token en https://modrinth.com/settings/personal-access-tokens
 #    con los scopes: PROJECT_CREATE, PROJECT_READ, PROJECT_WRITE,
 #                     VERSION_CREATE y VERSION_READ.
-# 2) Guarda el token en modrinth\.token  (una sola línea; está en .gitignore)
+# 2) Guarda el token en modrinth\token.txt  (una sola línea; está en .gitignore)
 #    ... o expórtalo en la sesión:  $env:MODRINTH_TOKEN = "mrp_xxx"
 # 3) Ejecuta (primero en seco para ver qué hará):
 cd "C:\Users\david garcia\Desktop\BloodMoonPlus\BloodMoonPlus"
@@ -93,10 +94,26 @@ El script:
 - Crea el proyecto `bloodmoon-plus` (tipo mod/Plugin, entorno Server, icono,
   resumen y descripción) si aún no existe.
 - Sube `BloodMoonPlus-1.0.0.jar` como versión **1.0.0** (Paper, MC 26.2/26.3).
-- Deja la licencia como **All-Rights-Reserved** (no se envía `license_id`).
+- Deja la licencia como **All-Rights-Reserved** y luego **envía el proyecto a
+  revisión** (`status = processing`).
+
+### Detalles reales de la API (aprendidos, importantes)
+
+- **Licencia ARR**: se envía `license_id = "LicenseRef-All-Rights-Reserved"`
+  (no está en `/v2/tag/license`, pero es lo que usa Modrinth para "All Rights
+  Reserved").
+- **`categories` admite máximo 3**; las extra van en `additional_categories`.
+- El proyecto se crea como **borrador** (`is_draft = true`) y después se sube la
+  versión y se envía a revisión con `PATCH { "status": "processing" }`
+  (enviar `requested_status` **no** sirve: ya viene en `approved` por defecto).
+- `project_id` en la versión debe ser el **ID base62** (p. ej. `ilXTRql2`), no el
+  slug. `upload.ps1` lo resuelve solo.
+- La API exige enviar `client_side`, `server_side`, `initial_versions` y
+  `license_id` aunque los documentos los marquen como opcionales/deprecados.
 
 > Para **subir solo otra versión** a un proyecto ya existente usa
-> `modrinth\upload.ps1` (mismo token, mismos scopes).
+> `modrinth\upload.ps1` (mismo token, mismos scopes), y para reenviar a revisión:
+> `.\modrinth\publish.ps1 -SkipProject -SkipVersion -Submit`.
 
 ---
 

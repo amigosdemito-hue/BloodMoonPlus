@@ -215,17 +215,21 @@ if ($SkipVersion) {
 }
 
 # ---------------------------------------------------------------- enviar a revision
+# OJO: en Modrinth, un proyecto en borrador se envia a revision con status = "processing"
+# (NO con requested_status, que ya viene en "approved" por defecto).
 if ($DryRun) {
-    Write-Host "[DryRun] Enviaria el proyecto a revision (requested_status=approved)." -ForegroundColor Cyan
+    Write-Host "[DryRun] Enviaria el proyecto a revision (status=processing)." -ForegroundColor Cyan
 } elseif ($SkipSubmit) {
     Write-Host "[-SkipSubmit] El proyecto queda como BORRADOR (no se envia a revision)." -ForegroundColor Yellow
 } elseif ($created -or $Submit) {
     Write-Host "Enviando el proyecto a revision..." -NoNewline
     try {
-        $patchBody = @{ requested_status = "approved" } | ConvertTo-Json -Compress
-        $res = Invoke-RestMethod -Method Patch -Uri "$Api/project/$ProjectSlug" -Headers $Headers `
-            -ContentType "application/json" -Body $patchBody -TimeoutSec 60
-        Write-Host " OK (status=$($res.status), solicitado=$($res.requested_status))" -ForegroundColor Green
+        $patchBody = @{ status = "processing" } | ConvertTo-Json -Compress
+        Invoke-RestMethod -Method Patch -Uri "$Api/project/$ProjectSlug" -Headers $Headers `
+            -ContentType "application/json" -Body $patchBody -TimeoutSec 60 | Out-Null
+        Start-Sleep -Seconds 3
+        $after = Invoke-RestMethod -Uri "$Api/project/$ProjectSlug" -Headers $Headers -TimeoutSec 30
+        Write-Host " OK (status=$($after.status))" -ForegroundColor Green
     } catch {
         Write-Host " FALLO" -ForegroundColor Red
         Write-Host (Get-ApiError $_)
