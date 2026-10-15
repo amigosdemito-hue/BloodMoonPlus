@@ -33,13 +33,18 @@ $Api = "https://api.modrinth.com/v2"
 # ---------------------------------------------------------------- token
 if (-not $Token) { $Token = $env:MODRINTH_TOKEN }
 if (-not $Token) {
-    $tokFile = Join-Path $PSScriptRoot ".token"
-    if (Test-Path $tokFile) {
-        $Token = ([System.IO.File]::ReadAllText($tokFile, [System.Text.Encoding]::UTF8)).Trim()
+    foreach ($name in @("token.txt", ".token")) {
+        $tokFile = Join-Path $PSScriptRoot $name
+        if (-not (Test-Path $tokFile)) { continue }
+        foreach ($line in ([System.IO.File]::ReadAllText($tokFile, [System.Text.Encoding]::UTF8) -split "`r?`n")) {
+            $v = $line.Trim()
+            if ($v -and -not $v.StartsWith("#")) { $Token = $v; break }
+        }
+        if ($Token) { break }
     }
 }
 if (-not $Token) {
-    throw "Falta el token. Guarda tu PAT en modrinth\.token, define `$env:MODRINTH_TOKEN o usa -Token."
+    throw "Falta el token. Pegalo en modrinth\token.txt, define `$env:MODRINTH_TOKEN o usa -Token."
 }
 $Headers = @{ Authorization = $Token }
 

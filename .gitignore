@@ -31,3 +31,4 @@ backup-tab-antes-de-migrar/
 # ===== Secretos de publicacion (NUNCA subir) =====
 .token
 modrinth/.token
+modrinth/token.txt

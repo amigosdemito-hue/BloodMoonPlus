@@ -19,13 +19,18 @@ param(
 $ErrorActionPreference = "Stop"
 
 if (-not $env:MODRINTH_TOKEN) {
-    $tokFile = Join-Path $PSScriptRoot ".token"
-    if (Test-Path $tokFile) {
-        $env:MODRINTH_TOKEN = ([System.IO.File]::ReadAllText($tokFile, [System.Text.Encoding]::UTF8)).Trim()
+    foreach ($name in @("token.txt", ".token")) {
+        $tokFile = Join-Path $PSScriptRoot $name
+        if (-not (Test-Path $tokFile)) { continue }
+        foreach ($line in ([System.IO.File]::ReadAllText($tokFile, [System.Text.Encoding]::UTF8) -split "`r?`n")) {
+            $v = $line.Trim()
+            if ($v -and -not $v.StartsWith("#")) { $env:MODRINTH_TOKEN = $v; break }
+        }
+        if ($env:MODRINTH_TOKEN) { break }
     }
 }
 if (-not $env:MODRINTH_TOKEN) {
-    throw "Falta la variable de entorno MODRINTH_TOKEN (o el archivo modrinth\.token). Crea un token en https://modrinth.com/settings/personal-access-tokens"
+    throw "Falta el token. Pegalo en modrinth\token.txt (o define MODRINTH_TOKEN). Crea un token en https://modrinth.com/settings/personal-access-tokens"
 }
 
 $root = Split-Path -Parent $PSScriptRoot

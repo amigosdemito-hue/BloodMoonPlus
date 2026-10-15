@@ -1,0 +1,22 @@
+﻿# ============================================================
+#   TOKEN DE MODRINTH  -  BloodMoonPlus
+# ============================================================
+#
+#  COMO CONSEGUIRLO:
+#    1) Entra a:  https://modrinth.com/settings/personal-access-tokens
+#    2) Pulsa "Create a token" / "New token".
+#    3) Marca estos scopes:
+#           [x] PROJECT_CREATE
+#           [x] PROJECT_READ
+#           [x] VERSION_CREATE
+#    4) Copia el token (empieza por "mrp_") y pegalo ABAJO, en una
+#       linea nueva y SIN el simbolo # delante.
+#
+#  - Las lineas que empiezan por # y las lineas vacias se ignoran.
+#  - Este archivo NO se sube al repositorio (esta en .gitignore).
+#  - Cuando termine la publicacion puedes revocar el token en la
+#    misma pagina.
+#
+# ============================================================
+
+# --->  PEGA TU TOKEN EN UNA LINEA NUEVA JUSTO DEBAJO  <---
