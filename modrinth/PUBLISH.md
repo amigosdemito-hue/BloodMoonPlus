@@ -2,6 +2,12 @@
 
 Todo lo necesario para publicar el plugin ya está preparado. Sigue esta lista.
 
+> ⚠️ **Modrinth exige que el contenido del proyecto esté en INGLÉS.** Por eso
+> `summary.txt`, `description.md` y `CHANGELOG.md` ya están en inglés. Los
+> campos de esta guía (que solo es para ti) siguen en español.
+> Si quieres, dentro de la descripción puedes añadir una sección en español al
+> final, pero la descripción principal debe ser en inglés.
+
 ---
 
 ## 0) Antes de publicar
@@ -9,9 +15,8 @@ Todo lo necesario para publicar el plugin ya está preparado. Sigue esta lista.
 - [ ] Compilar el `.jar` final: `.\gradlew.bat build --no-daemon`
       → queda en `build\libs\BloodMoonPlus-<versión>.jar`
 - [ ] Probar el `.jar` en un servidor de pruebas.
-- [ ] Decidir la **versión** de esta publicación (ver más abajo) y dejarla
-      igual en: `build.gradle.kts`, `plugin.yml` (usa `${version}`),
-      `LocaleManager.VERSION` y este changelog.
+- [ ] Versión de esta publicación: **1.0.0** (ya alineada en `build.gradle.kts`,
+      `plugin.yml` vía `${version}` y `LocaleManager.VERSION`).
 - [ ] Confirmar que la **licencia** es "All Rights Reserved" (ver `LICENSE`).
 
 ---
@@ -32,9 +37,9 @@ Todo lo necesario para publicar el plugin ya está preparado. Sigue esta lista.
 ### Categorías sugeridas
 `adventure`, `mobs`, `game-mechanics`, `equipment`, `magic`, `utility`
 
-### Etiquetas (tags) manuales
-`blood moon`, `luna de sangre`, `jefes`, `bosses`, `loot`, `oleadas`, `waves`,
-`schedules`, `horarios`, `placeholders`, `events`, `español`, `spanish`
+### Etiquetas (tags) manuales (en inglés)
+`blood moon`, `bloodmoon`, `bosses`, `loot`, `waves`, `hordes`, `schedules`,
+`placeholders`, `events`, `wither`, `hardcore`, `pve`
 
 ---
 
@@ -42,7 +47,7 @@ Todo lo necesario para publicar el plugin ya está preparado. Sigue esta lista.
 
 | Campo | Valor |
 |---|---|
-| **Version number** | `1.0.0` (o `2.0.0` si prefieres alinear con `LocaleManager.VERSION`) |
+| **Version number** | `1.0.0` |
 | **Name** | `1.0.0 — Primera versión pública` |
 | **Release channel** | `Release` |
 | **Changelog** | Pegar `modrinth/CHANGELOG.md` (la sección de esta versión) |

@@ -1,1 +1,1 @@
-Luna de Sangre con horarios fijos (hora de México), 9 jefes, 45 items por rareza, encantamientos hasta nivel 7, oleadas progresivas, placeholders e inmersión total. Optimizado para 40+ jugadores.
+Blood Moon event plugin for Paper: fixed schedules (Mexico time), 9 bosses, 45 items by rarity, enchantments up to level 7, progressive waves, PlaceholderAPI support and full immersion. Optimized for 40+ players.

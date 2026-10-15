@@ -1,68 +1,68 @@
-# 🩸 BloodMoonPlus — Luna de Sangre
+# 🩸 BloodMoonPlus — Blood Moon
 
-Un plugin de **Luna de Sangre** para servidores Paper, con **horarios fijos en hora de México**, **9 jefes**, **45 items** repartidos por rareza, encantamientos hasta **nivel 7**, **oleadas progresivas**, **placeholders**, soporte multi-idioma y **inmersión total** (niebla roja, rayos, sonidos ambientales y anuncios constantes).
+A **Blood Moon** event plugin for Paper servers, featuring **fixed schedules (Mexico time)**, **9 bosses**, **45 items** spread across rarities, enchantments up to **level 7**, **progressive waves**, **placeholders**, multi-language support and **full immersion** (red fog, lightning, ambient sounds and constant announcements).
 
-Optimizado para rendir bien en servidores de **40+ jugadores** sin cambiar la jugabilidad.
-
----
-
-## ✨ Lo más destacado
-
-- **🗓️ Horarios fijos** — modo `weekly` (por día de la semana a una hora real, zona horaria configurable, por defecto `America/Mexico_City`) o `interval` (cada N horas). Se pueden poner **varias funciones el mismo día**.
-- **👹 9 jefes** con barra de vida propia, fases de **enrage**, dificultad mínima, habilidades y loot propio.
-- **🎁 45 items** organizados por rareza: comunes (siempre caen), raros, épicos, legendarios y **míticos** (extremadamente raros, ~0.1%).
-- **⚔️ Encantamientos personalizados** hasta **nivel 7**, con habilidades propias (crítico, guardia de trueno, onda expansiva, levitación, sangrado…).
-- **🌊 Oleadas progresivas** — 1.ª oleada 5, 2.ª 10, 3.ª 15… hasta un tope configurable.
-- **🌫️ Inmersión** — niebla roja, rayos al aparecer hordas/jefes, sonidos ambientales y anuncios periódicos. Sin lluvia, pero con truenos.
-- **📊 Estadísticas y supervivientes** — quién sobrevivió, quién más daño hizo, ranking, premios al MVP.
-- **🌍 Multi-idioma (i18n)** y **configuración por mundo**.
-- **🔌 Integración opcional** con PlaceholderAPI, Multiverse-Core y WorldGuard (MythicMobs como modo alternativo).
-- **🚫 Control del Wither** — el Wither normal está bloqueado; solo puede aparecer el jefe **Azote Carmesí**.
+Built to run smoothly on **40+ player** servers without changing the gameplay.
 
 ---
 
-## 📥 Instalación
+## ✨ Highlights
 
-1. Descarga el `.jar` de la pestaña **Versions**.
-2. Colócalo en la carpeta `plugins/` de tu servidor **Paper**.
-3. Reinicia el servidor.
-4. (Opcional) Instala **PlaceholderAPI** para los placeholders.
-5. Configura `plugins/BloodMoonPlus/config.yml` y ejecuta `/luna reload`.
-
-> Requiere **Paper**. Compatible con Paper **26.2** y **26.3**.
+- **🗓️ Fixed schedules** — `weekly` mode (per weekday at a real time, configurable timezone, defaults to `America/Mexico_City`) or `interval` mode (every N hours). You can set **multiple runs on the same day**.
+- **👹 9 bosses** with custom health bars, **enrage** phases, minimum difficulty, abilities and their own loot.
+- **🎁 45 items** sorted by rarity: common (always drop), rare, epic, legendary and **mythic** (extremely rare, ~0.1%).
+- **⚔️ Custom enchantments** up to **level 7**, each with unique abilities (crit, thunder guard, blast wave, levitate, bleeding…).
+- **🌊 Progressive waves** — wave 1: 5 mobs, wave 2: 10, wave 3: 15… up to a configurable cap.
+- **🌫️ Immersion** — red fog, lightning when hordes/bosses appear, ambient sounds and periodic announcements. No rain, but thunder.
+- **📊 Stats & survivors** — who survived, who dealt the most damage, rankings and MVP rewards.
+- **🌍 Multi-language (i18n)** and **per-world configuration**.
+- **🔌 Optional integrations** with PlaceholderAPI, Multiverse-Core and WorldGuard (MythicMobs as an alternative mode).
+- **🚫 Wither control** — the normal Wither is blocked; only the **Crimson Scourge** boss can spawn.
 
 ---
 
-## 🎮 Comandos
+## 📥 Installation
 
-Comando principal: **`/luna`** (alias: `/bm`, `/lunadesangre`, `/bloodmoon`).
+1. Download the `.jar` from the **Versions** tab.
+2. Drop it into the `plugins/` folder of your **Paper** server.
+3. Restart the server.
+4. (Optional) Install **PlaceholderAPI** for placeholders.
+5. Configure `plugins/BloodMoonPlus/config.yml` and run `/luna reload`.
 
-| Comando | Qué hace |
+> Requires **Paper**. Compatible with Paper **26.2** and **26.3**.
+
+---
+
+## 🎮 Commands
+
+Main command: **`/luna`** (aliases: `/bm`, `/lunadesangre`, `/bloodmoon`).
+
+| Command | Description |
 |---|---|
-| `/luna next` | Muestra la próxima Luna de Sangre |
-| `/luna start [dificultad]` | Inicia el evento manualmente |
-| `/luna stop` | Detiene el evento |
-| `/luna difficulty <n>` | Ajusta la dificultad del evento actual |
-| `/luna boss <id>` | Invoca un jefe concreto |
-| `/luna horde` | Fuerza una oleada |
-| `/luna killmobs` | Elimina los mobs del evento |
-| `/luna give <item> [cantidad]` | Entrega un item del plugin |
-| `/luna items` | Lista los items disponibles |
-| `/luna chances` | Muestra las probabilidades de drop |
-| `/luna reload` | Recarga la configuración |
+| `/luna next` | Shows the next Blood Moon |
+| `/luna start [difficulty]` | Starts the event manually |
+| `/luna stop` | Stops the event |
+| `/luna difficulty <n>` | Adjusts the difficulty of the current event |
+| `/luna boss <id>` | Summons a specific boss |
+| `/luna horde` | Forces a wave |
+| `/luna killmobs` | Removes the event mobs |
+| `/luna give <item> [amount]` | Gives one of the plugin's items |
+| `/luna items` | Lists the available items |
+| `/luna chances` | Shows the drop chances |
+| `/luna reload` | Reloads the configuration |
 
-### Permisos
+### Permissions
 
-| Permiso | Descripción | Por defecto |
+| Permission | Description | Default |
 |---|---|---|
-| `bloodmoon.use` | Ver estado y próximos eventos | Todos |
-| `bloodmoon.admin` | Administrar el evento | OP |
+| `bloodmoon.use` | View status and upcoming events | Everyone |
+| `bloodmoon.admin` | Manage the event | OP |
 
 ---
 
-## 🗓️ Horarios y dificultad
+## 🗓️ Schedules & difficulty
 
-En modo `weekly` cada entrada acepta una hora simple o un bloque con dificultad y duración:
+In `weekly` mode, each entry accepts either a simple time or a block with difficulty and duration:
 
 ```yaml
 schedule:
@@ -77,68 +77,70 @@ schedule:
       - time: "13:40"
         difficulty: 2
         duration-minutes: 20
-      - time: "20:40"        # dos funciones el mismo día
+      - time: "20:40"        # two runs on the same day
         difficulty: 3
         duration-minutes: 25
 ```
 
-La **dificultad** es un multiplicador continuo (0.1 – 10.0). Escala vida, daño, velocidad, tamaño de oleada, ritmo de aparición, probabilidad de loot y suerte de rareza.
+**Difficulty** is a continuous multiplier (0.1 – 10.0). It scales health, damage, speed, wave size, spawn rate, loot chance and rarity luck.
 
 ---
 
-## 🩸 Jefes
+## 🩸 Bosses
 
-| Jefe | Dificultad mínima |
+| Boss | Min. difficulty |
 |---|---|
-| Rey Zombi Sangriento | 1.0 |
-| Centinela de Hueso | 1.0 |
-| Arquera Carmesí | 1.0 |
-| Cazador de Sombras | 1.0 |
-| Nigromante Carmesí | 1.5 |
-| Devastador Ancestral | 1.5 |
-| Warden Abismal | 2.0 |
-| Azote Carmesí (Wither) | 2.5 |
+| Bloody Zombie King | 1.0 |
+| Bone Sentinel | 1.0 |
+| Crimson Archer | 1.0 |
+| Shadow Hunter | 1.0 |
+| Crimson Necromancer | 1.5 |
+| Ancestral Devastator | 1.5 |
+| Abyssal Warden | 2.0 |
+| Crimson Scourge (Wither) | 2.5 |
 
-Cada jefe tiene barra de vida, fases de **enrage** y su propia tabla de loot. Consulta el **README** completo del proyecto para el detalle de cada drop.
+Every boss has a health bar, **enrage** phases and its own loot table. See the project's full **README** for every drop in detail.
+
+> There is also a 9th boss template, the **Night Executioner**, which can be summoned on demand with `/luna boss verdugo_noche` (it is not part of the automatic schedule).
 
 ---
 
 ## 🧩 Placeholders
 
-Con **PlaceholderAPI** instalado (namespace `%bloodmoon_*%`): estado del evento, tiempo restante, próxima luna, dificultad, jefes vivos, oleada actual, supervivientes, estadísticas del jugador y más.
+With **PlaceholderAPI** installed (namespace `%bloodmoon_*%`): event status, time left, next moon, difficulty, live bosses, current wave, survivors, player stats and more.
 
 ---
 
-## 🚫 Datapack del Wither (opcional)
+## 🚫 Wither datapack (optional)
 
-El plugin ya bloquea el Wither normal por sí solo. Si además quieres una capa de datos, el proyecto incluye el datapack **BloodMoonWitherControl** (en `datapacks/`), que elimina cualquier Wither que **no** sea el jefe de la Luna de Sangre. Es opcional.
-
----
-
-## ⚡ Rendimiento
-
-Pensado para redes de **~40 jugadores**: escaneos de entidades locales (no de mundo completo), caché de parseo de items, snapshots de placeholders optimizados y menús/action-bars eficientes. Para servidores muy grandes puedes ajustar `horde.wave-max-size` y `horde.max-alive-per-player` en la config.
+The plugin already blocks the normal Wither on its own. If you also want a data-layer safeguard, the project ships the **BloodMoonWitherControl** datapack (in `datapacks/`), which removes any Wither that is **not** the Blood Moon boss. It is optional.
 
 ---
 
-## 🛠️ Compilar desde el código
+## ⚡ Performance
+
+Designed for **~40 player** networks: local (not whole-world) entity scans, item-parse caching, optimized placeholder snapshots and efficient menus/action bars. For very large servers you can tune `horde.wave-max-size` and `horde.max-alive-per-player` in the config.
+
+---
+
+## 🛠️ Build from source
 
 ```bash
-git clone <tu-repositorio>
+git clone <your-repository>
 cd BloodMoonPlus
 ./gradlew build
 ```
 
-El `.jar` queda en `build/libs/`. Compila con **Java 25**.
+The `.jar` is produced in `build/libs/`. Built with **Java 25**.
 
 ---
 
-## 📜 Licencia
+## 🔒 License
 
-**Todos los derechos reservados.** El código es público únicamente para lectura y auditoría de seguridad; **no** está permitido copiarlo, modificarlo, reutilizarlo ni redistribuirlo. Puedes descargar y ejecutar el plugin en tu servidor. Ver el archivo `LICENSE`.
+**All rights reserved.** The source code is public for reading and security review only; copying, modifying, reusing or redistributing it is **not** allowed. You may download and run the compiled plugin on your server. See the `LICENSE` file for details.
 
 ---
 
-## ❤️ Créditos
+## ❤️ Credits
 
-Inspirado y construido para superar a *BloodMoon-Reborn*. Hecho con cariño para comunidades hispanohablantes. 🌙🩸
+Inspired by — and built to surpass — *BloodMoon-Reborn*. Made with care for Spanish-speaking communities. 🌙🩸

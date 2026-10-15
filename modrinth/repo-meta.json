@@ -1,5 +1,5 @@
 {
-  "description": "Plugin de Luna de Sangre para Paper: 9 jefes, 45 items por rareza, encantamientos hasta nivel 7, horarios fijos (hora de Mexico), oleadas progresivas, placeholders, i18n e inmersion total. Optimizado para servidores de 40+ jugadores.",
+  "description": "Blood Moon event plugin for Paper: fixed schedules (Mexico time), 9 bosses, 45 items by rarity, enchantments up to level 7, progressive waves, placeholders and full immersion. Optimized for 40+ players.",
   "homepage": "https://modrinth.com/plugin/bloodmoon-plus",
   "topics": [
     "paper",
