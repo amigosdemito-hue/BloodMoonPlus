@@ -1,5 +1,7 @@
 # Drops de la Luna de Sangre
 
+🌐 **Español** · [English](DROPS.en.md)
+
 ## Sistema de probabilidad
 
 1. Cada kill de la horda tiene un **10% de probabilidad** de soltar algo (`drop-chance` de la tabla, sube con la dificultad) y si suelta, tira **1-2 items** (`rolls`).

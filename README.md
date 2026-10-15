@@ -1,5 +1,7 @@
 # BloodMoonPlus — Guía de Jefes y Loot
 
+🌐 **Español** · [English](README.en.md)
+
 Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **sistema de drops** (45 items).
 
 ---
