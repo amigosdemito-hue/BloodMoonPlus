@@ -1,0 +1,47 @@
+# BloodMoonPlus — Ejemplo de MythicMobs
+# Coloca este archivo en plugins/MythicMobs/MythicMobs/ (o packs/).
+# Configura BloodMoonPlus/Boss.MythicMobs.InternalName con uno de estos IDs:
+#   - BloodMoonBoss_EN
+#   - BloodMoonBoss_ES
+
+BloodMoonBoss_EN:
+  Type: ZOMBIE
+  Display: '&4&lBlood Moon King'
+  Health: 800
+  Damage: 18
+  BossBar:
+    Enabled: true
+    Title: '<mob.name>'
+    Range: 40
+    Color: RED
+    Style: SEGMENTED_10
+  Drops:
+    - diamond 3 1
+    - exp 250 1
+  Equipment:
+    - NETHERITE_SWORD
+    - NETHERITE_HELMET
+    - NETHERITE_CHESTPLATE
+    - NETHERITE_LEGGINGS
+    - NETHERITE_BOOTS
+
+BloodMoonBoss_ES:
+  Type: ZOMBIE
+  Display: '&4&lRey de la Luna Carmesí'
+  Health: 800
+  Damage: 18
+  BossBar:
+    Enabled: true
+    Title: '<mob.name>'
+    Range: 40
+    Color: RED
+    Style: SEGMENTED_10
+  Drops:
+    - diamond 3 1
+    - exp 250 1
+  Equipment:
+    - NETHERITE_SWORD
+    - NETHERITE_HELMET
+    - NETHERITE_CHESTPLATE
+    - NETHERITE_LEGGINGS
+    - NETHERITE_BOOTS

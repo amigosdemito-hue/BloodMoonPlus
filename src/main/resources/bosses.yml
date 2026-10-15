@@ -1,0 +1,186 @@
+# ============================================================
+#  JEFES
+#  Habilidades (nombre:cooldown_seg:args...):
+#    SUMMON:cd:cantidad:TIPO              invoca refuerzos
+#    SLAM:cd:radio:daño_base              golpe de área con empuje
+#    LIGHTNING:cd:objetivos:daño_base     rayos sobre jugadores cercanos
+#    AURA:cd:radio:efecto:seg:nivel       efecto de poción a jugadores cercanos (ej. wither)
+#    SONIC_BOOM:cd:radio:daño_base        onda expansiva que lanza lejos a los jugadores (Warden)
+#    PULL:cd:radio:fuerza                 atrae a los jugadores hacia el jefe
+#    SKULL:cd:cantidad                    dispara calaveras de wither a los jugadores (el jefe SÍ rompe bloques)
+#    CHARGE:cd:fuerza:daño_base           embestida: se lanza hacia un jugador y arrolla ~1s (Devastador)
+#    ROAR:cd:radio:efecto:seg:nivel       rugido que aplica un efecto en área (ej. darkness)
+#    GUARD:cd:segundos                    bloqueo: resistencia + absorción temporal (escudo)
+#    SELF_HEAL:cd:cantidad                se regenera vida (jefe tanque)
+#  SEGUNDA FASE (enloquecido) — opcional por jefe:
+#    enrage-at: 0.5          # fracción de vida que lo activa (0 = desactivado)
+#    enrage-cooldown: 0.6    # multiplicador de cooldown de habilidades al enloquecer (<1 = más rápido)
+#    enrage-damage: 1.5      # multiplicador de daño de habilidades al enloquecer
+#  Al activarse: +Velocidad II, +Fuerza II, todas las habilidades se recargan al instante.
+#  El daño base se multiplica por "damage" del jefe y por la dificultad.
+#  La vida máxima se limita a 1024 (límite del juego) tras multiplicar por dificultad.
+# ============================================================
+bosses:
+  rey_zombi:
+    name: "<dark_red><bold>Rey Zombi Sangriento"
+    type: ZOMBIE
+    health: 300
+    damage: 2.0
+    speed: 1.1
+    scale: 1.6
+    knockback-resistance: 0.6
+    bar-color: RED
+    bar-overlay: NOTCHED_10
+    equipment: { main-hand: NETHERITE_SWORD, head: NETHERITE_HELMET, chest: NETHERITE_CHESTPLATE, legs: NETHERITE_LEGGINGS, feet: NETHERITE_BOOTS }
+    abilities: ["SUMMON:25:4:ZOMBIE", "SLAM:12:7:4"]
+    loot-table: boss_rey_zombi
+    top-damage-table: boss_top_damage
+    exp: 500
+
+  arquera_carmesi:
+    name: "<red><bold>Arquera Carmesí"
+    type: SKELETON
+    health: 220
+    damage: 1.8
+    speed: 1.15
+    scale: 1.4
+    bar-color: PURPLE
+    bar-overlay: NOTCHED_10
+    equipment: { head: DIAMOND_HELMET, chest: DIAMOND_CHESTPLATE }
+    abilities: ["LIGHTNING:15:3:6", "AURA:20:12:slowness:5:1"]
+    loot-table: boss_arquera
+    top-damage-table: boss_top_damage
+    exp: 400
+
+  verdugo_noche:
+    name: "<dark_purple><bold>Verdugo de la Noche"
+    type: WITHER_SKELETON
+    health: 400
+    damage: 2.5
+    speed: 1.1
+    scale: 1.8
+    knockback-resistance: 0.8
+    bar-color: PINK
+    bar-overlay: NOTCHED_12
+    equipment: { main-hand: NETHERITE_AXE, head: NETHERITE_HELMET }
+    abilities: ["AURA:18:12:wither:6:1", "SLAM:10:8:5", "SUMMON:30:3:WITHER_SKELETON"]
+    enrage-at: 0.4
+    enrage-cooldown: 0.65
+    enrage-damage: 1.5
+    loot-table: boss_verdugo
+    top-damage-table: boss_top_damage
+    exp: 800
+
+  # ---------------- Bosses exclusivos de BloodMoonPlus (Hito 7) ----------------
+  nigromante_carmesí:
+    name: "<dark_red><bold>Nigromante Carmesí"
+    type: EVOKER
+    health: 320
+    damage: 2.2
+    speed: 1.05
+    scale: 1.5
+    bar-color: PURPLE
+    bar-overlay: NOTCHED_10
+    equipment: { main-hand: TOTEM_OF_UNDYING, head: GOLDEN_HELMET }
+    abilities: ["SUMMON:18:5:ZOMBIE", "SUMMON:30:3:SPIDER", "AURA:25:8:weakness:5:0", "LIGHTNING:40:1:6"]
+    loot-table: boss_rey_zombi
+    top-damage-table: boss_top_damage
+    exp: 600
+
+  cazador_sombras:
+    name: "<black><bold>Cazador de las Sombras"
+    type: STRAY
+    health: 260
+    damage: 2.8
+    speed: 1.4
+    scale: 1.3
+    bar-color: BLACK
+    bar-overlay: NOTCHED_10
+    equipment: { main-hand: BOW, chest: LEATHER_CHESTPLATE }
+    abilities: ["AURA:20:15:invisibility:8:0", "LIGHTNING:25:2:5"]
+    loot-table: boss_arquera
+    top-damage-table: boss_top_damage
+    exp: 500
+
+  # ---------------- Nuevos jefes de élite (Plus 2.0) ----------------
+  centinela_hueso:
+    # Esqueleto blanco con escudo y espada. Misma altura que el Rey Zombi (scale 1.6).
+    name: "<white><bold>Centinela de Hueso"
+    type: SKELETON
+    health: 280
+    damage: 2.0
+    speed: 1.1
+    scale: 1.6
+    knockback-resistance: 0.5
+    bar-color: WHITE
+    bar-overlay: NOTCHED_10
+    equipment: { main-hand: NETHERITE_SWORD, off-hand: SHIELD, head: DIAMOND_HELMET, chest: DIAMOND_CHESTPLATE, legs: DIAMOND_LEGGINGS, feet: DIAMOND_BOOTS }
+    abilities: ["GUARD:18:4", "SLAM:12:6:5", "SUMMON:30:3:SKELETON"]
+    loot-table: boss_arquera
+    top-damage-table: boss_top_damage
+    exp: 550
+
+  devastador_sangre:
+    name: "<dark_red><bold>Devastador Ancestral"
+    type: RAVAGER
+    health: 380
+    damage: 2.4
+    speed: 1.2
+    scale: 1.6
+    knockback-resistance: 0.9
+    bar-color: RED
+    bar-overlay: NOTCHED_12
+    abilities: ["CHARGE:14:1.6:9", "ROAR:22:14:slowness:6:1", "SLAM:11:7:5"]
+    enrage-at: 0.45
+    enrage-cooldown: 0.6
+    enrage-damage: 1.6
+    loot-table: boss_verdugo
+    top-damage-table: boss_top_damage
+    exp: 700
+
+  warden_abismal:
+    name: "<dark_aqua><bold>Guardián del Abismo"
+    type: WARDEN
+    health: 750
+    damage: 3.6
+    speed: 1.15
+    scale: 1.2
+    knockback-resistance: 1.0
+    bar-color: BLUE
+    bar-overlay: NOTCHED_12
+    abilities: ["SONIC_BOOM:12:11:13", "PULL:20:15:1.4", "ROAR:24:16:darkness:6:1", "SLAM:14:8:7"]
+    enrage-at: 0.5
+    enrage-cooldown: 0.6
+    enrage-damage: 1.6
+    loot-table: boss_verdugo
+    top-damage-table: boss_top_damage
+    exp: 1100
+
+  azote_carmesi:
+    name: "<dark_gray><bold>Azote Carmesí"
+    type: WITHER
+    health: 900
+    damage: 4.0
+    speed: 1.25
+    scale: 1.0
+    knockback-resistance: 0.95
+    bar-color: PURPLE
+    bar-overlay: NOTCHED_12
+    abilities: ["SKULL:7:4", "PULL:16:20:1.6", "AURA:12:16:wither:8:1", "SUMMON:20:4:WITHER_SKELETON", "ROAR:28:18:darkness:6:1", "SELF_HEAL:24:80"]
+    enrage-at: 0.5
+    enrage-cooldown: 0.55
+    enrage-damage: 1.75
+    loot-table: boss_verdugo
+    top-damage-table: boss_top_damage
+    exp: 1500
+
+# Cuándo aparecen durante el evento
+spawns:
+  - { boss: rey_zombi, delay-seconds: 90, chance: 1.0, min-difficulty: 1.0, count: 1, scale-count: true }
+  - { boss: centinela_hueso, delay-seconds: 180, chance: 0.7, min-difficulty: 1.0, count: 1, scale-count: true }
+  - { boss: arquera_carmesi, delay-seconds: 420, chance: 0.6, min-difficulty: 1.0, count: 1, scale-count: true }
+  - { boss: nigromante_carmesí, delay-seconds: 240, chance: 0.7, min-difficulty: 1.5, count: 1, scale-count: true }
+  - { boss: cazador_sombras, delay-seconds: 360, chance: 0.5, min-difficulty: 1.0, count: 1, scale-count: true }
+  - { boss: devastador_sangre, delay-seconds: 300, chance: 0.6, min-difficulty: 1.5, count: 1, scale-count: true }
+  - { boss: warden_abismal, delay-seconds: 540, chance: 0.8, min-difficulty: 2.0, count: 1, scale-count: true }
+  - { boss: azote_carmesi, delay-seconds: 660, chance: 0.5, min-difficulty: 2.5, count: 1, scale-count: true }

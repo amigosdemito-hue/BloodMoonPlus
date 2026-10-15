@@ -1,0 +1,344 @@
+# ============================================================
+#  ITEMS (vanilla y custom). La rareza decide cuándo caen (ver loot.yml).
+#  Campos: material, name, lore, rarity, enchants, unbreakable, glow,
+#          item-model, limit (máx. ejemplares en TODO el servidor, con número de serie),
+#          abilities, passives.
+#  ENCANTAMIENTOS: el nivel NUNCA supera settings.max-enchant-level (7 por defecto);
+#                  cualquier valor mayor se recorta al cargar.
+#  ATRIBUTOS = passives (efectos de poción mientras se porta el item):
+#                  strength:1  resistance:0  health_boost:2  speed:1  regeneration:0
+#                  fire_resistance:0  night_vision:0  slow_falling:0  jump_boost:1 ...
+#                  HEAL_AURA:radio:curacion  (cura a aliados cercanos)
+#  Habilidades arma:     DAMAGE_BONUS:f  LIFESTEAL:f  LIGHTNING:prob:daño  IGNITE:prob:seg  WITHER:prob:seg
+#                        SLOW:prob:seg  EXECUTE:vidaFrac:bonusFrac  BOSS_SLAYER:f
+#                        CHAIN_LIGHTNING:prob:cadenas:daño:decaimiento  POISON:prob:seg:nivel
+#                        BLEED:prob:seg:nivel  CRIT:prob:multiplicador
+#  Habilidades armadura: DAMAGE_REDUCTION:f  DODGE:prob  THORNS:prob:daño  REFLECT:f
+#                        THUNDER_GUARD:prob:daño:attacker|self   <- rayo al recibir un golpe (sin tormenta)
+#                        BLAST_WAVE:prob:daño:fuerza             <- onda expansiva, NO rompe bloques
+#                        LEVITATE:prob:seg:nivel                 <- el atacante levita
+#  Placeholders de lore: {owner} {rarity}
+# ============================================================
+settings:
+  show-rarity-line: true
+  # Nivel máximo de encantamiento (el usuario pidió 7; no se debe pasar de aquí).
+  max-enchant-level: 7
+
+items:
+  # ---------------- COMUNES / POCO COMUNES (vanilla) ----------------
+  carne: { material: COOKED_BEEF, rarity: COMUN }
+  flechas: { material: ARROW, rarity: COMUN }
+  polvora: { material: GUNPOWDER, rarity: COMUN }
+  hierro: { material: IRON_INGOT, rarity: COMUN }
+  hueso: { material: BONE, rarity: COMUN }
+  cuerda: { material: STRING, rarity: COMUN }
+  oro: { material: GOLD_INGOT, rarity: POCO_COMUN }
+  manzana_dorada: { material: GOLDEN_APPLE, rarity: POCO_COMUN }
+  botella_xp: { material: EXPERIENCE_BOTTLE, rarity: POCO_COMUN }
+  ojo_ender: { material: ENDER_EYE, rarity: POCO_COMUN }
+  obsidiana: { material: OBSIDIAN, rarity: POCO_COMUN }
+
+  # ---------------- RAROS ----------------
+  diamante: { material: DIAMOND, rarity: RARO }
+  perla_ender: { material: ENDER_PEARL, rarity: RARO }
+  espada_sanguinaria:
+    material: DIAMOND_SWORD
+    name: "<red>Espada Sanguinaria"
+    lore: ["<gray>Forjada con la sangre de la noche.", "<gray>Robavida · Veneno"]
+    rarity: RARO
+    enchants: { sharpness: 5, unbreaking: 3, mending: 1, looting: 2 }
+    abilities: ["LIFESTEAL:0.05", "POISON:0.20:4:1"]
+  arco_carmesi:
+    material: BOW
+    name: "<red>Arco Carmesí"
+    lore: ["<gray>Sus flechas buscan el calor."]
+    rarity: RARO
+    enchants: { power: 5, punch: 2, unbreaking: 3, mending: 1 }
+    abilities: ["DAMAGE_BONUS:0.06"]
+  daga_sombras:
+    material: IRON_SWORD
+    name: "<dark_gray>Daga de las Sombras"
+    lore:
+      - "<gray>Rápida, silenciosa y envenenada."
+      - "<gray>Crítico · Ralentiza · Marchita"
+    rarity: RARO
+    enchants: { sharpness: 4, unbreaking: 3, looting: 3, sweeping_edge: 2 }
+    abilities: ["CRIT:0.25:1.8", "SLOW:0.30:3", "POISON:0.20:3:1"]
+    passives: ["speed:0"]
+  arco_tormenta:
+    material: BOW
+    name: "<blue>Arco de la Tormenta"
+    lore:
+      - "<gray>Suena el trueno antes que la flecha."
+      - "<gray>Rayo sin tormenta · Empujón"
+    rarity: RARO
+    enchants: { power: 5, punch: 2, flame: 1, unbreaking: 3 }
+    abilities: ["LIGHTNING:0.15:6", "DAMAGE_BONUS:0.08"]
+  pico_umbrial:
+    material: DIAMOND_PICKAXE
+    name: "<aqua>Pico Umbrío"
+    lore:
+      - "<gray>Cae la noche, sube el mineral."
+      - "<gray>Fortuna III · Eficiencia V"
+    rarity: RARO
+    enchants: { efficiency: 5, fortune: 3, unbreaking: 4, mending: 1 }
+    passives: ["haste:0"]
+
+  # ---------------- ÉPICOS ----------------
+  manzana_encantada: { material: ENCHANTED_GOLDEN_APPLE, rarity: EPICO }
+  totem: { material: TOTEM_OF_UNDYING, rarity: EPICO }
+  fragmento_netherita: { material: NETHERITE_SCRAP, rarity: EPICO }
+  hacha_verdugo:
+    material: NETHERITE_AXE
+    name: "<dark_red>Hacha del Verdugo"
+    lore: ["<gray>Remata a los que ya sangran."]
+    rarity: EPICO
+    enchants: { sharpness: 6, efficiency: 6, unbreaking: 4, mending: 1 }
+    abilities: ["DAMAGE_BONUS:0.10", "EXECUTE:0.30:0.50"]
+  casco_cazador:
+    material: NETHERITE_HELMET
+    name: "<dark_purple>Yelmo del Cazador de Sangre"
+    lore: ["<gray>Devuelve parte del daño recibido."]
+    rarity: EPICO
+    enchants: { protection: 5, unbreaking: 4, mending: 1, respiration: 3 }
+    abilities: ["DAMAGE_REDUCTION:0.03", "REFLECT:0.15"]
+  peto_cazador:
+    material: NETHERITE_CHESTPLATE
+    name: "<dark_purple>Peto del Cazador de Sangre"
+    rarity: EPICO
+    enchants: { protection: 5, unbreaking: 4, mending: 1 }
+    abilities: ["DAMAGE_REDUCTION:0.04"]
+    passives: ["resistance:0"]
+  pantalon_cazador:
+    material: NETHERITE_LEGGINGS
+    name: "<dark_purple>Grebas del Cazador de Sangre"
+    rarity: EPICO
+    enchants: { protection: 5, unbreaking: 4, mending: 1 }
+    abilities: ["DAMAGE_REDUCTION:0.04"]
+  botas_cazador:
+    material: NETHERITE_BOOTS
+    name: "<dark_purple>Botas del Cazador de Sangre"
+    rarity: EPICO
+    enchants: { protection: 5, unbreaking: 4, mending: 1, feather_falling: 4 }
+    abilities: ["DAMAGE_REDUCTION:0.03"]
+  espada_ruina:
+    material: NETHERITE_SWORD
+    name: "<light_purple>Espada de la Ruina"
+    lore:
+      - "<gray>Abre heridas que no cierran."
+      - "<gray>Crítico · Sangrado · Robavida"
+    rarity: EPICO
+    enchants: { sharpness: 6, unbreaking: 4, looting: 3, mending: 1 }
+    abilities: ["CRIT:0.20:1.9", "BLEED:0.30:6:1", "LIFESTEAL:0.06"]
+    passives: ["strength:0"]
+  ballesta_abismo:
+    material: CROSSBOW
+    name: "<dark_purple>Ballesta del Abismo"
+    lore:
+      - "<gray>Dispara la oscuridad hecha flechas."
+      - "<gray>Cadena de rayos · Perfora IV"
+    rarity: EPICO
+    enchants: { multishot: 1, quick_charge: 3, piercing: 4, unbreaking: 4 }
+    abilities: ["CHAIN_LIGHTNING:0.15:2:5:0.5", "LIGHTNING:0.10:6"]
+  botas_estrondo:
+    material: NETHERITE_BOOTS
+    name: "<light_purple>Botas del Estrondo"
+    lore:
+      - "<gray>Quien te pisa, vuela."
+      - "<gray>Esquiva · Levitación · Embate"
+    rarity: EPICO
+    enchants: { protection: 5, unbreaking: 4, mending: 1, soul_speed: 3 }
+    abilities: ["DODGE:0.08", "LEVITATE:0.25:3:0", "BLAST_WAVE:0.20:5:1.3"]
+    passives: ["jump_boost:1"]
+  hacha_ventisca:
+    material: DIAMOND_AXE
+    name: "<aqua>Hacha de la Ventisca"
+    lore:
+      - "<gray>Helada que rompe huesos."
+      - "<gray>Crítico · Ralentiza · Marchita"
+    rarity: EPICO
+    enchants: { sharpness: 5, efficiency: 5, unbreaking: 4 }
+    abilities: ["CRIT:0.22:1.9", "SLOW:0.35:4", "WITHER:0.20:4"]
+
+  # ---------------- LEGENDARIOS ----------------
+  colmillo_vampirico:
+    material: NETHERITE_SWORD
+    name: "<gold><bold>Colmillo Vampírico"
+    lore: ["<gray>Bebe la vida de sus víctimas.", "<gray>Robavida · Wither", "<dark_gray>Cazado por {owner}"]
+    rarity: LEGENDARIO
+    enchants: { sharpness: 7, unbreaking: 5, mending: 1, fire_aspect: 2, looting: 4, sweeping_edge: 3, vanishing_curse: 1 }
+    unbreakable: false
+    glow: true
+    abilities: ["LIFESTEAL:0.12", "WITHER:0.20:5"]
+    passives: ["strength:0"]
+  arco_lunar:
+    material: BOW
+    name: "<gold><bold>Arco Lunar"
+    lore: ["<gray>La luna guía cada flecha.", "<dark_gray>Cazado por {owner}"]
+    rarity: LEGENDARIO
+    enchants: { power: 7, punch: 3, flame: 1, infinity: 1, unbreaking: 5, vanishing_curse: 1 }
+    glow: true
+    abilities: ["DAMAGE_BONUS:0.15", "IGNITE:0.30:6", "SLOW:0.25:4"]
+  botas_noctambulo:
+    material: NETHERITE_BOOTS
+    name: "<gold><bold>Botas del Noctámbulo"
+    lore: ["<gray>Nadie te alcanza de noche.", "<dark_gray>Cazado por {owner}"]
+    rarity: LEGENDARIO
+    enchants: { protection: 6, unbreaking: 5, mending: 1, feather_falling: 5, soul_speed: 3, depth_strider: 3 }
+    glow: true
+    abilities: ["DODGE:0.10", "DAMAGE_REDUCTION:0.05"]
+    passives: ["speed:1", "jump_boost:1"]
+  escudo_espinas:
+    material: SHIELD
+    name: "<gold><bold>Égida de Espinas"
+    lore: ["<gray>Lo que te golpea, sangra.", "<dark_gray>Cazado por {owner}"]
+    rarity: LEGENDARIO
+    enchants: { unbreaking: 5, mending: 1 }
+    glow: true
+    passives: ["resistance:0"]
+  martillo_trueno:
+    material: MACE
+    name: "<gold><bold>Martillo del Trueno"
+    lore:
+      - "<gray>Cae como el cielo enojado."
+      - "<gray>Crítico devastador · Rayo · Verdugo de jefes"
+      - "<dark_gray>Cazado por {owner}"
+    rarity: LEGENDARIO
+    enchants: { density: 6, breach: 3, wind_burst: 3, unbreaking: 5, mending: 1, vanishing_curse: 1 }
+    glow: true
+    abilities: ["CRIT:0.25:2.2", "LIGHTNING:0.25:9", "BOSS_SLAYER:0.25"]
+    passives: ["strength:0"]
+  peto_guardian:
+    material: NETHERITE_CHESTPLATE
+    name: "<gold><bold>Peto del Guardián Carmesí"
+    lore:
+      - "<gray>El cielo castiga a quien te agreda."
+      - "<gray>Rayo vengador · Aura de curación · Espinas"
+      - "<dark_gray>Cazado por {owner}"
+    rarity: LEGENDARIO
+    enchants: { protection: 6, unbreaking: 5, mending: 1, thorns: 3 }
+    glow: true
+    abilities: ["THUNDER_GUARD:0.20:7:attacker", "DAMAGE_REDUCTION:0.05"]
+    passives: ["resistance:0", "HEAL_AURA:6:1.0"]
+  ballesta_dorada:
+    material: CROSSBOW
+    name: "<gold><bold>Ballesta del Alba"
+    lore:
+      - "<gray>Dispara antes de que la noche lo haga."
+      - "<gray>Cadena de rayos III · Perfora IV"
+      - "<dark_gray>Cazada por {owner}"
+    rarity: LEGENDARIO
+    enchants: { multishot: 1, quick_charge: 3, piercing: 4, unbreaking: 5, mending: 1, vanishing_curse: 1 }
+    glow: true
+    abilities: ["CHAIN_LIGHTNING:0.20:3:6:0.45", "DAMAGE_BONUS:0.15"]
+
+  # ---------------- MÍTICOS (únicos: limit = ejemplares máximos en el servidor) ----------------
+  hoja_eclipse:
+    material: NETHERITE_SWORD
+    name: "<gradient:#ff0040:#8a00ff><bold>Hoja del Eclipse Carmesí</bold></gradient>"
+    lore:
+      - "<gray>Forjada en el instante en que la luna sangró."
+      - "<red>Robavida · Rayos · Verdugo de jefes"
+      - "<dark_gray>Cazada por {owner}"
+    rarity: MITICO
+    limit: 3
+    enchants: { sharpness: 7, unbreaking: 7, mending: 1, fire_aspect: 3, looting: 5, sweeping_edge: 4 }
+    unbreakable: true
+    glow: true
+    abilities: ["LIFESTEAL:0.20", "LIGHTNING:0.15:8", "BOSS_SLAYER:0.35", "EXECUTE:0.25:0.75"]
+    passives: ["strength:0"]
+  corona_luna_sangre:
+    material: NETHERITE_HELMET
+    name: "<gradient:#ff0040:#8a00ff><bold>Corona de la Luna de Sangre</bold></gradient>"
+    lore:
+      - "<gray>Quien la porta ve en la oscuridad."
+      - "<red>Visión nocturna · Vida extra · Regeneración"
+      - "<dark_gray>Cazada por {owner}"
+    rarity: MITICO
+    limit: 3
+    enchants: { protection: 7, unbreaking: 7, mending: 1, respiration: 4, aqua_affinity: 1 }
+    unbreakable: true
+    glow: true
+    abilities: ["DAMAGE_REDUCTION:0.08", "THORNS:0.20:5", "REFLECT:0.20"]
+    passives: ["night_vision:0", "health_boost:2", "regeneration:0"]
+  guadana_segador:
+    material: NETHERITE_HOE
+    name: "<gradient:#ff0040:#8a00ff><bold>Guadaña del Segador</bold></gradient>"
+    lore:
+      - "<gray>La noche cosecha a los vivos."
+      - "<red>Ejecución · Marchitar · Robavida"
+      - "<dark_gray>Cazada por {owner}"
+    rarity: MITICO
+    limit: 3
+    enchants: { sharpness: 7, unbreaking: 7, mending: 1, looting: 5, fortune: 5, efficiency: 7 }
+    unbreakable: true
+    glow: true
+    abilities: ["EXECUTE:0.40:1.00", "WITHER:0.35:6", "LIFESTEAL:0.10", "CRIT:0.25:2.2"]
+  tridente_abismo:
+    material: TRIDENT
+    name: "<gradient:#ff0040:#8a00ff><bold>Tridente del Abismo Rojo</bold></gradient>"
+    lore:
+      - "<gray>Llama a la tormenta carmesí."
+      - "<red>Rayos · Quemadura"
+      - "<dark_gray>Cazado por {owner}"
+    rarity: MITICO
+    limit: 3
+    enchants: { impaling: 7, loyalty: 4, channeling: 1, unbreaking: 7, mending: 1 }
+    unbreakable: true
+    glow: true
+    abilities: ["LIGHTNING:0.30:10", "IGNITE:0.50:8", "DAMAGE_BONUS:0.20"]
+  maza_coloso:
+    material: MACE
+    name: "<gradient:#ff0040:#8a00ff><bold>Maza del Coloso</bold></gradient>"
+    lore:
+      - "<gray>Cada golpe sacude la tierra."
+      - "<red>Daño masivo · Anti-jefes"
+      - "<dark_gray>Cazada por {owner}"
+    rarity: MITICO
+    limit: 3
+    enchants: { density: 7, breach: 4, wind_burst: 3, unbreaking: 7, mending: 1 }
+    unbreakable: true
+    glow: true
+    abilities: ["DAMAGE_BONUS:0.25", "BOSS_SLAYER:0.40", "SLOW:0.40:5"]
+  hacha_apocalipsis:
+    material: NETHERITE_AXE
+    name: "<gradient:#ff0040:#8a00ff><bold>Hacha del Apocalipsis</bold></gradient>"
+    lore:
+      - "<gray>El último sonido que oyeron."
+      - "<red>Crítico brutal · Robavida · Verdugo de jefes"
+      - "<dark_gray>Cazada por {owner}"
+    rarity: MITICO
+    limit: 3
+    enchants: { sharpness: 7, efficiency: 7, unbreaking: 7, looting: 5, mending: 1 }
+    unbreakable: true
+    glow: true
+    abilities: ["CRIT:0.30:2.5", "LIFESTEAL:0.15", "BOSS_SLAYER:0.40", "BLEED:0.35:7:1"]
+    passives: ["strength:1"]
+  peto_eclipse:
+    material: NETHERITE_CHESTPLATE
+    name: "<gradient:#ff0040:#8a00ff><bold>Peto del Eclipse Carmesí</bold></gradient>"
+    lore:
+      - "<gray>Forjado con la ceniza de una estrella."
+      - "<red>Rayo vengador · Embate · Aura de curación"
+      - "<dark_gray>Cazado por {owner}"
+    rarity: MITICO
+    limit: 3
+    enchants: { protection: 7, unbreaking: 7, mending: 1, thorns: 3 }
+    unbreakable: true
+    glow: true
+    abilities: ["THUNDER_GUARD:0.25:9:attacker", "BLAST_WAVE:0.25:7:1.6", "DAMAGE_REDUCTION:0.06"]
+    passives: ["resistance:0", "regeneration:0", "HEAL_AURA:8:1.5"]
+  grebas_eclipse:
+    material: NETHERITE_LEGGINGS
+    name: "<gradient:#ff0040:#8a00ff><bold>Grebas del Eclipse</bold></gradient>"
+    lore:
+      - "<gray>El suelo nunca las alcanza."
+      - "<red>Esquiva · Velocidad · Caída lenta"
+      - "<dark_gray>Cazadas por {owner}"
+    rarity: MITICO
+    limit: 3
+    enchants: { protection: 7, unbreaking: 7, mending: 1, swift_sneak: 3 }
+    unbreakable: true
+    glow: true
+    abilities: ["DODGE:0.10", "DAMAGE_REDUCTION:0.04"]
+    passives: ["speed:1", "slow_falling:0"]

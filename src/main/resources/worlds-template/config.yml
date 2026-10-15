@@ -1,0 +1,68 @@
+# ============================================================
+#  BloodMoonPlus — Configuración por mundo
+#  Edita este archivo para personalizar este mundo específico.
+#  Las claves que no estén definidas heredan del config.yml global.
+#  Estructura igual a BloodMoon-Reborn para compatibilidad.
+# ============================================================
+
+# Si está en true, el mundo siempre está bajo Luna de Sangre (no se puede detener).
+WorldPermanent: false
+
+# Bloquea dormir durante el evento.
+BedNotAllowed: true
+
+# Si está en true, morir durante el evento elimina el inventario.
+DyingLossesInventory: false
+
+# Si está en true, morir durante el evento reinicia la experiencia.
+DyingLossesExperience: false
+
+# Comandos al iniciar el evento.
+# Sufijos: ;s = consola una vez, ;f = consola por jugador, ;p = jugador ejecuta
+# Placeholders: %player%, %world%, %difficulty%
+CommandsOnStart: []
+
+# Comandos al terminar el evento.
+CommandsOnEnd: []
+
+# ---------------- Recompensa de supervivientes ----------------
+SurvivorRewards:
+  Enabled: false
+  RequireOnlineAtEnd: true
+  IncludeLateJoiners: true
+  MinimumParticipationSeconds: 60
+  DisqualifyOnDeath: true
+  DisqualifyOnWorldLeave: false
+  DisqualifyOnDisconnect: false
+  RewardOncePerSession: true
+  Messages:
+    - "&a¡Sobreviviste a la Luna de Sangre!"
+  Commands:
+    - "give %player% minecraft:diamond 1;f"
+    - "experience add %player% 100 points;f"
+
+# ---------------- Configuración del jefe ----------------
+Boss:
+  Mode: VANILLA                    # VANILLA | MYTHICMOBS | NONE
+  VanillaBossBar:
+    Enabled: true
+    Title: "%boss_name% &c%boss_health%&7/&c%boss_max_health%"
+    Color: RED
+    Style: SEGMENTED_10
+    Audience: NEARBY               # NEARBY | WORLD | ALL
+    ViewDistance: 64
+    ShowHealthNumbers: true
+  Rewards:
+    Enabled: false
+    Mode: KILLER                   # KILLER | TOP_DAMAGE | ALL
+    RequirePlayerKiller: true
+    RewardOnce: true
+    Commands:
+      - "give %boss_killer% minecraft:diamond 3;s"
+      - "experience add %boss_killer% 250 points;s"
+  MythicMobs:
+    Enabled: false
+    InternalName: BloodMoonBoss
+    UseMythicMobsRewards: true
+    RunBloodMoonRewardCommands: false
+    FallbackToVanilla: true

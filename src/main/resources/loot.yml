@@ -1,0 +1,151 @@
+# ============================================================
+#  LOOT POR RAREZA
+#  1) Se decide si el mob suelta algo (drop-chance de la tabla, sube con la dificultad).
+#  2) Se elige la RAREZA según su peso (weight) -> luego el ITEM dentro de esa rareza según el peso del item.
+#  - luck-affected: el peso sube con la dificultad (difficulty.scaling.rarity-luck).
+#  - pity: cada tirada sin obtener esa rareza suma 1 "stack" por jugador; el peso se multiplica por (1 + stacks * pity-per-roll).
+#    Al obtenerla se reinicia. Es protección contra mala suerte.
+#  - Items con "limit" (míticos) dejan de caer cuando se agotan los ejemplares.
+#  - "rolls" puede ser rango (ej. 1-2): cuántos items intenta soltar por kill.
+#  Mira los porcentajes reales con:  /bloodmoon chances <tabla>
+# ============================================================
+rarities:
+  COMUN:
+    display: "<white>Común"
+    weight: 600
+  POCO_COMUN:
+    display: "<green>Poco común"
+    weight: 250
+  RARO:
+    display: "<aqua>Raro"
+    weight: 100
+    luck-affected: true
+  EPICO:
+    display: "<light_purple>Épico"
+    weight: 40
+    luck-affected: true
+    pity-per-roll: 0.02
+    pity-max-stacks: 150
+  LEGENDARIO:
+    display: "<gold><bold>LEGENDARIO</bold>"
+    weight: 10
+    luck-affected: true
+    broadcast: true
+    pity-per-roll: 0.05
+    pity-max-stacks: 200
+  MITICO:
+    display: "<gradient:#ff0040:#8a00ff><bold>MÍTICO</bold></gradient>"
+    weight: 1.5
+    luck-affected: true
+    broadcast: true
+    pity-per-roll: 0.08
+    pity-max-stacks: 300
+
+tables:
+  # Tabla base de la horda (cada mob muerto por un jugador)
+  # drop-chance por item: los simples caen siempre (1.0), los rotos son muy raros (como una oveja rosa)
+  mob_horde:
+    drop-chance: 0.10
+    rolls: 1-2
+    rarity-weights: { COMUN: 600, POCO_COMUN: 260, RARO: 110, EPICO: 32, LEGENDARIO: 5, MITICO: 0.5 }
+    entries:
+      # Comunes: siempre caen (generosos: arriesgas la vida, no la vuelves a perder)
+      - { item: carne, weight: 40, amount: "3-8", drop-chance: 1.0 }
+      - { item: flechas, weight: 30, amount: "6-16", drop-chance: 1.0 }
+      - { item: polvora, weight: 30, amount: "2-6", drop-chance: 1.0 }
+      - { item: hierro, weight: 25, amount: "2-5", drop-chance: 1.0 }
+      - { item: hueso, weight: 25, amount: "2-6", drop-chance: 1.0 }
+      - { item: cuerda, weight: 20, amount: "1-4", drop-chance: 1.0 }
+      # Poco comunes: casi siempre
+      - { item: oro, weight: 30, amount: "2-4", drop-chance: 0.9 }
+      - { item: manzana_dorada, weight: 20, amount: "1", drop-chance: 0.85 }
+      - { item: botella_xp, weight: 30, amount: "3-9", drop-chance: 0.85 }
+      - { item: ojo_ender, weight: 15, amount: "1-2", drop-chance: 0.7 }
+      - { item: obsidiana, weight: 15, amount: "1-3", drop-chance: 0.6 }
+      # Raros: materiales comunes ~50%, ARMAS rotas al 5%
+      - { item: diamante, weight: 40, amount: "1-3", drop-chance: 0.5 }
+      - { item: perla_ender, weight: 30, amount: "1-2", drop-chance: 0.45 }
+      - { item: espada_sanguinaria, weight: 15, drop-chance: 0.05 }
+      - { item: arco_carmesi, weight: 15, drop-chance: 0.05 }
+      - { item: daga_sombras, weight: 14, drop-chance: 0.05 }
+      - { item: arco_tormenta, weight: 14, drop-chance: 0.05 }
+      - { item: pico_umbrial, weight: 12, drop-chance: 0.25 }
+      # Épicos: baja probabilidad
+      - { item: manzana_encantada, weight: 20, drop-chance: 0.2 }
+      - { item: totem, weight: 30, drop-chance: 0.15 }
+      - { item: fragmento_netherita, weight: 30, amount: "1-2", drop-chance: 0.18 }
+      - { item: hacha_verdugo, weight: 10, drop-chance: 0.12 }
+      - { item: casco_cazador, weight: 10, drop-chance: 0.1 }
+      - { item: peto_cazador, weight: 10, drop-chance: 0.1 }
+      - { item: pantalon_cazador, weight: 10, drop-chance: 0.1 }
+      - { item: botas_cazador, weight: 10, drop-chance: 0.1 }
+      - { item: espada_ruina, weight: 12, drop-chance: 0.14 }
+      - { item: ballesta_abismo, weight: 10, drop-chance: 0.12 }
+      - { item: botas_estrondo, weight: 10, drop-chance: 0.1 }
+      - { item: hacha_ventisca, weight: 11, drop-chance: 0.12 }
+      # Legendarios: muy raros (armas al 5%)
+      - { item: colmillo_vampirico, weight: 20, drop-chance: 0.05 }
+      - { item: arco_lunar, weight: 20, drop-chance: 0.05 }
+      - { item: botas_noctambulo, weight: 20, drop-chance: 0.05 }
+      - { item: escudo_espinas, weight: 20, drop-chance: 0.04 }
+      - { item: martillo_trueno, weight: 18, drop-chance: 0.05 }
+      - { item: peto_guardian, weight: 18, drop-chance: 0.045 }
+      - { item: ballesta_dorada, weight: 18, drop-chance: 0.05 }
+      # Míticos: probabilidad de oveja rosa (~0.5-0.8%)
+      - { item: hoja_eclipse, weight: 20, drop-chance: 0.008 }
+      - { item: corona_luna_sangre, weight: 20, drop-chance: 0.006 }
+      - { item: guadana_segador, weight: 20, drop-chance: 0.005 }
+      - { item: tridente_abismo, weight: 20, drop-chance: 0.007 }
+      - { item: maza_coloso, weight: 20, drop-chance: 0.006 }
+      - { item: hacha_apocalipsis, weight: 20, drop-chance: 0.006 }
+      - { item: peto_eclipse, weight: 20, drop-chance: 0.005 }
+      - { item: grebas_eclipse, weight: 20, drop-chance: 0.005 }
+
+  # Mobs élite (Verdugo Menor): mejor probabilidad
+  mob_elite:
+    inherits: mob_horde
+    drop-chance: 0.45
+    rolls: 2-3
+    rarity-weights: { COMUN: 200, POCO_COMUN: 250, RARO: 200, EPICO: 90, LEGENDARIO: 14, MITICO: 1.2 }
+
+  # Recompensa a cada superviviente al terminar el evento
+  survivors:
+    inherits: mob_horde
+    drop-chance: 1.0
+    rolls: 2-3
+    rarity-weights: { COMUN: 300, POCO_COMUN: 300, RARO: 200, EPICO: 90, LEGENDARIO: 14, MITICO: 1.2 }
+
+  # Jefes
+  boss_rey_zombi:
+    inherits: mob_horde
+    drop-chance: 1.0
+    rolls: 4-5
+    guaranteed:
+      - { item: botella_xp, amount: "8-16" }
+      - { item: diamante, amount: "3-6" }
+    rarity-weights: { COMUN: 0, POCO_COMUN: 0, RARO: 200, EPICO: 150, LEGENDARIO: 55, MITICO: 6 }
+
+  boss_arquera:
+    inherits: mob_horde
+    drop-chance: 1.0
+    rolls: 4-5
+    guaranteed:
+      - { item: flechas, amount: "32-64" }
+      - { item: diamante, amount: "2-5" }
+    rarity-weights: { COMUN: 0, POCO_COMUN: 0, RARO: 200, EPICO: 150, LEGENDARIO: 60, MITICO: 7 }
+
+  boss_verdugo:
+    inherits: mob_horde
+    drop-chance: 1.0
+    rolls: 5-6
+    guaranteed:
+      - { item: fragmento_netherita, amount: "3-6" }
+      - { item: botella_xp, amount: "6-12" }
+    rarity-weights: { COMUN: 0, POCO_COMUN: 0, RARO: 140, EPICO: 200, LEGENDARIO: 90, MITICO: 12 }
+
+  # Premio extra al jugador que más daño hizo al jefe
+  boss_top_damage:
+    inherits: mob_horde
+    drop-chance: 1.0
+    rolls: 1
+    rarity-weights: { COMUN: 0, POCO_COMUN: 0, RARO: 0, EPICO: 60, LEGENDARIO: 75, MITICO: 22 }

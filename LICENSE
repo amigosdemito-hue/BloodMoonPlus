@@ -1,0 +1,63 @@
+BloodMoonPlus — Todos los derechos reservados
+All Rights Reserved
+Copyright (c) 2026 BloodMoonPlus (https://github.com/amigosdemito-hue)
+
+------------------------------------------------------------------
+ESPAÑOL
+------------------------------------------------------------------
+
+Este software (código fuente, recursos, configuración por defecto y
+documentación) es propiedad exclusiva de su autor ("el Autor"). Todos los
+derechos quedan reservados.
+
+QUEDA PROHIBIDO, sin autorización previa y por escrito del Autor:
+
+  1. Copiar, reproducir o distribuir el código fuente, total o parcialmente.
+  2. Modificarlo, adaptarlo, traducirlo o crear obras derivadas a partir de él.
+  3. Utilizarlo como base, plantilla o inspiración directa para otros plugins,
+     proyectos o productos.
+  4. Redistribuirlo o publicarlo en cualquier plataforma (Modrinth, SpigotMC,
+     CurseForge, GitHub, etc.) bajo otro nombre o autoría.
+  5. Venderlo, sublicenciarlo, alquilarlo o explotarlo comercialmente.
+
+SE PERMITE:
+
+  - Descargar y EJECUTAR el plugin compilado (.jar) en un servidor de Minecraft,
+    sin modificar ni redistribuir el archivo compilado.
+  - Consultar este repositorio público ÚNICAMENTE con fines de lectura,
+    transparencia y auditoría de seguridad.
+
+El código es público solo para poder leerlo y auditarlo; no es de uso libre.
+
+------------------------------------------------------------------
+ENGLISH
+------------------------------------------------------------------
+
+This software (source code, assets, default configuration and documentation)
+is the exclusive property of its author ("the Author"). All rights reserved.
+
+WITHOUT PRIOR WRITTEN PERMISSION FROM THE AUTHOR, YOU MAY NOT:
+
+  1. Copy, reproduce or distribute the source code, in whole or in part.
+  2. Modify, adapt, translate or create derivative works from it.
+  3. Use it as a base, template or direct inspiration for other plugins,
+     projects or products.
+  4. Redistribute or publish it on any platform under another name or author.
+  5. Sell, sublicense, rent or commercially exploit it.
+
+YOU MAY:
+
+  - Download and RUN the compiled plugin (.jar) on a Minecraft server, without
+    modifying or redistributing the compiled file.
+  - Read this public repository for reading, transparency and security-review
+    purposes only.
+
+The source is public for reading and auditing only; it is not free to use.
+
+------------------------------------------------------------------
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+Para pedir permiso / to request permission: abrir un "issue" en el repositorio.

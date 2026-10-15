@@ -1,0 +1,193 @@
+# ============================================================
+#  BloodMoonPlus - configuración principal
+# ============================================================
+
+# Mundos donde ocurre el evento (si un horario no define los suyos).
+worlds:
+  - world
+
+# ------------------------------------------------------------
+#  PROGRAMACIÓN DEL EVENTO — 2 MODOS
+# ------------------------------------------------------------
+#
+#  MODO 1: "weekly" (por defecto)
+#  Por día de la semana a hora fija en zona horaria (hora México).
+#  Cada día puede tener una o varias horas. Un día sin entrada NO tiene evento.
+#  Ejemplo: cada LUNES a las 14:00 hora México:
+#
+#    schedule:
+#      mode: weekly
+#      days:
+#        MONDAY:
+#          - "14:00"
+#
+#  MODO 2: "interval"
+#  Cada N horas reales (ej. cada 72h = cada 3 días reales).
+#  El temporizador corre aunque el servidor esté apagado.
+#  Ejemplo: cada 72 horas:
+#
+#    schedule:
+#      mode: interval
+#      interval-hours: 72
+#
+#  Las horas SIEMPRE entre comillas: "21:30"  (formato 24 h).
+#  En modo weekly, cada hora puede ser texto simple o un bloque con opciones:
+#        - time: "20:40"
+#          difficulty: 3          # x3 (triple)
+#          duration-minutes: 25
+#          worlds: [world]        # opcional
+# ------------------------------------------------------------
+schedule:
+  enabled: true
+  mode: weekly                   # weekly | interval
+  timezone: "America/Mexico_City"
+  interval-hours: 72            # solo para modo interval
+  grace-seconds: 180            # si el servidor estaba apagado a la hora exacta, aún se dispara dentro de este margen
+  skip-if-no-players: true      # no inicia el evento si el mundo está vacío
+  warnings-minutes: [10, 5, 1]  # avisos antes de empezar
+  days:
+    MONDAY:
+      - time: "21:30"
+        difficulty: 1          # x1 — arranque de semana (suave)
+        duration-minutes: 20
+    WEDNESDAY:
+      - time: "14:30"
+        difficulty: 1.5        # x1.5 — tarde del miércoles
+        duration-minutes: 20
+      - time: "23:00"
+        difficulty: 2          # x2 — noche del miércoles
+        duration-minutes: 20
+    FRIDAY:
+      - time: "13:40"
+        difficulty: 2          # x2 — tarde del viernes
+        duration-minutes: 20
+      - time: "20:40"
+        difficulty: 3          # x3 — evento estrella (viernes noche, más largo)
+        duration-minutes: 25
+    SUNDAY:
+      - time: "08:30"
+        difficulty: 2.5        # x2.5 — mañana del domingo
+        duration-minutes: 20
+      - time: "18:30"
+        difficulty: 3          # x3 — cierre del fin de semana (más largo)
+        duration-minutes: 25
+
+# ------------------------------------------------------------
+#  EVENTO
+# ------------------------------------------------------------
+event:
+  duration-minutes: 20
+  lock-night: true              # fija la noche durante el evento
+  night-time-ticks: 18000
+  end-time-ticks: 23000         # hora del mundo al terminar (amanecer cercano)
+  clear-weather: true
+  first-wave-delay-seconds: 10
+  remove-mobs-on-end: true
+  force-difficulty: true           # sube la dificultad del mundo a EASY si está en Pacífico (necesario para spawnear mobs); se restaura al terminar
+  protect-terrain: true            # las explosiones de mobs (creepers, etc.) NO rompen bloques; el jefe de la Luna SÍ los rompe (como el Wither vanilla)
+  block-wither-spawn: true        # bloquea el spawn de CUALQUIER Wither excepto el jefe de la Luna (tag bloodmoon_boss); desactívalo si quieres Withers normales
+  reward-on-stop: false         # dar recompensa a supervivientes si se detiene con /luna stop
+  commands-on-start: []         # consola; {world}
+  commands-on-end: []
+  survivor-commands: []         # consola, por superviviente; {player}  ej: "eco give {player} 500"
+
+# ------------------------------------------------------------
+#  DIFICULTAD
+#  Multiplicador N (x1 normal, x3 triple...). Cada estadística usa:
+#      valor = base * (1 + (N - 1) * factor)
+#  Con factor 1.0 y x3 => exactamente el triple.
+# ------------------------------------------------------------
+difficulty:
+  default: 1.0
+  max: 10.0
+  scaling:
+    health: 1.0          # vida de los mobs
+    damage: 1.0          # daño de los mobs
+    speed: 0.1           # velocidad
+    horde-size: 1.0      # mobs por oleada y tope de mobs vivos
+    spawn-speed: 0.5     # frecuencia de oleadas
+    loot-chance: 0.25    # probabilidad base de que un mob suelte loot
+    rarity-luck: 0.5     # sube el peso de las rarezas marcadas luck-affected
+
+# ------------------------------------------------------------
+#  HORDAS
+# ------------------------------------------------------------
+horde:
+  enabled: true
+  interval-seconds: 25
+  base-size: 5                 # mobs por jugador en cada oleada (x1); 1ª=5, 2ª=10, 3ª=15...
+  wave-max-size: 30            # tope de esa progresión (si tu servidor ya tiene config, aplica este valor por defecto)
+  max-alive-per-player: 25
+  spawn-distance: { min: 14, max: 28 }
+  require-armor:               # solo caen hordas en jugadores con armadura mínima
+    enabled: false
+    min-pieces: 4
+    materials: [DIAMOND, NETHERITE]
+  mobs:
+    - type: ZOMBIE
+      weight: 40
+      damage-multiplier: 1.3
+      speed-multiplier: 1.05
+      name: "<red>Zombi Sanguinario"
+      equipment: { main-hand: IRON_SWORD, head: IRON_HELMET, chest: IRON_CHESTPLATE }
+      equipment-chance: 0.5
+    - type: SKELETON
+      weight: 25
+      damage-multiplier: 1.2
+      name: "<red>Esqueleto Sanguinario"
+      equipment: { head: IRON_HELMET }
+      equipment-chance: 0.4
+    - type: HUSK
+      weight: 10
+      damage-multiplier: 1.3
+      name: "<gold>Husk Carmesí"
+    - type: SPIDER
+      weight: 12
+      damage-multiplier: 1.2
+    - type: CREEPER
+      weight: 8
+    - type: WITHER_SKELETON
+      weight: 5
+      damage-multiplier: 1.1
+      name: "<dark_red>Verdugo Menor"
+      loot-table: mob_elite
+    - type: DROWNED
+      weight: 14
+      damage-multiplier: 1.1
+      name: "<blue>Ahogado Abisal"
+    - type: STRAY
+      weight: 10
+      damage-multiplier: 1.15
+      name: "<gray>Esqueleto de Hielo"
+    - type: BOGGED
+      weight: 9
+      damage-multiplier: 1.0
+      name: "<green>Bogged Pantanoso"
+    - type: PILLAGER
+      weight: 13
+      damage-multiplier: 1.2
+      equipment: { main-hand: CROSSBOW }
+      equipment-chance: 0.7
+      name: "<dark_gray>Saqueador de la Luna"
+    - type: VINDICATOR
+      weight: 8
+      damage-multiplier: 1.4
+      equipment: { main-hand: IRON_AXE }
+      equipment-chance: 0.8
+      name: "<red>Vindicador Carmesí"
+    - type: RAVAGER
+      weight: 2
+      damage-multiplier: 1.6
+      health: 80
+      name: "<dark_red>Devastador de Sangre"
+
+# ------------------------------------------------------------
+#  LOOT
+# ------------------------------------------------------------
+loot:
+  default-table: mob_horde
+  survivor-table: survivors
+  direct-to-inventory: false    # true: el loot va directo al inventario del que mata
+  require-player-kill: true
+  keep-vanilla-drops: false
+  glow-rarities: [LEGENDARIO, MITICO]   # items que brillan e ignoran lava/explosiones al caer

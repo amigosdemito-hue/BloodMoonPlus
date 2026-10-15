@@ -1,0 +1,123 @@
+LocalesVersion: "2.0.0"
+LanguageName: "Español"
+
+# ==================== General ====================
+prefix: "<dark_red><bold>🌙 Luna de Sangre</bold> <dark_gray>» <reset>"
+no-permission: "<red>No tienes permiso para esto."
+unknown-world: "<red>Ese mundo no existe o no está cargado."
+general-error: "<red>Ocurrió un error al procesar tu solicitud."
+plugin-reloaded: "<green>Configuración recargada correctamente."
+bed-not-allowed: "<red>No puedes dormir durante una Luna de Sangre."
+dying-results-inventory-loss: "<dark_red><bold>Morir durante una Luna de Sangre elimina tu inventario."
+dying-results-xp-loss: "<dark_red><bold>Morir durante una Luna de Sangre reinicia tu experiencia."
+
+# ==================== Event ====================
+event:
+  title: "<dark_red><bold>🌙 LUNA DE SANGRE"
+  subtitle: "<red>Sobrevive hasta el amanecer <gray>(x{difficulty})"
+  start: "<red>¡La Luna de Sangre ha comenzado! <gray>Dificultad <red>x{difficulty}<gray> · Duración <white>{minutes} min"
+  end: "<green>La Luna de Sangre ha terminado. ¡Llega el amanecer!"
+  stopped: "<yellow>La Luna de Sangre fue detenida."
+  bar: "<dark_red>🌙 Luna de Sangre <gray>· <white>{time} <gray>· <red>x{difficulty}"
+  summary-header: "<gold>Mejores cazadores de la noche:"
+  summary-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{kills} bajas"
+  survivors: "<green>¡Sobreviviste a la Luna de Sangre! Recibes tu recompensa."
+  horde-descending: "<dark_red><bold>⚡ ¡Una horda desciende sobre <white>{player}<dark_red>! ⚡"
+  player-died: "<dark_red>☠ <white>{player} <dark_red>cayó durante la Luna de Sangre. <gray>(<white>{cause}<gray>)"
+  mob-slain: "<gray>× <white>{player} <gray>derrotó a <red>{mob}<gray>."
+  death-cause-unknown: "<gray>la noche lo consumió"
+  wither-blocked: "<red>El Wither está vetado en este servidor. Solo el jefe de la Luna de Sangre puede aparecer."
+  survivors-header: "<gold>Supervivientes en {world}:"
+  survivors-none: "<gray>Nadie fue elegible para la recompensa de superviviente en {world}."
+  survivor-disqualified-death: "<red>Moriste y ya no puedes recibir la recompensa de supervivencia."
+  survivor-insufficient-participation: "<yellow>No participaste el tiempo suficiente para recibir la recompensa de supervivencia."
+  already-active: "<red>Ya hay un evento activo en {world}."
+  not-active: "<red>No hay evento activo en {world}."
+  cannot-stop-world: "<red>No puedes detener la Luna de Sangre en este mundo."
+  world-permanent: "<red>Este mundo permanece bajo una Luna de Sangre."
+
+# ==================== Schedule ====================
+schedule:
+  warning: "<yellow>La Luna de Sangre comenzará en <red>{min} minuto(s) <gray>(x{difficulty})<yellow>. ¡Prepárense!"
+  warning-title: "<dark_red><bold>¡La Luna de Sangre ha llegado!"
+  warning-body: "<red>La experiencia se multiplica y las criaturas otorgan botín adicional.\n<red>Las criaturas son más fuertes y aplican efectos especiales."
+
+# ==================== Boss ====================
+boss:
+  spawn: "<dark_red>☠ ¡{boss} <dark_red>ha aparecido!"
+  enraged: "<dark_red><bold>¡{boss} <dark_red><bold>ENLOQUECIÓ! <red>Se vuelve más rápido y letal."
+  killed: "<green>¡{boss} <green>ha caído! Golpe final de <white>{player}<green>."
+  top-header: "<gold>Mayor daño al jefe:"
+  top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} de daño"
+  top-reward: "<gold>Por tu daño al jefe recibes una recompensa extra."
+  disabled: "<yellow>El jefe de la Luna de Sangre está deshabilitado en este mundo."
+  spawn-failed: "<red>No se pudo generar el jefe configurado."
+  mythic-not-found: "<red>No se encontró el MythicMob '{name}' en {world}."
+  mythic-unavailable: "<red>MythicMobs no está disponible o no es compatible en {world}."
+  mythic-fallback: "<gray>Se usará el jefe vanilla de la Luna de Sangre en {world}."
+
+# ==================== Loot ====================
+loot:
+  broadcast: "<yellow>¡<white>{player} <yellow>obtuvo {item} <dark_gray>[{rarity}<dark_gray>]<yellow>!"
+
+# ==================== Items ====================
+item:
+  rarity-line: "<gray>Rareza: {rarity}"
+  serial-line: "<dark_red>Ejemplar único <white>#{serial}<gray>/{limit}"
+
+# ==================== Commands ====================
+cmd:
+  usage: "<yellow>Uso: /luna <next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload|survivors>"
+  reloaded: "<green>Configuración recargada."
+  started: "<green>Luna de Sangre iniciada en {world}."
+  stopped: "<yellow>Luna de Sangre detenida en {world}."
+  stopped-all: "<yellow>Todos los eventos fueron detenidos."
+  status-none: "<gray>No hay ninguna Luna de Sangre activa."
+  status-line: "<red>● {world} <gray>· quedan <white>{time} <gray>· dificultad <red>x{difficulty}"
+  next-line: "<gray>Próxima: <white>{when} <gray>(en {in}) · x{difficulty}"
+  next-header: "<gold>Próximas Lunas de Sangre:"
+  next-entry: "<dark_gray>- <white>{when} <gray>· en {in} · <red>x{difficulty}"
+  next-none: "<gray>No hay horarios configurados."
+  usage-difficulty: "<yellow>Uso: /luna difficulty <x3|x2|triple> [mundo]"
+  difficulty-set: "<green>Dificultad cambiada a x{difficulty}. Afecta a los mobs que aparezcan desde ahora."
+  usage-boss: "<yellow>Uso: /luna boss <id> [mundo]. Jefes: {bosses}"
+  boss-spawned: "<green>Jefe {boss} invocado."
+  boss-failed: "<red>No se pudo invocar el jefe {boss} (¿id correcto y jugadores elegibles?)."
+  horde-spawned: "<green>Oleada generada: {count} mobs."
+  killed: "<green>Se eliminaron {count} mobs de la Luna de Sangre."
+  usage-give: "<yellow>Uso: /luna give <jugador> <item> [cantidad]"
+  player-unknown: "<red>Jugador {player} no encontrado."
+  item-unknown: "<red>Item {item} no existe (usa /luna items)."
+  given: "<green>Entregado {amount}x {item} a {player}."
+  items-header: "<gold>Items disponibles:"
+  usage-chances: "<yellow>Uso: /luna chances <tabla>"
+  table-unknown: "<red>Tabla {table} no existe."
+  survivors-header: "<gold>Supervivientes elegibles en {world}:"
+  survivors-line: "<gray>- <white>{player} <gray>({seconds} participación)"
+  survivors-none: "<gray>No hay supervivientes elegibles en {world}."
+
+# ==================== Placeholders ====================
+placeholder:
+  active: "Activa"
+  inactive: "Inactiva"
+  none: "Ninguno"
+  eligible: "Elegible"
+  disqualified: "Descalificado"
+  not-participating: "No participa"
+  no-boss: "Aún no ha aparecido"
+  boss-state-none: "Sin evento activo"
+  boss-state-not-spawned: "Aún no ha aparecido"
+  boss-state-alive: "Vivo"
+  boss-state-defeated: "Derrotado"
+  boss-display-not-spawned: "<gray>Jefe: <dark_gray>Aún no ha aparecido"
+  boss-display-name: "<gray>Jefe: <red>{name}"
+  boss-display-defeated: "<gray>Jefe: <green>{name}"
+  boss-display-type: "<gray>Tipo: <white>{type}"
+  boss-display-health: "<gray>Vida: <red>{health}"
+
+# ==================== Eventos especiales (Hito 7) ====================
+special:
+  eclipse: "<dark_purple>✦ <bold>¡Un eclipse desciende sobre la Luna de Sangre!</bold> <dark_purple>✦"
+  storm: "<aqua>☂ La tormenta se desata. La Luna de Sangre se alimenta del caos."
+  fog: "<gray>🌫 Una niebla espesa envuelve a los supervivientes. <dark_gray>No ves nada."
+  silence: "<black>🔇 El silencio se apodera de todo. <dark_gray>Solo oyes tu corazón latir."

@@ -1,0 +1,123 @@
+LocalesVersion: "2.0.0"
+LanguageName: "English"
+
+# ==================== General ====================
+prefix: "<dark_red><bold>🌙 Blood Moon</bold> <dark_gray>» <reset>"
+no-permission: "<red>You don't have permission to do that."
+unknown-world: "<red>That world doesn't exist or is not loaded."
+general-error: "<red>An error occurred while processing your request."
+plugin-reloaded: "<green>Configuration reloaded successfully."
+bed-not-allowed: "<red>You cannot sleep during a Blood Moon."
+dying-results-inventory-loss: "<dark_red><bold>Dying during a Blood Moon removes your inventory."
+dying-results-xp-loss: "<dark_red><bold>Dying during a Blood Moon resets your experience."
+
+# ==================== Event ====================
+event:
+  title: "<dark_red><bold>🌙 BLOOD MOON"
+  subtitle: "<red>Survive until dawn <gray>(x{difficulty})"
+  start: "<red>The Blood Moon has begun! <gray>Difficulty <red>x{difficulty}<gray> · Duration <white>{minutes} min"
+  end: "<green>The Blood Moon has ended. Dawn is breaking!"
+  stopped: "<yellow>The Blood Moon was stopped."
+  bar: "<dark_red>🌙 Blood Moon <gray>· <white>{time} <gray>· <red>x{difficulty}"
+  summary-header: "<gold>Top hunters of the night:"
+  summary-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{kills} kills"
+  survivors: "<green>You survived the Blood Moon! You receive your reward."
+  horde-descending: "<dark_red><bold>⚡ A horde descends upon <white>{player}<dark_red>! ⚡"
+  player-died: "<dark_red>☠ <white>{player} <dark_red>fell during the Blood Moon. <gray>(<white>{cause}<gray>)"
+  mob-slain: "<gray>× <white>{player} <gray>slain a <red>{mob}<gray>."
+  death-cause-unknown: "<gray>the night consumed them"
+  wither-blocked: "<red>The Wither is banned on this server. Only the Blood Moon boss may appear."
+  survivors-header: "<gold>Blood Moon survivors in {world}:"
+  survivors-none: "<gray>No players were eligible for survivor rewards in {world}."
+  survivor-disqualified-death: "<red>You died and are no longer eligible for the survivor reward."
+  survivor-insufficient-participation: "<yellow>You did not participate long enough to receive the survivor reward."
+  already-active: "<red>There is already a Blood Moon active in {world}."
+  not-active: "<red>There is no Blood Moon active in {world}."
+  cannot-stop-world: "<red>You cannot stop the Blood Moon in this world."
+  world-permanent: "<red>This world is permanently under a Blood Moon."
+
+# ==================== Schedule ====================
+schedule:
+  warning: "<yellow>The Blood Moon will start in <red>{min} minute(s) <gray>(x{difficulty})<yellow>. Get ready!"
+  warning-title: "<dark_red><bold>The Blood Moon is upon us!"
+  warning-body: "<red>Experience is multiplied and mobs have bonus drops.\n<red>Mobs are stronger and apply special effects."
+
+# ==================== Boss ====================
+boss:
+  spawn: "<dark_red>☠ {boss} <dark_red>has appeared!"
+  enraged: "<dark_red><bold>{boss} <dark_red><bold>ENRAGED! <red>It grows faster and deadlier."
+  killed: "<green>{boss} <green>has fallen! Final blow by <white>{player}<green>."
+  top-header: "<gold>Top damage to boss:"
+  top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} damage"
+  top-reward: "<gold>For your damage to the boss you receive an extra reward."
+  disabled: "<yellow>The Blood Moon boss is disabled in this world."
+  spawn-failed: "<red>The configured Blood Moon boss could not be spawned."
+  mythic-not-found: "<red>Configured MythicMob '{name}' was not found in {world}."
+  mythic-unavailable: "<red>MythicMobs is unavailable or incompatible in {world}."
+  mythic-fallback: "<gray>Falling back to the vanilla Blood Moon boss in {world}."
+
+# ==================== Loot ====================
+loot:
+  broadcast: "<yellow><white>{player} <yellow>obtained {item} <dark_gray>[{rarity}<dark_gray>]<yellow>!"
+
+# ==================== Items ====================
+item:
+  rarity-line: "<gray>Rarity: {rarity}"
+  serial-line: "<dark_red>Unique copy <white>#{serial}<gray>/{limit}"
+
+# ==================== Commands ====================
+cmd:
+  usage: "<yellow>Usage: /luna <next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload|survivors>"
+  reloaded: "<green>Configuration reloaded."
+  started: "<green>Blood Moon started in {world}."
+  stopped: "<yellow>Blood Moon stopped in {world}."
+  stopped-all: "<yellow>All events were stopped."
+  status-none: "<gray>There is no active Blood Moon."
+  status-line: "<red>● {world} <gray>· <white>{time} <gray>left · difficulty <red>x{difficulty}"
+  next-line: "<gray>Next: <white>{when} <gray>(in {in}) · x{difficulty}"
+  next-header: "<gold>Upcoming Blood Moons:"
+  next-entry: "<dark_gray>- <white>{when} <gray>· in {in} · <red>x{difficulty}"
+  next-none: "<gray>No schedules configured."
+  usage-difficulty: "<yellow>Usage: /luna difficulty <x3|x2|triple> [world]"
+  difficulty-set: "<green>Difficulty changed to x{difficulty}. Affects mobs that spawn from now on."
+  usage-boss: "<yellow>Usage: /luna boss <id> [world]. Bosses: {bosses}"
+  boss-spawned: "<green>Boss {boss} summoned."
+  boss-failed: "<red>Could not summon boss {boss} (correct id and eligible players?)."
+  horde-spawned: "<green>Horde generated: {count} mobs."
+  killed: "<green>{count} Blood Moon mobs were removed."
+  usage-give: "<yellow>Usage: /luna give <player> <item> [amount]"
+  player-unknown: "<red>Player {player} not found."
+  item-unknown: "<red>Item {item} does not exist (use /luna items)."
+  given: "<green>Given {amount}x {item} to {player}."
+  items-header: "<gold>Available items:"
+  usage-chances: "<yellow>Usage: /luna chances <table>"
+  table-unknown: "<red>Table {table} does not exist."
+  survivors-header: "<gold>Eligible survivors in {world}:"
+  survivors-line: "<gray>- <white>{player} <gray>({seconds} participation)"
+  survivors-none: "<gray>No eligible survivors in {world}."
+
+# ==================== Placeholders ====================
+placeholder:
+  active: "Active"
+  inactive: "Inactive"
+  none: "None"
+  eligible: "Eligible"
+  disqualified: "Disqualified"
+  not-participating: "Not participating"
+  no-boss: "Not spawned yet"
+  boss-state-none: "No active event"
+  boss-state-not-spawned: "Not spawned yet"
+  boss-state-alive: "Alive"
+  boss-state-defeated: "Defeated"
+  boss-display-not-spawned: "<gray>Boss: <dark_gray>Not spawned yet"
+  boss-display-name: "<gray>Boss: <red>{name}"
+  boss-display-defeated: "<gray>Boss: <green>{name}"
+  boss-display-type: "<gray>Type: <white>{type}"
+  boss-display-health: "<gray>Health: <red>{health}"
+
+# ==================== Special events (Hito 7) ====================
+special:
+  eclipse: "<dark_purple>✦ <bold>¡Un eclipse desciende sobre la Luna de Sangre!</bold> <dark_purple>✦"
+  storm: "<aqua>☂ La tormenta se desata. La Luna de Sangre se alimenta del caos."
+  fog: "<gray>🌫 Una niebla espesa envuelve a los supervivientes. <dark_gray>No ves nada."
+  silence: "<black>🔇 El silencio se apodera de todo. <dark_gray>Solo oyes tu corazón latir."

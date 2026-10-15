@@ -1,0 +1,7 @@
+{
+  "pack": {
+    "description": "BloodMoonPlus - Bloquea el Wither (excepto el jefe de la Luna de Sangre)",
+    "min_format": [1, 0],
+    "max_format": [9999, 0]
+  }
+}

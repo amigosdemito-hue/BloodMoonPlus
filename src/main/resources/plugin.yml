@@ -1,0 +1,21 @@
+name: BloodMoonPlus
+version: '${version}'
+main: dev.bloodmoonplus.BloodMoonPlus
+api-version: '26.2'
+load: POSTWORLD
+description: Luna de Sangre con horarios fijos (hora de México), loot por rareza, items legendarios/míticos, jefes y dificultad escalable.
+authors: [BloodMoonPlus]
+softdepend: [PlaceholderAPI, Multiverse-Core, WorldGuard]
+commands:
+  luna:
+    description: Control de la Luna de Sangre
+    aliases: [lunadesangre, bm, bloodmoon]
+    permission: bloodmoon.use
+    usage: /luna <next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload>
+permissions:
+  bloodmoon.use:
+    description: Ver estado y próximos eventos
+    default: true
+  bloodmoon.admin:
+    description: Administrar la Luna de Sangre
+    default: op

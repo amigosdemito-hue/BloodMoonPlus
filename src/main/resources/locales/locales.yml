@@ -1,0 +1,7 @@
+# Selector de idioma para BloodMoonPlus 2.0
+# Cambia 'Language' a 'en' o 'es'.
+LocalesVersion: "2.0.0"
+Language: es
+# Si true, usa los archivos del JAR como base y las claves faltantes caen al inglés.
+# Si false, solo usa los archivos locales (más control, pero tú mantienes los textos).
+UseBundledLocales: true

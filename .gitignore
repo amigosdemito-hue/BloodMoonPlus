@@ -1,0 +1,29 @@
+# ===== Gradle =====
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ===== IDEs =====
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+.classpath
+.project
+.settings/
+
+# ===== Sistema =====
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ===== Servidor de pruebas local =====
+run/
+logs/
+
+# ===== Respaldos locales del servidor (NO subir nunca) =====
+backup-tab-antes-de-migrar/
+
+# ===== Binarios generados / temporales =====
+*.log
+*.class

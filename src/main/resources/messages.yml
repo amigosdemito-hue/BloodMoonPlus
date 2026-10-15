@@ -1,0 +1,60 @@
+prefix: "<dark_red><bold>🌙 Luna de Sangre</bold> <dark_gray>» <reset>"
+no-permission: "<red>No tienes permiso para esto."
+unknown-world: "<red>Ese mundo no existe o no está cargado."
+
+event:
+  title: "<dark_red><bold>🌙 LUNA DE SANGRE"
+  subtitle: "<red>Sobrevive hasta el amanecer <gray>(x{difficulty})"
+  start: "<red>¡La Luna de Sangre ha comenzado! <gray>Dificultad <red>x{difficulty}<gray> · Duración <white>{minutes} min"
+  end: "<green>La Luna de Sangre ha terminado. ¡Llega el amanecer!"
+  stopped: "<yellow>La Luna de Sangre fue detenida."
+  bar: "<dark_red>🌙 Luna de Sangre <gray>· <white>{time} <gray>· <red>x{difficulty}"
+  summary-header: "<gold>Mejores cazadores de la noche:"
+  summary-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{kills} bajas"
+  survivors: "<green>¡Sobreviviste a la Luna de Sangre! Recibes tu recompensa."
+  already-active: "<red>Ya hay un evento activo en {world}."
+  not-active: "<red>No hay evento activo en {world}."
+
+schedule:
+  warning: "<yellow>La Luna de Sangre comenzará en <red>{min} minuto(s) <gray>(x{difficulty})<yellow>. ¡Prepárense!"
+
+boss:
+  spawn: "<dark_red>☠ ¡{boss} <dark_red>ha aparecido!"
+  killed: "<green>¡{boss} <green>ha caído! Golpe final de <white>{player}<green>."
+  top-header: "<gold>Mayor daño al jefe:"
+  top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} de daño"
+  top-reward: "<gold>Por tu daño al jefe recibes una recompensa extra."
+
+loot:
+  broadcast: "<yellow>¡<white>{player} <yellow>obtuvo {item} <dark_gray>[{rarity}<dark_gray>]<yellow>!"
+
+item:
+  rarity-line: "<gray>Rareza: {rarity}"
+  serial-line: "<dark_red>Ejemplar único <white>#{serial}<gray>/{limit}"
+
+cmd:
+  usage: "<yellow>Uso: /luna <next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload>"
+  reloaded: "<green>Configuración recargada."
+  started: "<green>Luna de Sangre iniciada en {world}."
+  stopped: "<yellow>Luna de Sangre detenida en {world}."
+  stopped-all: "<yellow>Todos los eventos fueron detenidos."
+  status-none: "<gray>No hay ninguna Luna de Sangre activa."
+  status-line: "<red>● {world} <gray>· quedan <white>{time} <gray>· dificultad <red>x{difficulty}"
+  next-line: "<gray>Próxima: <white>{when} <gray>(en {in}) · x{difficulty}"
+  next-header: "<gold>Próximas Lunas de Sangre:"
+  next-entry: "<dark_gray>- <white>{when} <gray>· en {in} · <red>x{difficulty}"
+  next-none: "<gray>No hay horarios configurados."
+  usage-difficulty: "<yellow>Uso: /luna difficulty <x3|x2|triple> [mundo]"
+  difficulty-set: "<green>Dificultad cambiada a x{difficulty}. Afecta a los mobs que aparezcan desde ahora."
+  usage-boss: "<yellow>Uso: /luna boss <id> [mundo]. Jefes: {bosses}"
+  boss-spawned: "<green>Jefe {boss} invocado."
+  boss-failed: "<red>No se pudo invocar el jefe {boss} (¿id correcto y jugadores elegibles?)."
+  horde-spawned: "<green>Oleada generada: {count} mobs."
+  killed: "<green>Se eliminaron {count} mobs de la Luna de Sangre."
+  usage-give: "<yellow>Uso: /luna give <jugador> <item> [cantidad]"
+  player-unknown: "<red>Jugador {player} no encontrado."
+  item-unknown: "<red>Item {item} no existe (usa /luna items)."
+  given: "<green>Entregado {amount}x {item} a {player}."
+  items-header: "<gold>Items disponibles:"
+  usage-chances: "<yellow>Uso: /luna chances <tabla>"
+  table-unknown: "<red>Tabla {table} no existe."
