@@ -96,12 +96,11 @@ schedule:
 | Shadow Hunter | 1.0 |
 | Crimson Necromancer | 1.5 |
 | Ancestral Devastator | 1.5 |
+| Night Executioner | 1.5 |
 | Abyssal Warden | 2.0 |
 | Crimson Scourge (Wither) | 2.5 |
 
 Every boss has a health bar, **enrage** phases and its own loot table. See the project's full **README** for every drop in detail.
-
-> There is also a 9th boss template, the **Night Executioner**, which can be summoned on demand with `/luna boss verdugo_noche` (it is not part of the automatic schedule).
 
 ---
 

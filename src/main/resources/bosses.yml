@@ -182,5 +182,6 @@ spawns:
   - { boss: nigromante_carmesí, delay-seconds: 240, chance: 0.7, min-difficulty: 1.5, count: 1, scale-count: true }
   - { boss: cazador_sombras, delay-seconds: 360, chance: 0.5, min-difficulty: 1.0, count: 1, scale-count: true }
   - { boss: devastador_sangre, delay-seconds: 300, chance: 0.6, min-difficulty: 1.5, count: 1, scale-count: true }
+  - { boss: verdugo_noche, delay-seconds: 330, chance: 0.6, min-difficulty: 1.5, count: 1, scale-count: true }
   - { boss: warden_abismal, delay-seconds: 540, chance: 0.8, min-difficulty: 2.0, count: 1, scale-count: true }
   - { boss: azote_carmesi, delay-seconds: 660, chance: 0.5, min-difficulty: 2.5, count: 1, scale-count: true }

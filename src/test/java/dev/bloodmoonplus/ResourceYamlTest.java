@@ -6,8 +6,10 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -118,5 +120,35 @@ class ResourceYamlTest {
             }
         }
         assertEquals(7, slots, "Se esperaban 7 eventos semanales por defecto");
+    }
+
+    /**
+     * Valida que el roster de jefes sea coherente con la programación:
+     *  - Todo jefe listado en spawns debe existir en bosses.
+     *  - Todo jefe definido en bosses debe aparecer en spawns (ningún jefe "huérfano").
+     */
+    @Test
+    void bossesAndSpawnsAreConsistent() {
+        YamlConfiguration y = YamlConfiguration.loadConfiguration(res("bosses.yml"));
+        var bosses = y.getConfigurationSection("bosses");
+        assertNotNull(bosses, "bosses.yml: falta la sección 'bosses'");
+        Set<String> ids = new HashSet<>(bosses.getKeys(false));
+        assertFalse(ids.isEmpty(), "bosses.yml: no hay jefes definidos");
+
+        List<Map<?, ?>> spawns = y.getMapList("spawns");
+        assertFalse(spawns.isEmpty(), "bosses.yml: falta la lista 'spawns'");
+
+        Set<String> spawnIds = new HashSet<>();
+        for (Map<?, ?> s : spawns) {
+            Object boss = s.get("boss");
+            assertNotNull(boss, "Cada entrada de spawns debe tener el campo 'boss'");
+            String id = String.valueOf(boss);
+            assertTrue(ids.contains(id), "spawns referencia un jefe inexistente: " + id);
+            spawnIds.add(id);
+        }
+
+        Set<String> orphans = new HashSet<>(ids);
+        orphans.removeAll(spawnIds);
+        assertTrue(orphans.isEmpty(), "Jefes que nunca aparecen (no están en spawns): " + orphans);
     }
 }

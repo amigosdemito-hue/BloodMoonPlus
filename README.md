@@ -22,13 +22,11 @@ Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **si
 | Centinela de Hueso | 180 s | 70% | 1.0 |
 | Nigromante Carmesí | 240 s | 70% | 1.5 |
 | Devastador Ancestral | 300 s | 60% | 1.5 |
+| Verdugo de la Noche | 330 s | 60% | 1.5 |
 | Cazador de las Sombras | 360 s | 50% | 1.0 |
 | Arquera Carmesí | 420 s | 60% | 1.0 |
 | Guardián del Abismo | 540 s | 80% | 2.0 |
 | **Azote Carmesí** | 660 s | 50% | 2.5 |
-
-> `verdugo_noche` existe como jefe pero **no está en el horario por defecto**: se reserva para
-> invocaciones manuales (comandos, MythicMobs o eventos especiales).
 
 ## Resumen de los 9 jefes
 
@@ -79,7 +77,7 @@ Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **si
 - **Barra:** rosa, segmentada ×12.
 - **Habilidades:** AURA de marchitar 6 s (12 m) · SLAM (radio 8, daño 5) · invoca 3 esqueletos de la Nether cada 30 s.
 - **Fase 2 (enloquecido) al 40%** de vida: habilidades al 65% de cooldown, daño ×1.5.
-- **Aparición:** reservado (no está en el horario por defecto). **EXP:** 800.
+- **Aparición:** 330 s, 60%, dificultad mínima 1.5. **EXP:** 800.
 - **Loot:** tabla `boss_verdugo`.
 
 ### 🐗 Devastador Ancestral (`devastador_sangre`)
