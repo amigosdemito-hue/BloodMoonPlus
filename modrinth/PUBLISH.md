@@ -79,7 +79,8 @@ Hay un script que **crea el proyecto y sube la versión** de una sola pasada:
 
 ```powershell
 # 1) Crea un token en https://modrinth.com/settings/personal-access-tokens
-#    con los scopes: PROJECT_CREATE, PROJECT_READ y VERSION_CREATE.
+#    con los scopes: PROJECT_CREATE, PROJECT_READ, PROJECT_WRITE,
+#                     VERSION_CREATE y VERSION_READ.
 # 2) Guarda el token en modrinth\.token  (una sola línea; está en .gitignore)
 #    ... o expórtalo en la sesión:  $env:MODRINTH_TOKEN = "mrp_xxx"
 # 3) Ejecuta (primero en seco para ver qué hará):

@@ -8,7 +8,9 @@
 #    3) Marca estos scopes:
 #           [x] PROJECT_CREATE
 #           [x] PROJECT_READ
+#           [x] PROJECT_WRITE
 #           [x] VERSION_CREATE
+#           [x] VERSION_READ
 #    4) Copia el token (empieza por "mrp_") y pegalo ABAJO, en una
 #       linea nueva y SIN el simbolo # delante.
 #

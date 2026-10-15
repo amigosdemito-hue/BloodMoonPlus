@@ -43,7 +43,21 @@ if (-not $JarPath -or -not (Test-Path $JarPath)) {
 }
 
 $changelogFile = Join-Path $PSScriptRoot "CHANGELOG.md"
-$changelog = if (Test-Path $changelogFile) { Get-Content $changelogFile -Raw } else { "Version $VersionNumber" }
+$changelog = if (Test-Path $changelogFile) {
+    [System.IO.File]::ReadAllText($changelogFile, [System.Text.Encoding]::UTF8)
+} else { "Version $VersionNumber" }
+
+# La API exige el ID base62 del proyecto (no el slug) en project_id.
+$projectId = $ProjectSlug
+try {
+    $pr = Invoke-RestMethod -Uri "https://api.modrinth.com/v2/project/$ProjectSlug" `
+        -Headers @{ Authorization = $env:MODRINTH_TOKEN } -TimeoutSec 30
+    $projectId = $pr.id
+} catch {
+    Write-Host "No se pudo resolver el proyecto '$ProjectSlug' (revisa el slug y el token)." -ForegroundColor Red
+    throw
+}
+Write-Host "Proyecto : $ProjectSlug -> id=$projectId"
 
 $versionName = "$VersionNumber"
 
@@ -66,7 +80,7 @@ $dataJson = @{
     version_type  = $Channel
     loaders       = $Loaders
     featured      = $false
-    project_id    = $ProjectSlug
+    project_id    = $projectId
     file_parts    = @("file")
     primary_file  = "file"
 } | ConvertTo-Json -Depth 6 -Compress
@@ -97,10 +111,30 @@ if ($DryRun) {
     return
 }
 
-$resp = Invoke-RestMethod -Method Post -Uri "https://api.modrinth.com/v2/version" `
-    -Headers @{ Authorization = $env:MODRINTH_TOKEN } `
-    -ContentType "multipart/form-data; boundary=$boundary" `
-    -Body $body
+# Lee el cuerpo real de un error HTTP (PowerShell 5.1 no lo muestra por defecto)
+function Get-ApiError($err) {
+    try {
+        $resp = $err.Exception.Response
+        if ($resp) {
+            $sr = New-Object System.IO.StreamReader($resp.GetResponseStream())
+            $body = $sr.ReadToEnd()
+            if ($body) { return "HTTP $([int]$resp.StatusCode): $body" }
+        }
+    } catch { }
+    if ($err.ErrorDetails -and $err.ErrorDetails.Message) { return $err.ErrorDetails.Message }
+    return $err.Exception.Message
+}
+
+try {
+    $resp = Invoke-RestMethod -Method Post -Uri "https://api.modrinth.com/v2/version" `
+        -Headers @{ Authorization = $env:MODRINTH_TOKEN } `
+        -ContentType "multipart/form-data; boundary=$boundary" `
+        -Body $body
+} catch {
+    Write-Host "FALLO al subir la version:" -ForegroundColor Red
+    Write-Host (Get-ApiError $_)
+    throw
+}
 
 Write-Host "OK. Version publicada: $($resp.id)"
 Write-Host "URL: https://modrinth.com/plugin/$ProjectSlug/version/$VersionNumber"

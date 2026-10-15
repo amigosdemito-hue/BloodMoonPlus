@@ -11,7 +11,8 @@
 #   .\publish.ps1
 #   .\publish.ps1 -DryRun
 #
-# Scope necesario del token: PROJECT_CREATE + VERSION_CREATE (+ PROJECT_READ).
+# Scope necesario del token: PROJECT_CREATE, PROJECT_READ, PROJECT_WRITE,
+# VERSION_CREATE y VERSION_READ.
 # Se crea en https://modrinth.com/settings/personal-access-tokens
 
 param(
@@ -20,9 +21,13 @@ param(
     [string]  $VersionNumber= "",
     [string[]]$GameVersions = @("26.2", "26.3"),
     [string[]]$Loaders      = @("paper"),
+    [string[]]$Categories   = @("adventure", "mobs", "game-mechanics"),
+    [string[]]$AdditionalCategories = @("equipment"),
     [string]  $Token        = "",
     [switch]  $SkipProject,
     [switch]  $SkipVersion,
+    [switch]  $SkipSubmit,
+    [switch]  $Submit,
     [switch]  $DryRun
 )
 
@@ -48,6 +53,20 @@ if (-not $Token) {
 }
 $Headers = @{ Authorization = $Token }
 
+# Lee el cuerpo real de un error HTTP (PowerShell 5.1 no lo muestra por defecto)
+function Get-ApiError($err) {
+    try {
+        $resp = $err.Exception.Response
+        if ($resp) {
+            $sr = New-Object System.IO.StreamReader($resp.GetResponseStream())
+            $body = $sr.ReadToEnd()
+            if ($body) { return "HTTP $([int]$resp.StatusCode): $body" }
+        }
+    } catch { }
+    if ($err.ErrorDetails -and $err.ErrorDetails.Message) { return $err.ErrorDetails.Message }
+    return $err.Exception.Message
+}
+
 # ---------------------------------------------------------------- metadatos
 function Read-Utf8([string]$name, [string]$fallback = "") {
     $p = Join-Path $PSScriptRoot $name
@@ -68,7 +87,7 @@ if (-not $VersionNumber) {
     $root = Split-Path -Parent $PSScriptRoot
     $gradle = Join-Path $root "build.gradle.kts"
     if (Test-Path $gradle) {
-        $m = [regex]::Match((Get-Content $gradle -Raw), 'version\s*=\s*"([^"]+)"')
+        $m = [regex]::Match([System.IO.File]::ReadAllText($gradle, [System.Text.Encoding]::UTF8), 'version\s*=\s*"([^"]+)"')
         if ($m.Success) { $VersionNumber = $m.Groups[1].Value }
     }
     if (-not $VersionNumber) { $VersionNumber = "1.0.0" }
@@ -121,6 +140,7 @@ Write-Host "Icono    : $(Split-Path -Leaf $icon)"
 Write-Host "Resumen  : $summary"
 
 $existing = $null
+$created  = $false
 if (-not $SkipProject) {
     try {
         $existing = Invoke-RestMethod -Uri "$Api/project/$ProjectSlug" -Headers $Headers -TimeoutSec 30
@@ -134,53 +154,52 @@ if ($existing) {
 } elseif ($SkipProject) {
     Write-Host "[-SkipProject] Se omite la creacion." -ForegroundColor Yellow
 } else {
-    function New-ProjectData([bool]$withStatus) {
-        $d = @{
-            title                 = $Title
-            slug                  = $ProjectSlug
-            description           = $summary
-            body                  = $body
-            categories            = @("adventure", "mobs", "game-mechanics", "equipment")
-            additional_categories = @()
-            project_type          = "mod"
-            environment           = @("server_only")
-            source_url            = "https://github.com/amigosdemito-hue/BloodMoonPlus"
-            issues_url            = "https://github.com/amigosdemito-hue/BloodMoonPlus/issues"
-            wiki_url              = $null
-            discord_url           = $null
-            donation_urls         = @()
-        }
-        if ($withStatus) { $d.status = "approved" }
-        return $d
-    }
+    # Esquema real (apps/labrinth/src/routes/v2/project_creation.rs):
+    #   categories          -> max 3   (el resto va en additional_categories)
+    #   license_id          -> String obligatorio ("LicenseRef-All-Rights-Reserved" = ARR)
+    #   client_side/server_side -> obligatorios
+    #   license_url/is_draft/gallery_items/organization_id -> Option sin default: hay que enviarlos (null)
+    $dataJson = @{
+        title                 = $Title
+        slug                  = $ProjectSlug
+        description           = $summary
+        body                  = $body
+        categories            = $Categories
+        additional_categories = $AdditionalCategories
+        project_type          = "mod"
+        environment           = @("server_only")
+        client_side           = "unsupported"
+        server_side           = "required"
+        initial_versions      = @()
+        license_id            = "LicenseRef-All-Rights-Reserved"
+        license_url           = $null
+        is_draft              = $true
+        gallery_items         = $null
+        organization_id       = $null
+        source_url            = "https://github.com/amigosdemito-hue/BloodMoonPlus"
+        issues_url            = "https://github.com/amigosdemito-hue/BloodMoonPlus/issues"
+        wiki_url              = $null
+        discord_url           = $null
+        donation_urls         = @()
+    } | ConvertTo-Json -Depth 8 -Compress
 
-    $dataJson = (New-ProjectData $true) | ConvertTo-Json -Depth 8 -Compress
     $mp = New-MultipartBody -Fields @{ data = $dataJson } -FilePath $icon -FileField "icon" -FileContentType "image/png"
 
     if ($DryRun) {
         Write-Host "[DryRun] Crearia el proyecto ($($dataJson.Length) chars de data, peticion de $($mp.Body.Length) bytes)." -ForegroundColor Cyan
+        Write-Host "[DryRun] categories=$($Categories -join ',')  additional=$($AdditionalCategories -join ',')" -ForegroundColor Cyan
     } else {
         Write-Host "Creando proyecto..." -NoNewline
-        $proj = $null
-        foreach ($withStatus in @($true, $false)) {
-            $dj = (New-ProjectData $withStatus) | ConvertTo-Json -Depth 8 -Compress
-            $m  = New-MultipartBody -Fields @{ data = $dj } -FilePath $icon -FileField "icon" -FileContentType "image/png"
-            try {
-                $proj = Invoke-RestMethod -Method Post -Uri "$Api/project" -Headers $Headers `
-                    -ContentType "multipart/form-data; boundary=$($m.Boundary)" -Body $m.Body -TimeoutSec 90
-                break
-            } catch {
-                if ($withStatus) {
-                    Write-Host " (reintento sin 'status')" -NoNewline -ForegroundColor Yellow
-                } else {
-                    Write-Host " FALLO" -ForegroundColor Red
-                    Write-Host $_.Exception.Message
-                    if ($_.ErrorDetails.Message) { Write-Host $_.ErrorDetails.Message }
-                    throw
-                }
-            }
+        try {
+            $proj = Invoke-RestMethod -Method Post -Uri "$Api/project" -Headers $Headers `
+                -ContentType "multipart/form-data; boundary=$($mp.Boundary)" -Body $mp.Body -TimeoutSec 90
+            $created = $true
+            Write-Host " OK (id=$($proj.id), status=$($proj.status), licencia=$($proj.license.id))" -ForegroundColor Green
+        } catch {
+            Write-Host " FALLO" -ForegroundColor Red
+            Write-Host (Get-ApiError $_)
+            throw
         }
-        Write-Host " OK (id=$($proj.id), status=$($proj.status))" -ForegroundColor Green
     }
 }
 
@@ -193,6 +212,25 @@ if ($SkipVersion) {
     $env:MODRINTH_TOKEN = $Token   # upload.ps1 lo lee de la variable de entorno
     & (Join-Path $PSScriptRoot "upload.ps1") -ProjectSlug $ProjectSlug -VersionNumber $VersionNumber `
         -GameVersions $GameVersions -Loaders $Loaders
+}
+
+# ---------------------------------------------------------------- enviar a revision
+if ($DryRun) {
+    Write-Host "[DryRun] Enviaria el proyecto a revision (requested_status=approved)." -ForegroundColor Cyan
+} elseif ($SkipSubmit) {
+    Write-Host "[-SkipSubmit] El proyecto queda como BORRADOR (no se envia a revision)." -ForegroundColor Yellow
+} elseif ($created -or $Submit) {
+    Write-Host "Enviando el proyecto a revision..." -NoNewline
+    try {
+        $patchBody = @{ requested_status = "approved" } | ConvertTo-Json -Compress
+        $res = Invoke-RestMethod -Method Patch -Uri "$Api/project/$ProjectSlug" -Headers $Headers `
+            -ContentType "application/json" -Body $patchBody -TimeoutSec 60
+        Write-Host " OK (status=$($res.status), solicitado=$($res.requested_status))" -ForegroundColor Green
+    } catch {
+        Write-Host " FALLO" -ForegroundColor Red
+        Write-Host (Get-ApiError $_)
+        Write-Host "El proyecto queda como borrador. Puedes enviarlo a revision desde la web." -ForegroundColor Yellow
+    }
 }
 
 if (-not $DryRun) {
