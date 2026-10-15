@@ -48,7 +48,7 @@ Todo lo necesario para publicar el plugin ya está preparado. Sigue esta lista.
 | Campo | Valor |
 |---|---|
 | **Version number** | `1.0.0` |
-| **Name** | `1.0.0 — Primera versión pública` |
+| **Name** | `1.0.0 — First public release` |
 | **Release channel** | `Release` |
 | **Changelog** | Pegar `modrinth/CHANGELOG.md` (la sección de esta versión) |
 | **Loader(s)** | `Paper` (opcional: `Purpur`) |
