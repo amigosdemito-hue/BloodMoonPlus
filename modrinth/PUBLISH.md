@@ -72,31 +72,38 @@ Todo lo necesario para publicar el plugin ya está preparado. Sigue esta lista.
 
 ---
 
-## 4) Publicar por API (automatizado)
+## 4) Publicar por API (automatizado, todo de una vez)
 
-Hay un script listo: `modrinth/upload.ps1`.
+Hay un script que **crea el proyecto y sube la versión** de una sola pasada:
+`modrinth/publish.ps1`.
 
 ```powershell
 # 1) Crea un token en https://modrinth.com/settings/personal-access-tokens
-#    con el scope "Create versions" (y "Read projects").
-# 2) Expórtalo en la sesión:
-$env:MODRINTH_TOKEN = "mrp_XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-
-# 3) Ejecuta (ajusta la ruta del jar si hace falta):
+#    con los scopes: PROJECT_CREATE, PROJECT_READ y VERSION_CREATE.
+# 2) Guarda el token en modrinth\.token  (una sola línea; está en .gitignore)
+#    ... o expórtalo en la sesión:  $env:MODRINTH_TOKEN = "mrp_xxx"
+# 3) Ejecuta (primero en seco para ver qué hará):
 cd "C:\Users\david garcia\Desktop\BloodMoonPlus\BloodMoonPlus"
-.\modrinth\upload.ps1 -ProjectSlug "bloodmoon-plus" -VersionNumber "1.0.0" -GameVersions "26.2","26.3"
+.\modrinth\publish.ps1 -DryRun
+.\modrinth\publish.ps1
 ```
 
-> La primera vez necesitas crear el proyecto (los datos de la sección 1) por la
-> web; el script solo sirve para **subir versiones** a un proyecto existente.
+El script:
+- Crea el proyecto `bloodmoon-plus` (tipo mod/Plugin, entorno Server, icono,
+  resumen y descripción) si aún no existe.
+- Sube `BloodMoonPlus-1.0.0.jar` como versión **1.0.0** (Paper, MC 26.2/26.3).
+- Deja la licencia como **All-Rights-Reserved** (no se envía `license_id`).
+
+> Para **subir solo otra versión** a un proyecto ya existente usa
+> `modrinth\upload.ps1` (mismo token, mismos scopes).
 
 ---
 
-## 5) Enlaces del proyecto (rellenar tras crear el repo)
+## 5) Enlaces del proyecto (ya incluidos por el script)
 
-- **Source code**: `https://github.com/amigosdemito-hue/bloodmoonplus`
-- **Issues**: `https://github.com/amigosdemito-hue/bloodmoonplus/issues`
-- **Wiki / Docs**: el `README.md` del repositorio
+- **Source code**: `https://github.com/amigosdemito-hue/BloodMoonPlus`
+- **Issues**: `https://github.com/amigosdemito-hue/BloodMoonPlus/issues`
+- **Wiki / Docs**: el `README.md` / `README.en.md` del repositorio
 
 ---
 

@@ -19,7 +19,13 @@ param(
 $ErrorActionPreference = "Stop"
 
 if (-not $env:MODRINTH_TOKEN) {
-    throw "Falta la variable de entorno MODRINTH_TOKEN. Crea un token en https://modrinth.com/settings/personal-access-tokens"
+    $tokFile = Join-Path $PSScriptRoot ".token"
+    if (Test-Path $tokFile) {
+        $env:MODRINTH_TOKEN = ([System.IO.File]::ReadAllText($tokFile, [System.Text.Encoding]::UTF8)).Trim()
+    }
+}
+if (-not $env:MODRINTH_TOKEN) {
+    throw "Falta la variable de entorno MODRINTH_TOKEN (o el archivo modrinth\.token). Crea un token en https://modrinth.com/settings/personal-access-tokens"
 }
 
 $root = Split-Path -Parent $PSScriptRoot

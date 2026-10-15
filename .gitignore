@@ -27,3 +27,7 @@ backup-tab-antes-de-migrar/
 # ===== Binarios generados / temporales =====
 *.log
 *.class
+
+# ===== Secretos de publicacion (NUNCA subir) =====
+.token
+modrinth/.token
