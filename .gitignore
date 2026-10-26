@@ -32,3 +32,8 @@ backup-tab-antes-de-migrar/
 .token
 modrinth/.token
 modrinth/token.txt
+
+# ===== Archivos temporales del agente / planificador =====
+.todo-plan.json
+todo-plan.json
+plan.json

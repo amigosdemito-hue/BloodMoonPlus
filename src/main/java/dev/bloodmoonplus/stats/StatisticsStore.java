@@ -2,6 +2,7 @@ package dev.bloodmoonplus.stats;
 
 import dev.bloodmoonplus.BloodMoonPlus;
 import dev.bloodmoonplus.placeholder.HistoricalStatistics;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
@@ -10,10 +11,11 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Almacén de estadísticas históricas server-wide. Atómico: usa statistics.yml.tmp + rename.
+ * Almacén de estadísticas históricas server-wide. Thread-safe (lock) para lecturas
+ * y escrituras concurrentes, y escritura atómica con statistics.yml.tmp + rename.
  * Sin datos personales (sin UUIDs de jugadores, sin IPs, sin coordenadas).
  * Carga una vez en onEnable. Flush en eventos importantes.
  *
@@ -34,7 +36,8 @@ public final class StatisticsStore {
 
     private final BloodMoonPlus plugin;
     private final File file;
-    private final AtomicReference<HistoricalStatistics> data = new AtomicReference<>(HistoricalStatistics.empty());
+    private final ReentrantLock lock = new ReentrantLock();
+    private HistoricalStatistics data = HistoricalStatistics.empty();
 
     public StatisticsStore(BloodMoonPlus plugin) {
         this.plugin = plugin;
@@ -47,6 +50,7 @@ public final class StatisticsStore {
             saveNow();
             return;
         }
+        lock.lock();
         try {
             YamlConfiguration y = YamlConfiguration.loadConfiguration(file);
             HistoricalStatistics loaded = new HistoricalStatistics(
@@ -57,7 +61,7 @@ public final class StatisticsStore {
                     y.getLong("total_bosses_defeated", 0),
                     parseLastEvent(y.getConfigurationSection("last_event"))
             );
-            data.set(loaded);
+            data = loaded;
         } catch (Exception e) {
             // Copia corrupta: archivar y empezar limpio
             String backupName = "statistics.corrupt-" + System.currentTimeMillis() + ".yml";
@@ -66,7 +70,9 @@ public final class StatisticsStore {
                 Files.move(file.toPath(), backup.toPath());
                 plugin.getLogger().warning("statistics.yml corrupto, archivado como " + backupName);
             } catch (IOException ignored) {}
-            saveNow();
+            data = HistoricalStatistics.empty();
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -91,26 +97,31 @@ public final class StatisticsStore {
     }
 
     public void saveNow() {
-        YamlConfiguration y = new YamlConfiguration();
-        HistoricalStatistics d = data.get();
-        y.set("_version", VERSION);
-        y.set("total_events", d.totalEvents());
-        y.set("total_death_events", d.totalDeathEvents());
-        y.set("total_unique_deaths", d.totalUniqueDeaths());
-        y.set("total_bosses_spawned", d.totalBossesSpawned());
-        y.set("total_bosses_defeated", d.totalBossesDefeated());
-        var last = d.lastEvent();
-        y.set("last_event.world", last.world());
-        y.set("last_event.duration_seconds", last.durationSeconds());
-        y.set("last_event.death_count", last.deathCount());
-        y.set("last_event.unique_deaths", last.uniqueDeaths());
-        y.set("last_event.participants", last.participants());
-        y.set("last_event.survivors", last.survivors());
-        y.set("last_event.boss_name", last.bossName());
-        y.set("last_event.boss_type", last.bossType());
-        y.set("last_event.ended_at", last.endedAt() != null && !last.endedAt().equals(Instant.EPOCH)
-                ? last.endedAt().toString() : null);
-        writeAtomic(y);
+        lock.lock();
+        try {
+            YamlConfiguration y = new YamlConfiguration();
+            HistoricalStatistics d = data;
+            y.set("_version", VERSION);
+            y.set("total_events", d.totalEvents());
+            y.set("total_death_events", d.totalDeathEvents());
+            y.set("total_unique_deaths", d.totalUniqueDeaths());
+            y.set("total_bosses_spawned", d.totalBossesSpawned());
+            y.set("total_bosses_defeated", d.totalBossesDefeated());
+            var last = d.lastEvent();
+            y.set("last_event.world", last.world());
+            y.set("last_event.duration_seconds", last.durationSeconds());
+            y.set("last_event.death_count", last.deathCount());
+            y.set("last_event.unique_deaths", last.uniqueDeaths());
+            y.set("last_event.participants", last.participants());
+            y.set("last_event.survivors", last.survivors());
+            y.set("last_event.boss_name", last.bossName());
+            y.set("last_event.boss_type", last.bossType());
+            y.set("last_event.ended_at", last.endedAt() != null && !last.endedAt().equals(Instant.EPOCH)
+                    ? last.endedAt().toString() : null);
+            writeAtomic(y);
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void writeAtomic(YamlConfiguration y) {
@@ -127,45 +138,79 @@ public final class StatisticsStore {
         }
     }
 
+    private static class FileUtils {
+        static void copyDirectory(File src, File dest) throws IOException {
+            if (src == null || !src.exists()) return;
+            if (!dest.exists()) dest.mkdirs();
+            for (File child : src.listFiles()) {
+                if (child.isDirectory()) copyDirectory(child, new File(dest, child.getName()));
+                else Files.copy(child.toPath(), new File(dest, child.getName()).toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+    }
+
     // ------------ API: incrementar contadores ------------
 
     public void recordEventCompleted(long durationSec, long deaths, long uniqueDeaths,
                                      long participants, long survivors,
                                      String bossName, String bossType) {
-        data.updateAndGet(prev -> new HistoricalStatistics(
-                prev.totalEvents() + 1,
-                prev.totalDeathEvents() + deaths,
-                prev.totalUniqueDeaths() + uniqueDeaths,
-                prev.totalBossesSpawned(),
-                prev.totalBossesDefeated(),
-                new HistoricalStatistics.LastEvent(
-                        /*world*/ "", durationSec, deaths, uniqueDeaths, participants, survivors,
-                        bossName, bossType, Instant.now())
-        ));
-        saveNow();
+        lock.lock();
+        try {
+            data = new HistoricalStatistics(
+                    data.totalEvents() + 1,
+                    data.totalDeathEvents() + deaths,
+                    data.totalUniqueDeaths() + uniqueDeaths,
+                    data.totalBossesSpawned(),
+                    data.totalBossesDefeated(),
+                    new HistoricalStatistics.LastEvent(
+                            /*world*/ "", durationSec, deaths, uniqueDeaths, participants, survivors,
+                            bossName, bossType, Instant.now())
+            );
+        } finally {
+            lock.unlock();
+        }
+        // Escritura asíncrona para no bloquear el thread principal
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveNow);
     }
 
     public void recordBossSpawned() {
-        data.updateAndGet(prev -> new HistoricalStatistics(
-                prev.totalEvents(),
-                prev.totalDeathEvents(),
-                prev.totalUniqueDeaths(),
-                prev.totalBossesSpawned() + 1,
-                prev.totalBossesDefeated(),
-                prev.lastEvent()));
-        saveNow();
+        lock.lock();
+        try {
+            data = new HistoricalStatistics(
+                    data.totalEvents(),
+                    data.totalDeathEvents(),
+                    data.totalUniqueDeaths(),
+                    data.totalBossesSpawned() + 1,
+                    data.totalBossesDefeated(),
+                    data.lastEvent());
+        } finally {
+            lock.unlock();
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveNow);
     }
 
     public void recordBossDefeated() {
-        data.updateAndGet(prev -> new HistoricalStatistics(
-                prev.totalEvents(),
-                prev.totalDeathEvents(),
-                prev.totalUniqueDeaths(),
-                prev.totalBossesSpawned(),
-                prev.totalBossesDefeated() + 1,
-                prev.lastEvent()));
-        saveNow();
+        lock.lock();
+        try {
+            data = new HistoricalStatistics(
+                    data.totalEvents(),
+                    data.totalDeathEvents(),
+                    data.totalUniqueDeaths(),
+                    data.totalBossesSpawned(),
+                    data.totalBossesDefeated() + 1,
+                    data.lastEvent());
+        } finally {
+            lock.unlock();
+        }
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveNow);
     }
 
-    public HistoricalStatistics get() { return data.get(); }
+    public HistoricalStatistics get() {
+        lock.lock();
+        try {
+            return data;
+        } finally {
+            lock.unlock();
+        }
+    }
 }

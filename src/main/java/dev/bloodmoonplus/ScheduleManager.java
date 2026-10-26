@@ -230,25 +230,29 @@ public final class ScheduleManager {
         double defDiff = plugin.getConfig().getDouble("difficulty.default", 1.0);
         int defDur = plugin.getConfig().getInt("event.duration-minutes", 20);
 
+        boolean skipBecauseEmpty = skipEmpty && !Bukkit.getOnlinePlayers().isEmpty();
         for (String wn : plugin.getConfig().getStringList("worlds")) {
             World w = Bukkit.getWorld(wn);
             if (w == null) { plugin.getLogger().warning("Mundo '" + wn + "' no está cargado."); continue; }
             if (plugin.events().isActive(w)) continue;
-            if (skipEmpty && w.getPlayers().isEmpty()) {
+            if (skipBecauseEmpty && w.getPlayers().isEmpty()) {
                 plugin.getLogger().info("Evento omitido en '" + wn + "': no hay jugadores.");
                 continue;
             }
             plugin.events().start(w, defDiff, Math.max(1, defDur));
-            plugin.getLogger().info("Evento interval disparado en '" + wn + "' (cada " + intervalHours + "h)");
+        }
+        if (plugin.events().hasGlobalSession()) {
+            plugin.getLogger().info("Evento interval disparado globalmente (cada " + intervalHours + "h)");
         }
     }
 
     private void fire(Slot slot) {
+        boolean skipBecauseEmpty = slot.worlds().isEmpty() && skipEmpty && !Bukkit.getOnlinePlayers().isEmpty();
         for (String wn : worldsFor(slot)) {
             World w = Bukkit.getWorld(wn);
             if (w == null) { plugin.getLogger().warning("Mundo '" + wn + "' no está cargado."); continue; }
             if (plugin.events().isActive(w)) continue;
-            if (skipEmpty && w.getPlayers().isEmpty()) {
+            if (skipBecauseEmpty && w.getPlayers().isEmpty()) {
                 plugin.getLogger().info("Evento omitido en '" + wn + "': no hay jugadores.");
                 continue;
             }

@@ -1,1 +1,1 @@
-Blood Moon event plugin for Paper: fixed schedules (Mexico time), 9 bosses, 45 items by rarity, enchantments up to level 7, progressive waves, PlaceholderAPI support and full immersion. Optimized for 40+ players.
+Blood Moon event plugin for Paper: fixed schedules (Mexico time), 9 bosses, 45 items by rarity, enchantments up to level 7, progressive waves, PlaceholderAPI support, full immersion and rare loot delivered to inventory. Optimized for 40+ players.

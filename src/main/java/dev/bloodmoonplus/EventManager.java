@@ -70,10 +70,11 @@ public final class EventManager {
     private static final int[] DY = {0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8};
 
     private final BloodMoonPlus plugin;
-    private final Map<String, Session> sessions = new LinkedHashMap<>();
+    private Session globalSession;
     private final List<MobDef> mobs = new ArrayList<>();
 
     private boolean hordeEnabled;
+    private boolean skipEmpty = true;
     private double waveInterval, minDist, maxDist, firstWaveDelay;
     /** Tope de la progresión de oleadas (1ª=5, 2ª=10, 3ª=15... hasta este valor). */
     private int waveMaxSize = 30;
@@ -120,7 +121,10 @@ public final class EventManager {
         maxMult = c.getDouble("difficulty.max", 10);
         survivorTable = c.getString("loot.survivor-table", "survivors");
         defaultTable = c.getString("loot.default-table", "mob_horde");
+        // Enforce: si no hay players online en el mundo del evento, no generamos la horda
+        skipEmpty = c.getBoolean("schedule.skip-if-no-players", true);
         keepVanilla = c.getBoolean("loot.keep-vanilla-drops", false);
+        if (!c.contains("loot.keep-vanilla-drops")) keepVanilla = false;
 
         mobs.clear();
         for (Map<?, ?> m : c.getMapList("horde.mobs")) {
@@ -167,11 +171,13 @@ public final class EventManager {
     /** Si true, las explosiones de los mobs de la horda no rompen bloques (el jefe sí puede). */
     public boolean protectTerrain() { return protectTerrain; }
 
-    public Session session(World w) { return w == null ? null : sessions.get(w.getName()); }
+    public Session session(World w) { return globalSession; }
 
-    public boolean isActive(World w) { return session(w) != null; }
+    public boolean isActive(World w) { return globalSession != null; }
 
-    public Collection<Session> sessions() { return sessions.values(); }
+    public Session globalSession() { return globalSession; }
+
+    public boolean hasGlobalSession() { return globalSession != null; }
 
     // ------------------------------------------------------------------ inicio / fin
 
@@ -181,19 +187,18 @@ public final class EventManager {
     }
 
     private boolean startInternal(World w, double diff, long startMs, long endMs, boolean resumed) {
-        if (sessions.containsKey(w.getName())) return false;
+        if (globalSession != null) return false;
         diff = Math.max(0.1, Math.min(maxMult, diff));
-        Session s = new Session(w, startMs, endMs, diff);
-        s.lastWaveMs = System.currentTimeMillis() - (long) (waveInterval * 1000) + (long) (firstWaveDelay * 1000);
-        sessions.put(w.getName(), s);
-        plugin.data().saveActive(w.getName(), startMs, endMs, diff);
+        globalSession = new Session(w, startMs, endMs, diff);
+        globalSession.lastWaveMs = System.currentTimeMillis() - (long) (waveInterval * 1000) + (long) (firstWaveDelay * 1000);
+        plugin.data().saveActive("global", startMs, endMs, diff);
 
         if (lockNight) w.setTime(nightTime);
         if (clearWeather) { w.setStorm(false); w.setThundering(false); }
 
         // En Pacífico no se pueden spawnear monstruos: se sube la dificultad durante el evento
         if (forceDifficulty && w.getDifficulty() == Difficulty.PEACEFUL) {
-            s.originalDifficulty = Difficulty.PEACEFUL;
+            globalSession.originalDifficulty = Difficulty.PEACEFUL;
             w.setDifficulty(Difficulty.EASY);
             plugin.getLogger().info("Dificultad de '" + w.getName() + "' subida a EASY durante el evento (estaba en Pacífico).");
         }
@@ -223,19 +228,20 @@ public final class EventManager {
             plugin.messages().all("event.start", "difficulty", d, "minutes", String.valueOf(minutes));
             runCommands(cmdStart, w, null);
         }
-        plugin.bosses().plan(s, resumed);
+        plugin.bosses().plan(globalSession, resumed);
         return true;
     }
 
     public boolean stop(World w, boolean natural) {
-        Session s = sessions.remove(w.getName());
+        Session s = globalSession;
         if (s == null) return false;
-        plugin.data().clearActive(w.getName());
+        globalSession = null;
+        plugin.data().clearActive("global");
         for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(s.bar);
-        plugin.bosses().removeAll(w);
-        if (removeOnEnd) removeTagged(w);
-        if (lockNight) w.setTime(endTime);
-        restoreDifficulty(w, s);
+        plugin.bosses().removeAll(s.world);
+        if (removeOnEnd) removeTagged(s.world);
+        if (lockNight) s.world.setTime(endTime);
+        restoreDifficulty(s.world, s);
 
         // Estadísticas históricas (solo si fue un evento completo, no un crash)
         if (natural) {
@@ -255,7 +261,7 @@ public final class EventManager {
         List<Player> survivors = new ArrayList<>();
         for (UUID id : s.participants) {
             Player p = Bukkit.getPlayer(id);
-            if (p != null && p.isOnline() && p.getWorld().equals(w) && !s.died.contains(id)) survivors.add(p);
+            if (p != null && p.isOnline() && p.getWorld().equals(s.world) && !s.died.contains(id)) survivors.add(p);
         }
         if (natural || rewardOnStop) {
             // Primero el sistema de recompensas granular del SurvivorManager (deshabilitado por default en WorldConfig)
@@ -264,18 +270,18 @@ public final class EventManager {
             if (!eligible.isEmpty()) giveSurvivorRewards(s, eligible);
         }
 
-        plugin.messages().world(w, natural ? "event.end" : "event.stopped");
+        plugin.messages().world(s.world, natural ? "event.end" : "event.stopped");
         if (!s.kills.isEmpty()) {
             List<Map.Entry<UUID, Integer>> top = new ArrayList<>(s.kills.entrySet());
             top.sort((a, b) -> b.getValue() - a.getValue());
-            plugin.messages().world(w, "event.summary-header");
+            plugin.messages().world(s.world, "event.summary-header");
             for (int i = 0; i < Math.min(3, top.size()); i++) {
                 String name = Bukkit.getOfflinePlayer(top.get(i).getKey()).getName();
-                plugin.messages().world(w, "event.summary-line", "pos", String.valueOf(i + 1),
+                plugin.messages().world(s.world, "event.summary-line", "pos", String.valueOf(i + 1),
                         "player", name == null ? "?" : name, "kills", String.valueOf(top.get(i).getValue()));
             }
         }
-        runCommands(cmdEnd, w, null);
+        runCommands(cmdEnd, s.world, null);
         return true;
     }
 
@@ -311,18 +317,19 @@ public final class EventManager {
         }
         for (String wn : plugin.getConfig().getStringList("worlds")) {
             World w = Bukkit.getWorld(wn);
-            if (w != null && !sessions.containsKey(wn)) removeTagged(w);
+            if (w != null && globalSession == null) removeTagged(w);
         }
     }
 
     /** Apagado del servidor: limpia mobs y barras pero conserva el estado para retomar. */
     public void shutdown() {
-        for (Session s : new ArrayList<>(sessions.values())) {
-            for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(s.bar);
-            plugin.bosses().removeAll(s.world);
-            removeTagged(s.world);
+        Session global = globalSession;
+        if (global != null) {
+            for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(global.bar);
+            plugin.bosses().removeAll(global.world);
+            removeTagged(global.world);
         }
-        sessions.clear();
+        globalSession = null;
     }
 
     /** Restaura la dificultad original del mundo si fue forzada por el evento. */
@@ -336,59 +343,58 @@ public final class EventManager {
 
     public void tick() {
         long now = System.currentTimeMillis();
-        for (Session s : new ArrayList<>(sessions.values())) {
-            World w = s.world;
-            if (Bukkit.getWorld(w.getName()) == null) { sessions.remove(w.getName()); continue; }
-            if (now >= s.endMs) { stop(w, true); continue; }
+        Session global = globalSession;
+        if (global == null) return;
+        World w = global.world;
+        if (Bukkit.getWorld(w.getName()) == null) { globalSession = null; return; }
+        if (now >= global.endMs) { stop(w, true); return; }
 
-            for (Player p : w.getPlayers()) {
-                if (p.getGameMode() == GameMode.SURVIVAL || p.getGameMode() == GameMode.ADVENTURE) s.participants.add(p.getUniqueId());
-            }
-            updateBar(s, now);
-            if (lockNight) w.setTime(nightTime);
-            // Sin lluvia pero con truenos: clima tormentoso seco para ambiente cinematográfico
-            if (w.hasStorm()) w.setStorm(false);
-            if (!w.isThundering()) w.setThundering(true);
-            // Truenos ambientales aleatorios cada 20-40 segundos (distintos del rayo de spawn)
-            if (now - s.lastAmbientThunderMs > 20_000L + ThreadLocalRandom.current().nextInt(20_000)) {
-                s.lastAmbientThunderMs = now;
-                // Trueno ambiental: sonido a un jugador aleatorio (no rayo visual)
-                if (!w.getPlayers().isEmpty()) {
-                    Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
-                    rp.playSound(rp.getLocation(), org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.5f, 0.4f);
-                }
-            }
-            // Sonidos ambientales periódicos: viento + heartbeat de warden lejano
-            if (now / 1000 % 15 == 0) {
-                for (Player p : w.getPlayers()) {
-                    p.playSound(p.getLocation(), org.bukkit.Sound.AMBIENT_CAVE, 0.4f, 0.5f);
-                }
-            }
-            if (now / 1000 % 25 == 5) {
-                if (!w.getPlayers().isEmpty()) {
-                    Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
-                    rp.playSound(rp.getLocation(), org.bukkit.Sound.ENTITY_WARDEN_HEARTBEAT, 0.3f, 0.8f);
-                }
-            }
-            // Niebla roja continua: partículas cada 2 segundos (alternando ticks)
-            if (now / 1000 % 2 == 0) {
-                for (Player p : w.getPlayers()) {
-                    w.spawnParticle(org.bukkit.Particle.DUST, p.getLocation().add(0, 0.5, 0), 8, 0.8, 0.4, 0.8, 0.02,
-                            new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(140, 0, 0), 1.0f));
-                    if (!p.hasPotionEffect(org.bukkit.potion.PotionEffectType.GLOWING)) {
-                        p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.GLOWING, 20 * 5, 0, false, false));
-                    }
-                }
-            }
-
-            double interval = Math.max(3, waveInterval / plugin.scaled(s.difficulty, "spawn-speed"));
-            if (now - s.lastWaveMs >= interval * 1000) {
-                s.lastWaveMs = now;
-                spawnWave(s);
-            }
-            plugin.bosses().tickSpawns(s, now);
-            tickSpecialEvent(s, now);
+        for (Player p : w.getPlayers()) {
+            if (p.getGameMode() == GameMode.SURVIVAL || p.getGameMode() == GameMode.ADVENTURE) global.participants.add(p.getUniqueId());
         }
+        updateBar(global, now);
+        if (lockNight) w.setTime(nightTime);
+        // Ambiente cinematográfico reducido para servidores con mods y muchos jugadores:
+        // se mantiene el ambiente pero se van los truenos/sonidos muy frecuentes y la niebla constante.
+        if (w.hasStorm()) w.setStorm(false);
+        if (!w.isThundering()) w.setThundering(true);
+        if (now - global.lastAmbientThunderMs > 40_000L + ThreadLocalRandom.current().nextInt(30_000)) {
+            global.lastAmbientThunderMs = now;
+            if (!w.getPlayers().isEmpty()) {
+                Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
+                rp.playSound(rp.getLocation(), org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.4f, 0.35f);
+            }
+        }
+        if (now / 1000 % 30 == 0) {
+            if (!w.getPlayers().isEmpty()) {
+                Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
+                rp.playSound(rp.getLocation(), org.bukkit.Sound.AMBIENT_CAVE, 0.35f, 0.45f);
+            }
+        }
+        if (now / 1000 % 40 == 10) {
+            if (!w.getPlayers().isEmpty()) {
+                Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
+                rp.playSound(rp.getLocation(), org.bukkit.Sound.ENTITY_WARDEN_HEARTBEAT, 0.25f, 0.7f);
+            }
+        }
+        // Niebla roja ligera cada 4 segundos en lugar de cada 2, y solo glow puntual.
+        if (now / 1000 % 4 == 0) {
+            for (Player p : w.getPlayers()) {
+                w.spawnParticle(org.bukkit.Particle.DUST, p.getLocation().add(0, 0.5, 0), 6, 0.7, 0.35, 0.7, 0.02,
+                        new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(140, 0, 0), 0.9f));
+                if (!p.hasPotionEffect(org.bukkit.potion.PotionEffectType.GLOWING)) {
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.GLOWING, 20 * 10, 0, false, false));
+                }
+            }
+        }
+
+        double interval = Math.max(4, waveInterval / plugin.scaled(global.difficulty, "spawn-speed"));
+        if (now - global.lastWaveMs >= interval * 1000) {
+            global.lastWaveMs = now;
+            spawnWave(global);
+        }
+        plugin.bosses().tickSpawns(global, now);
+        tickSpecialEvent(global, now);
     }
 
     private long lastSpecialEventMs = 0;
@@ -449,8 +455,6 @@ public final class EventManager {
         float prog = (float) Math.max(0, Math.min(1, rem / (double) Math.max(1, s.endMs - s.startMs)));
         s.bar.progress(prog);
         s.bar.name(plugin.messages().get("event.bar", "time", Util.dur(rem / 1000), "difficulty", Util.fmt(s.difficulty)));
-        // Solo a los jugadores del mundo del evento (antes recorría TODOS los online cada segundo).
-        // Al cambiar de mundo la barra se oculta en EventListener#onWorldChange.
         for (Player p : s.world.getPlayers()) p.showBossBar(s.bar);
     }
 
@@ -469,8 +473,17 @@ public final class EventManager {
         return c >= reqPieces;
     }
 
+    /** Verifica si hay al menos un jugador elegible en el mundo del evento. */
+    boolean hasEligiblePlayers(Session s) {
+        for (Player p : s.world.getPlayers()) {
+            if (eligible(p, s)) return true;
+        }
+        return false;
+    }
+
     public int spawnWave(Session s) {
         if (!hordeEnabled || mobs.isEmpty()) return 0;
+        if (!hasEligiblePlayers(s)) return 0;
         World w = s.world;
 
         double sizeScale = plugin.scaled(s.difficulty, "horde-size");
@@ -478,9 +491,20 @@ public final class EventManager {
         s.waveCount++;
         int dynamicBase = Math.min(waveMaxSize, baseSize * s.waveCount);
         int perWave = Math.max(1, (int) Math.round(dynamicBase * sizeScale));
-        int cap = Math.max(1, (int) Math.round(maxPerPlayer * sizeScale * (1 + s.waveCount * 0.15)));
+        // Con muchos jugadores o muchos mobs ya vivos, bajamos el tope de la oleada para evitar
+        // que el mundo se sature rápido (llegada de mods + 20 jugadores + muchos mods spawneando).
+        int nearGlobal = 0;
+        for (Player p : w.getPlayers()) {
+            if (!eligible(p, s)) continue;
+            for (Entity e : p.getNearbyEntities(48, 48, 48)) {
+                if (e instanceof LivingEntity le && isTagged(le)) { nearGlobal++; break; }
+            }
+        }
+        int playerCount = (int) w.getPlayers().stream().filter(p -> eligible(p, s)).count();
+        int saturation = Math.min(100, nearGlobal / Math.max(1, playerCount) + (playerCount * 6));
+        int cap = Math.max(1, (int) Math.round(maxPerPlayer * sizeScale * (1 + s.waveCount * 0.15)
+                * (100 - Math.min(40, saturation)) / 100.0));
         int spawned = 0;
-        int lightningPoints = 0;
         for (Player p : w.getPlayers()) {
             if (!eligible(p, s)) continue;
             int near = 0;
@@ -505,11 +529,15 @@ public final class EventManager {
             for (int i = 0; i < amount; i++) {
                 Location loc = findSpawn(p.getLocation(), minDist, maxDist);
                 if (loc == null) continue;
-                // Cada 3er mob va precedido de un rayo visual para inmersión
-                if (i % 3 == 0) {
-                    w.strikeLightningEffect(loc);
-                    w.spawnParticle(org.bukkit.Particle.DUST, loc.add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.05,
-                            new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
+                // Escalera visual moderada: cada 5 mobes en lugar de cada 3, para no saturan el mundo
+                // con rayos y partículas cuando ya hay mods y 20 jugadores.
+                if (i % 5 == 0) {
+                    Location spot = findSpawn(p.getLocation(), minDist, maxDist);
+                    if (spot != null) {
+                        w.strikeLightningEffect(spot);
+                        w.spawnParticle(org.bukkit.Particle.DUST, spot.add(0, 1, 0), 10, 0.3, 0.4, 0.3, 0.05,
+                                new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.2f));
+                    }
                 }
                 MobDef d = Util.pick(mobs, MobDef::weight);
                 if (d == null) continue;

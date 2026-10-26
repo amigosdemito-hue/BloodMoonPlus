@@ -200,6 +200,14 @@ public final class LootManager {
         for (ItemStack l : left.values()) dropAt(p.getLocation(), l);
     }
 
+    /** Raridades que deben ir directo al inventario, no suelta al suelo. */
+    public boolean directToInventory(String rarity) {
+        return Util.key(rarity).equalsIgnoreCase(Util.key("RARO"))
+                || Util.key(rarity).equalsIgnoreCase(Util.key("EPICO"))
+                || Util.key(rarity).equalsIgnoreCase(Util.key("LEGENDARIO"))
+                || Util.key(rarity).equalsIgnoreCase(Util.key("MITICO"));
+    }
+
     /** Suelta el item; los de rarezas altas brillan y no se destruyen. */
     public void dropAt(Location loc, ItemStack it) {
         Item drop = loc.getWorld().dropItemNaturally(loc, it);

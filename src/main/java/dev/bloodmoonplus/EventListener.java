@@ -67,15 +67,26 @@ public final class EventListener implements Listener {
      * (creepers, ghasts, etc.) no rompen bloques, PERO el jefe de la Luna SÍ
      * conserva el comportamiento vanilla (rompe bloques con sus calaveras y su
      * explosión a media vida). Se puede desactivar con event.protect-terrain: false.
+     *
+     * Además de permitir al jefe, permitimos las explosiones originadas por
+     * sus calaveras (Wither skulls) y sus proyectiles, ya que son parte de
+     * las habilidades del jefe autorizadas a romper terreno.
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMobExplode(EntityExplodeEvent e) {
         if (!plugin.events().protectTerrain()) return;
         World w = e.getLocation().getWorld();
         if (w == null || !plugin.events().isActive(w)) return;
-        Entity src = source(e.getEntity());
+        Entity ent = e.getEntity();
+        Entity src = source(ent);
         if (plugin.bosses().isBoss(src)) return; // el jefe rompe bloques, como el vanilla
-        if (src instanceof LivingEntity) {
+        if (ent instanceof org.bukkit.entity.WitherSkull ws && ws.getShooter() instanceof LivingEntity shooter) {
+            // Una calavera disparada por el jefe puede romper bloques
+            if (plugin.bosses().isBoss(shooter)) return;
+        }
+        if (src instanceof LivingEntity le) {
+            // Si el origen es el propio jefe o su proyectil, permitimos romper bloques
+            if (plugin.bosses().isBoss(src)) return;
             e.blockList().clear();
             e.setYield(0f);
         }
@@ -113,8 +124,15 @@ public final class EventListener implements Listener {
 
         List<ItemStack> loot = plugin.loot().roll(table, killer, diff, true);
         Location loc = ent.getLocation();
-        boolean direct = killer != null && plugin.getConfig().getBoolean("loot.direct-to-inventory", false);
+        boolean directAll = killer != null && plugin.getConfig().getBoolean("loot.direct-to-inventory", false);
         for (ItemStack it : loot) {
+            boolean direct = directAll || killer != null;
+            if (!direct) {
+                String rarity = it.getItemMeta() != null
+                        ? it.getItemMeta().getPersistentDataContainer().get(Keys.ITEM_RARITY, PersistentDataType.STRING)
+                        : null;
+                direct = plugin.loot().directToInventory(rarity);
+            }
             if (direct) plugin.loot().giveOrDrop(killer, it);
             else plugin.loot().dropAt(loc, it);
         }
@@ -156,6 +174,7 @@ public final class EventListener implements Listener {
     public void onPlayerRespawn(org.bukkit.event.player.PlayerRespawnEvent e) {
         EventManager.Session s = plugin.events().session(e.getPlayer().getWorld());
         if (s != null) s.dead.remove(e.getPlayer().getUniqueId());
+        plugin.abilities().cleanStalePassives(e.getPlayer());
     }
 
     /** Al cambiar de mundo, oculta la barra del evento del que se aleja (evita recorrer

@@ -536,7 +536,17 @@ public final class BossManager {
 
         Location loc = ent.getLocation();
         if (bi.def.lootTable() != null) {
-            for (ItemStack it : plugin.loot().roll(bi.def.lootTable(), killer, bi.diff, false)) plugin.loot().dropAt(loc, it);
+            for (ItemStack it : plugin.loot().roll(bi.def.lootTable(), killer, bi.diff, false)) {
+                boolean direct = killer != null;
+                if (!direct) {
+                    String rarity = it.getItemMeta() != null
+                            ? it.getItemMeta().getPersistentDataContainer().get(Keys.ITEM_RARITY, PersistentDataType.STRING)
+                            : null;
+                    direct = plugin.loot().directToInventory(rarity);
+                }
+                if (direct) plugin.loot().giveOrDrop(killer, it);
+                else plugin.loot().dropAt(loc, it);
+            }
         }
         plugin.messages().world(ent.getWorld(), "boss.killed", "boss", bi.def.name(),
                 "player", killer != null ? killer.getName() : "?");

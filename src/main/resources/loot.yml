@@ -45,7 +45,7 @@ tables:
   # Tabla base de la horda (cada mob muerto por un jugador)
   # drop-chance por item: los simples caen siempre (1.0), los rotos son muy raros (como una oveja rosa)
   mob_horde:
-    drop-chance: 0.10
+    drop-chance: 0.60
     rolls: 1-2
     rarity-weights: { COMUN: 600, POCO_COMUN: 260, RARO: 110, EPICO: 32, LEGENDARIO: 5, MITICO: 0.5 }
     entries:
@@ -53,41 +53,41 @@ tables:
       - { item: carne, weight: 40, amount: "3-8", drop-chance: 1.0 }
       - { item: flechas, weight: 30, amount: "6-16", drop-chance: 1.0 }
       - { item: polvora, weight: 30, amount: "2-6", drop-chance: 1.0 }
-      - { item: hierro, weight: 25, amount: "2-5", drop-chance: 1.0 }
-      - { item: hueso, weight: 25, amount: "2-6", drop-chance: 1.0 }
-      - { item: cuerda, weight: 20, amount: "1-4", drop-chance: 1.0 }
+      - { item: hierro, weight: 25, amount: "3-7", drop-chance: 1.0 }
+      - { item: hueso, weight: 25, amount: "3-7", drop-chance: 1.0 }
+      - { item: cuerda, weight: 20, amount: "2-5", drop-chance: 1.0 }
       # Poco comunes: casi siempre
-      - { item: oro, weight: 30, amount: "2-4", drop-chance: 0.9 }
-      - { item: manzana_dorada, weight: 20, amount: "1", drop-chance: 0.85 }
-      - { item: botella_xp, weight: 30, amount: "3-9", drop-chance: 0.85 }
-      - { item: ojo_ender, weight: 15, amount: "1-2", drop-chance: 0.7 }
-      - { item: obsidiana, weight: 15, amount: "1-3", drop-chance: 0.6 }
-      # Raros: materiales comunes ~50%, ARMAS rotas al 5%
-      - { item: diamante, weight: 40, amount: "1-3", drop-chance: 0.5 }
-      - { item: perla_ender, weight: 30, amount: "1-2", drop-chance: 0.45 }
+      - { item: oro, weight: 30, amount: "2-5", drop-chance: 0.95 }
+      - { item: manzana_dorada, weight: 20, amount: "1", drop-chance: 0.9 }
+      - { item: botella_xp, weight: 30, amount: "3-9", drop-chance: 0.9 }
+      - { item: ojo_ender, weight: 15, amount: "1-2", drop-chance: 0.75 }
+      - { item: obsidiana, weight: 15, amount: "1-3", drop-chance: 0.65 }
+      # Raros: materiales comunes más frecuentes; armas rotas siguen al 5%
+      - { item: diamante, weight: 40, amount: "1-3", drop-chance: 0.55 }
+      - { item: perla_ender, weight: 30, amount: "1-2", drop-chance: 0.5 }
       - { item: espada_sanguinaria, weight: 15, drop-chance: 0.05 }
       - { item: arco_carmesi, weight: 15, drop-chance: 0.05 }
       - { item: daga_sombras, weight: 14, drop-chance: 0.05 }
       - { item: arco_tormenta, weight: 14, drop-chance: 0.05 }
-      - { item: pico_umbrial, weight: 12, drop-chance: 0.25 }
-      # Épicos: baja probabilidad
-      - { item: manzana_encantada, weight: 20, drop-chance: 0.2 }
-      - { item: totem, weight: 30, drop-chance: 0.15 }
-      - { item: fragmento_netherita, weight: 30, amount: "1-2", drop-chance: 0.18 }
-      - { item: hacha_verdugo, weight: 10, drop-chance: 0.12 }
-      - { item: casco_cazador, weight: 10, drop-chance: 0.1 }
-      - { item: peto_cazador, weight: 10, drop-chance: 0.1 }
-      - { item: pantalon_cazador, weight: 10, drop-chance: 0.1 }
-      - { item: botas_cazador, weight: 10, drop-chance: 0.1 }
-      - { item: espada_ruina, weight: 12, drop-chance: 0.14 }
-      - { item: ballesta_abismo, weight: 10, drop-chance: 0.12 }
-      - { item: botas_estrondo, weight: 10, drop-chance: 0.1 }
-      - { item: hacha_ventisca, weight: 11, drop-chance: 0.12 }
+      - { item: pico_umbrial, weight: 12, drop-chance: 0.3 }
+      # Épicos: más frecuentes, totem y netherita mucho más probables
+      - { item: manzana_encantada, weight: 20, drop-chance: 0.25 }
+      - { item: totem, weight: 30, amount: "1", drop-chance: 0.45 }
+      - { item: fragmento_netherita, weight: 30, amount: "1-2", drop-chance: 0.4 }
+      - { item: hacha_verdugo, weight: 10, drop-chance: 0.15 }
+      - { item: casco_cazador, weight: 10, drop-chance: 0.12 }
+      - { item: peto_cazador, weight: 10, drop-chance: 0.12 }
+      - { item: pantalon_cazador, weight: 10, drop-chance: 0.12 }
+      - { item: botas_cazador, weight: 10, drop-chance: 0.12 }
+      - { item: espada_ruina, weight: 12, drop-chance: 0.16 }
+      - { item: ballesta_abismo, weight: 10, drop-chance: 0.15 }
+      - { item: botas_estrondo, weight: 10, drop-chance: 0.12 }
+      - { item: hacha_ventisca, weight: 11, drop-chance: 0.15 }
       # Legendarios: muy raros (armas al 5%)
-      - { item: colmillo_vampirico, weight: 20, drop-chance: 0.05 }
-      - { item: arco_lunar, weight: 20, drop-chance: 0.05 }
-      - { item: botas_noctambulo, weight: 20, drop-chance: 0.05 }
-      - { item: escudo_espinas, weight: 20, drop-chance: 0.04 }
+      - { item: colmillo_vampirico, weight: 20, drop-chance: 0.06 }
+      - { item: arco_lunar, weight: 20, drop-chance: 0.06 }
+      - { item: botas_noctambulo, weight: 20, drop-chance: 0.06 }
+      - { item: escudo_espinas, weight: 20, drop-chance: 0.05 }
       - { item: martillo_trueno, weight: 18, drop-chance: 0.05 }
       - { item: peto_guardian, weight: 18, drop-chance: 0.045 }
       - { item: ballesta_dorada, weight: 18, drop-chance: 0.05 }

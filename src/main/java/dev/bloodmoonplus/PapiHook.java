@@ -52,14 +52,8 @@ public final class PapiHook extends PlaceholderExpansion {
         String worldName = null;
         if (player instanceof Player p2) worldName = p2.getWorld().getName();
         SessionPlaceholderState session = null;
-        if (worldName != null) session = plugin.snapshots().sessionFor(worldName);
-        if (session == null) {
-            // fallback: primera sesión disponible
-            for (var s : plugin.events().sessions()) {
-                session = plugin.snapshots().sessionFor(s.world.getName());
-                if (session != null) break;
-            }
-        }
+        var global = plugin.events().globalSession();
+        if (global != null) session = plugin.snapshots().sessionFor(global.world.getName());
         boolean active = session != null;
         PlayerPlaceholderState playerState = (player != null && player.isOnline())
                 ? plugin.snapshots().playerFor(player.getUniqueId())
@@ -162,12 +156,20 @@ public final class PapiHook extends PlaceholderExpansion {
             }
             case "bosses_defeated_session" -> {
                 long n = 0;
-                for (var s : plugin.events().sessions()) n += s.kills.size() > 0 ? countDefeatedBosses() : 0;
+                if (global != null && global.kills.size() > 0) n = countDefeatedBosses();
                 yield String.valueOf(n);
             }
             case "horde" -> switch (sub) {
                 case "active" -> String.valueOf(active);
-                case "count" -> String.valueOf(active ? session.participantsCurrent() * 8 : 0); // aprox
+                case "count" -> {
+                    if (!active) { yield "0"; }
+                    // Conteo aproximado de mobs de la horda vivos en el mundo del evento.
+                    // No hacemos un recorrido completo porque puede ser muy costoso con
+                    // muchos jugadores/mobs. El valor es conservador: part. * 8 como
+                    // estimación superior de mobs activos por jugador.
+                    long approx = Math.max(0, session.participantsCurrent() * 8);
+                    yield String.valueOf(approx);
+                }
                 default -> null;
             };
             case "abilities" -> sub.equals("count") && player instanceof Player pp

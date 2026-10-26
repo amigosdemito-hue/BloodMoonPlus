@@ -44,3 +44,45 @@ beyond *BloodMoon-Reborn 1.1.1*.
 
 ### Compatibility
 - Paper **26.2** and **26.3**. Built with Java 25.
+
+## [1.2.0] — Stability, loot delivery and lighter spawns
+
+A stability and gameplay-feel release aimed at modded servers with 20 players, with
+compilation errors fixed and a better experience for rare drops.
+
+### Fixed
+- Fixed outstanding compilation errors in `Keys`, `DataStore`, `EventManager` and
+  `BloodMoonPlus`, including the `cfg` field that prevented reloading `data.yml` in memory.
+- Fixed the case where a rare item missing rarity metadata could still be left on the ground
+  instead of being delivered to the player.
+
+### Added
+- **Direct inventory delivery for rare-or-higher loot**: RARE, EPIC, LEGENDARY and
+  MYTHIC items now go to the killer's inventory when there is a killer, instead of being
+  dropped on the ground.
+- **Lighter wave spawning under load**: the plugin lowers the per-wave cap when there are
+  many eligible players or many already-alive mobs nearby, to avoid flooding the world on
+  servers where other mods also spawn entities.
+
+### Changed
+- Less frequent thunder, ambient sounds and red fog particles during the event, to reduce
+  noise and entity tick load with mods and 20 players.
+- Visual lightning and particle burst use every 5th mob instead of every 3rd mob in waves.
+- Clean up stale ambient passive potion effects on player respawn.
+- Bleed damage now uses the item's configured value instead of a fixed 1.0.
+
+### Added ⭐
+- **Evento global**: la Luna de Sangre ahora se inicia en todos los mundos del servidor
+  a la vez, en vez de por mundo. `/luna start` inicia el evento en todos los mundos;
+  `/luna stop` lo detiene en todos. Los comandos de dificultad, jefe, horda y limpieza
+  también operan sobre la sesión global.
+- **Dificultad por defecto 1** en todas las funciones del evento: el config, los
+  inicios manuales y los avisos del scheduler usan dificultad 1 cuando no se especifica.
+- **Loot más alto**: drop-chance de la horda subida de 10% a 60%. Hierro y hueso pasan
+  de 2-5 / 2-6 a 3-7. Oro, manzana dorada, botella XP, ojo de ender y obsidiana suben
+  sus probabilidades. Totem pasa de 15% a 45%, fragmento de netherita de 18% a 40%,
+  diamante de 50% a 55%, perla de ender de 45% a 50%. Materiales épicos y legendarios
+  también suben ligeramente (totem y netherita son los más notables).
+
+### Compatibility
+- Paper **26.2** and **26.3**. Built with Java 25.

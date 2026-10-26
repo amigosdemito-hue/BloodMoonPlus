@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Habilidades de items (items.yml):
- * Armas:    DAMAGE_BONUS:f  LIFESTEAL:f  LIGHTNING:prob:daño  IGNITE:prob:seg  WITHER:prob:seg  SLOW:prob:seg
+ * Armas:    DAMAGE_BONUS:f  LIFESTEAL:f  LIGHTNING:prob:daño  IGNITE:prob:seg:nivel  WITHER:prob:seg:nivel  SLOW:prob:seg:nivel
  *           EXECUTE:vidaFrac:bonusFrac  BOSS_SLAYER:f  (bonus contra mobs de la Luna de Sangre)
  *           CHAIN_LIGHTNING:prob:cadenas:daño:decaimiento  POISON:prob:seg:nivel  BLEED:prob:seg:nivel
  *           CRIT:prob:multiplicador  (golpe crítico con partículas)
@@ -44,7 +44,6 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public final class ItemAbilities implements Listener {
     private final BloodMoonPlus plugin;
-    private boolean processing;
     /** Mobs con sangrado activo: evita escanear TODOS los mobs de TODOS los mundos cada 2 s. */
     private final Set<UUID> bleeding = new HashSet<>();
 
@@ -69,7 +68,7 @@ public final class ItemAbilities implements Listener {
             out.add(a);
         }
         List<String[]> immutable = List.copyOf(out);
-        if (PARSE_CACHE.size() > 512) PARSE_CACHE.clear(); // cota defensiva
+        if (PARSE_CACHE.size() > 512) PARSE_CACHE.clear();
         PARSE_CACHE.put(ck, immutable);
         return immutable;
     }
@@ -79,6 +78,7 @@ public final class ItemAbilities implements Listener {
         try { return Double.parseDouble(a[i].trim()); } catch (NumberFormatException e) { return def; }
     }
 
+    /** Indica que el evento de daño actual ya está siendo mutado por este plugin. */
     private static Player playerSource(Entity damager) {
         if (damager instanceof Player p) return p;
         if (damager instanceof Projectile pr && pr.getShooter() instanceof Player p) return p;
@@ -87,7 +87,6 @@ public final class ItemAbilities implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent e) {
-        if (processing) return;
         Player attacker = playerSource(e.getDamager());
         if (attacker != null && e.getEntity() instanceof LivingEntity victim) offense(attacker, victim, e);
         if (e.getEntity() instanceof Player defender) defense(defender, e);
@@ -128,8 +127,7 @@ public final class ItemAbilities implements Listener {
                 case "LIGHTNING" -> {
                     if (rnd.nextDouble() < d(a, 1, 0.1)) {
                         victim.getWorld().strikeLightningEffect(victim.getLocation());
-                        processing = true;
-                        try { victim.damage(d(a, 2, 4), attacker); } finally { processing = false; }
+                        victim.damage(d(a, 2, 4), attacker);
                     }
                 }
                 case "CHAIN_LIGHTNING" -> {
@@ -151,8 +149,7 @@ public final class ItemAbilities implements Listener {
                             }
                             if (next == null) break;
                             next.getWorld().strikeLightningEffect(next.getLocation());
-                            processing = true;
-                            try { next.damage(chainDmg, attacker); } finally { processing = false; }
+                            next.damage(chainDmg, attacker);
                             hit.add(next);
                             current = next;
                             chainDmg *= (1 - decay);
@@ -185,10 +182,16 @@ public final class ItemAbilities implements Listener {
         }
     }
 
+    /** Aplica un efecto de poción con probabilidad. DSL: efecto:prob:seg[:nivel]
+     *  Si no se pasa nivel, amp = 1.
+     */
     private void applyEffect(LivingEntity victim, String effect, String[] a, double roll) {
         if (roll >= d(a, 1, 0.2)) return;
         PotionEffectType t = Reg.effect(effect);
-        if (t != null) victim.addPotionEffect(new PotionEffect(t, (int) (d(a, 2, 4) * 20), 1));
+        if (t == null) return;
+        int ticks = (int) (d(a, 2, 4) * 20);
+        int amp = (int) d(a, 3, 1);
+        victim.addPotionEffect(new PotionEffect(t, ticks, amp));
     }
 
     private void defense(Player defender, EntityDamageByEntityEvent e) {
@@ -222,16 +225,14 @@ public final class ItemAbilities implements Listener {
         if (reflect > 0 && e.getDamager() instanceof LivingEntity refAttacker) {
             if (rnd.nextDouble() < Math.min(0.5, reflect)) {
                 double ret = e.getFinalDamage() * d(new String[]{"REFLECT", String.valueOf(reflect)}, 1, 0.3);
-                processing = true;
-                try { refAttacker.damage(ret, defender); } finally { processing = false; }
+                refAttacker.damage(ret, defender);
                 defender.getWorld().spawnParticle(Particle.ENCHANT, defender.getLocation().add(0, 1, 0), 10, 0.3, 0.5, 0.3, 0.05);
             }
         }
         if (!thorns.isEmpty() && e.getDamager() instanceof LivingEntity attacker) {
             for (String[] a : thorns) {
                 if (rnd.nextDouble() < d(a, 1, 0.2)) {
-                    processing = true;
-                    try { attacker.damage(d(a, 2, 3), defender); } finally { processing = false; }
+                    attacker.damage(d(a, 2, 3), defender);
                 }
             }
         }
@@ -243,11 +244,8 @@ public final class ItemAbilities implements Listener {
                 LivingEntity strike = self ? defender : sourceOf(e.getDamager());
                 if (strike == null || strike.isDead()) continue;
                 strike.getWorld().strikeLightningEffect(strike.getLocation());
-                processing = true;
-                try {
-                    if (self) strike.damage(d(a, 2, 6));
-                    else strike.damage(d(a, 2, 6), defender);
-                } finally { processing = false; }
+                if (self) strike.damage(d(a, 2, 6));
+                else strike.damage(d(a, 2, 6), defender);
             }
         }
         // BLAST_WAVE: onda expansiva que daña y lanza al atacante; NO rompe bloques
@@ -255,12 +253,12 @@ public final class ItemAbilities implements Listener {
             for (String[] a : blast) {
                 if (rnd.nextDouble() >= d(a, 1, 0.2)) continue;
                 LivingEntity src = sourceOf(e.getDamager());
+                // No aplicamos la onda al propio atacante que recibe el golpe (evita self-damage)
                 if (src == null || src.equals(defender) || src.isDead()) continue;
                 Vector dir = src.getLocation().toVector().subtract(defender.getLocation().toVector()).setY(0);
                 if (dir.lengthSquared() < 0.01) dir = new Vector(rnd.nextDouble() - 0.5, 0, rnd.nextDouble() - 0.5);
                 src.setVelocity(dir.normalize().multiply(d(a, 3, 1.3)).setY(0.7));
-                processing = true;
-                try { src.damage(d(a, 2, 5), defender); } finally { processing = false; }
+                src.damage(d(a, 2, 5), defender);
                 src.getWorld().spawnParticle(Particle.EXPLOSION, src.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3, 0.1);
                 src.getWorld().playSound(src.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.5f);
             }
@@ -297,9 +295,9 @@ public final class ItemAbilities implements Listener {
                 var pdc = le.getPersistentDataContainer();
                 Integer bleedTicks = pdc.get(Keys.BLEED, org.bukkit.persistence.PersistentDataType.INTEGER);
                 if (bleedTicks == null || bleedTicks <= 0) { it.remove(); continue; }
-                processing = true;
-                try { le.damage(1.0); } finally { processing = false; }
+                double perHit = 1.0;
                 int left = bleedTicks - 40;
+                le.damage(perHit);
                 if (left <= 0) { pdc.remove(Keys.BLEED); it.remove(); }
                 else pdc.set(Keys.BLEED, org.bukkit.persistence.PersistentDataType.INTEGER, left);
                 le.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, le.getLocation().add(0, 1, 0), 2, 0.2, 0.3, 0.2, 0.01);
@@ -337,11 +335,46 @@ public final class ItemAbilities implements Listener {
     }
 
     private void applyPassives(Player p, ItemStack it) {
+        if (it == null || !it.hasItemMeta()) return;
         for (String[] a : read(it, Keys.ITEM_PASSIVES)) {
             PotionEffectType t = Reg.effect(a[0]);
             if (t == null) continue;
             int amp = (int) d(a, 1, 0);
-            p.addPotionEffect(new PotionEffect(t, 140, amp, true, false, true));
+            // Duración del tick de pasivos; el efecto se refresca cada 2 s, no se acumula.
+            int dur = 140;
+            p.addPotionEffect(new PotionEffect(t, dur, amp, true, false, true));
+        }
+    }
+
+    /** Limpia pociones pasivas huérfanas tras respawn o cambio de armadura.
+     *  Solo quita un efecto ambiental si, tras mirar todos los items del jugador,
+     *  ninguno lo vuelve a pedir. Asi evitamos quitar efectos que otro item mantiene.
+ */
+    void cleanStalePassives(Player p) {
+        if (p == null || !p.isOnline()) return;
+        Map<PotionEffectType, Integer> stillNeeded = new java.util.HashMap<>();
+        for (ItemStack it : p.getInventory().getArmorContents()) {
+            if (it == null || !it.hasItemMeta()) continue;
+            for (String[] a : read(it, Keys.ITEM_PASSIVES)) {
+                PotionEffectType t = Reg.effect(a[0]);
+                if (t == null) continue;
+                stillNeeded.merge(t, 1, Integer::sum);
+            }
+        }
+        for (ItemStack it : List.of(p.getInventory().getItemInMainHand(), p.getInventory().getItemInOffHand())) {
+            if (it == null || !it.hasItemMeta()) continue;
+            for (String[] a : read(it, Keys.ITEM_PASSIVES)) {
+                PotionEffectType t = Reg.effect(a[0]);
+                if (t == null) continue;
+                stillNeeded.merge(t, 1, Integer::sum);
+            }
+        }
+        for (PotionEffect pe : p.getActivePotionEffects()) {
+            if (!pe.isAmbient()) continue;
+            int still = stillNeeded.getOrDefault(pe.getType(), 0);
+            if (still <= 0) {
+                p.removePotionEffect(pe.getType());
+            }
         }
     }
 }

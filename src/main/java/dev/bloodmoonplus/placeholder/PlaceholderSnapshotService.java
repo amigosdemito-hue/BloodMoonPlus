@@ -33,31 +33,30 @@ public final class PlaceholderSnapshotService {
 
     /** Publica snapshots desde el thread principal. Llamar cada 10 ticks. */
     public void publish() {
-        for (var session : plugin.events().sessions()) {
-            SessionPlaceholderState snap = new SessionPlaceholderState(
+        var global = plugin.events().globalSession();
+        if (global != null) {
+            sessionCache.put(global.world.getName(), new SessionPlaceholderState(
                     UUID.randomUUID(),  // por simplicidad
-                    session.world.getName(),
-                    Math.max(0, (session.endMs - System.currentTimeMillis()) / 1000),
-                    session.kills.size(),
-                    session.died.size(),
-                    session.participants.size(),
-                    countSurvivors(session)
-            );
-            sessionCache.put(session.world.getName(), snap);
+                    global.world.getName(),
+                    Math.max(0, (global.endMs - System.currentTimeMillis()) / 1000),
+                    global.kills.size(),
+                    global.died.size(),
+                    global.participants.size(),
+                    countSurvivors(global)
+            ));
+        } else {
+            sessionCache.clear();
         }
         // Players
         for (Player p : Bukkit.getOnlinePlayers()) {
             PlayerPlaceholderState snap = PlayerPlaceholderState.empty(p);
-            for (var session : plugin.events().sessions()) {
-                if (session.participants.contains(p.getUniqueId())) {
-                    snap = new PlayerPlaceholderState(
-                            p.getUniqueId(), p.getName(),
-                            true, 0, 0,
-                            !session.died.contains(p.getUniqueId()),
-                            session.died.contains(p.getUniqueId()) ? "placeholder.disqualified" : "placeholder.eligible"
-                    );
-                    break;
-                }
+            if (global != null && global.participants.contains(p.getUniqueId())) {
+                snap = new PlayerPlaceholderState(
+                        p.getUniqueId(), p.getName(),
+                        true, 0, 0,
+                        !global.died.contains(p.getUniqueId()),
+                        global.died.contains(p.getUniqueId()) ? "placeholder.disqualified" : "placeholder.eligible"
+                );
             }
             playerCache.put(p.getUniqueId(), snap);
         }

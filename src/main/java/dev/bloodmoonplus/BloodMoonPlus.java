@@ -54,6 +54,14 @@ public final class BloodMoonPlus extends JavaPlugin {
         mythic = new MythicBridge(this);
         reloadAll();
 
+        // Orden de tareas: eventos y boss antes que abilities y snapshots para
+        // garantizar que los placeholders lean un estado coherente.
+        Bukkit.getScheduler().runTaskTimer(this, () -> { schedule.tick(); events.tick(); }, 40L, 20L);
+        Bukkit.getScheduler().runTaskTimer(this, () -> bosses.tick(), 40L, 10L);
+        Bukkit.getScheduler().runTaskTimer(this, () -> abilities.tickPassives(), 60L, 40L);
+        Bukkit.getScheduler().runTaskTimer(this, () -> snapshots.publish(), 40L, 10L);
+        Bukkit.getScheduler().runTaskTimer(this, () -> data.flushIfDirty(), 200L, 200L);
+
         BloodMoonCommand exec = new BloodMoonCommand(this);
         PluginCommand luna = getCommand("luna");
         if (luna != null) {
@@ -68,11 +76,6 @@ public final class BloodMoonPlus extends JavaPlugin {
             getLogger().info("PlaceholderAPI enlazado (%bloodmoon_...%).");
         }
 
-        Bukkit.getScheduler().runTaskTimer(this, () -> { schedule.tick(); events.tick(); }, 40L, 20L);
-        Bukkit.getScheduler().runTaskTimer(this, () -> bosses.tick(), 40L, 10L);
-        Bukkit.getScheduler().runTaskTimer(this, () -> abilities.tickPassives(), 60L, 40L);
-        Bukkit.getScheduler().runTaskTimer(this, () -> data.flushIfDirty(), 200L, 200L);
-        Bukkit.getScheduler().runTaskTimer(this, () -> snapshots.publish(), 40L, 10L);
         Bukkit.getScheduler().runTaskLater(this, () -> events.resume(), 100L);
     }
 
@@ -93,7 +96,25 @@ public final class BloodMoonPlus extends JavaPlugin {
         bosses.reload();
         events.reload();
         schedule.reload();
+        reassign();
+        getLogger().info("BloodMoonPlus recargado.");
     }
+
+    private void reassign() {
+        messages = new Messages(this, locales);
+        data = new DataStore(this);
+        items = new ItemFactory(this);
+        loot = new LootManager(this);
+        events = new EventManager(this);
+        bosses = new BossManager(this);
+        schedule = new ScheduleManager(this);
+        abilities = new ItemAbilities(this);
+        snapshots = new PlaceholderSnapshotService(this, stats);
+        survivors = new SurvivorManager(this);
+        mythic = new MythicBridge(this);
+    }
+
+    public Keys keys() { return Keys.instance(); }
 
     /** Escala una estadística con la dificultad: 1 + (dif - 1) * factor configurado en difficulty.scaling.<clave>. */
     public double scaled(double diff, String key) {
@@ -111,6 +132,7 @@ public final class BloodMoonPlus extends JavaPlugin {
     public ItemFactory items() { return items; }
     public LootManager loot() { return loot; }
     public EventManager events() { return events; }
+    public ItemAbilities abilities() { return abilities; }
     public BossManager bosses() { return bosses; }
     public ScheduleManager schedule() { return schedule; }
 }
