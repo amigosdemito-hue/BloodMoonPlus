@@ -35,12 +35,15 @@ public final class LootManager {
     private final BloodMoonPlus plugin;
     private final Map<String, Rarity> rarities = new LinkedHashMap<>();
     private final Map<String, Table> tables = new LinkedHashMap<>();
+    /** Tablas inexistentes ya avisadas (evita spamar la consola cada kill). */
+    private final Set<String> unknownReported = new HashSet<>();
 
     LootManager(BloodMoonPlus plugin) { this.plugin = plugin; }
 
     void reload() {
         rarities.clear();
         tables.clear();
+        unknownReported.clear();
         YamlConfiguration y = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "loot.yml"));
 
         ConfigurationSection rs = y.getConfigurationSection("rarities");
@@ -102,6 +105,9 @@ public final class LootManager {
         return r == null ? id : r.display();
     }
 
+    /** true si la rareza (ya normalizada con Util.key) está definida en loot.yml. */
+    public boolean hasRarity(String id) { return id != null && rarities.containsKey(id); }
+
     public Set<String> tableIds() { return tables.keySet(); }
 
     public boolean hasTable(String id) { return tables.containsKey(id); }
@@ -113,7 +119,15 @@ public final class LootManager {
     public List<ItemStack> roll(String tableId, Player player, double diff, boolean applyDropChance) {
         List<ItemStack> out = new ArrayList<>();
         Table t = tables.get(tableId);
-        if (t == null) return out;
+        if (t == null) {
+            // Avisar una sola vez por tabla: si no, cada kill fallaría en silencio y el
+            // jugador no recibiría NADA sin ninguna pista en consola.
+            if (unknownReported.add(tableId)) {
+                plugin.getLogger().warning("Tabla de loot inexistente: '" + tableId
+                        + "' (revísala en loot.yml); este drop no soltará nada.");
+            }
+            return out;
+        }
         String owner = player != null ? player.getName() : "?";
 
         for (Entry g : t.guaranteed) {
@@ -187,7 +201,7 @@ public final class LootManager {
         if (stack == null) return null;
 
         Rarity ra = rarities.get(chosen);
-        if (ra != null && ra.broadcast() && player != null) {
+        if (ra != null && ra.broadcast() && player != null && plugin.messages().announce("loot", true)) {
             plugin.messages().all("loot.broadcast", "player", player.getName(),
                     "item", d.name() != null ? d.name() : d.material().name(), "rarity", ra.display());
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
@@ -200,12 +214,21 @@ public final class LootManager {
         for (ItemStack l : left.values()) dropAt(p.getLocation(), l);
     }
 
-    /** Raridades que deben ir directo al inventario, no suelta al suelo. */
+    /** Rareza etiquetada de un item; null si no la tiene. */
+    public String rarityOf(ItemStack it) {
+        if (it == null || it.getItemMeta() == null) return null;
+        return it.getItemMeta().getPersistentDataContainer().get(Keys.ITEM_RARITY, PersistentDataType.STRING);
+    }
+
+    /** Raridades que deben ir directo al inventario, no suelta al suelo.
+     *  Acepta null (item sin rareza) sin lanzar NPE. */
     public boolean directToInventory(String rarity) {
-        return Util.key(rarity).equalsIgnoreCase(Util.key("RARO"))
-                || Util.key(rarity).equalsIgnoreCase(Util.key("EPICO"))
-                || Util.key(rarity).equalsIgnoreCase(Util.key("LEGENDARIO"))
-                || Util.key(rarity).equalsIgnoreCase(Util.key("MITICO"));
+        if (rarity == null || rarity.isEmpty()) return false;
+        String k = Util.key(rarity);
+        return k.equals(Util.key("RARO"))
+                || k.equals(Util.key("EPICO"))
+                || k.equals(Util.key("LEGENDARIO"))
+                || k.equals(Util.key("MITICO"));
     }
 
     /** Suelta el item; los de rarezas altas brillan y no se destruyen. */

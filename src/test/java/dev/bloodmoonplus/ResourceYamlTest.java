@@ -62,6 +62,22 @@ class ResourceYamlTest {
     }
 
     @Test
+    void everyItemUsesAKnownRarity() {
+        YamlConfiguration items = YamlConfiguration.loadConfiguration(res("items.yml"));
+        YamlConfiguration loot = YamlConfiguration.loadConfiguration(res("loot.yml"));
+        Set<String> known = new HashSet<>(loot.getConfigurationSection("rarities").getKeys(false));
+        List<String> unknown = new ArrayList<>();
+        for (String id : items.getConfigurationSection("items").getKeys(false)) {
+            String rarity = items.getString("items." + id + ".rarity", "COMUN");
+            // LootManager normaliza las rarezas con Util.key (mayúsculas, sin acentos)
+            String key = java.text.Normalizer.normalize(rarity, java.text.Normalizer.Form.NFD)
+                    .replaceAll("\\p{M}", "").trim().toUpperCase(java.util.Locale.ROOT);
+            if (!known.contains(key)) unknown.add(id + " -> " + rarity);
+        }
+        assertTrue(unknown.isEmpty(), "Items con rareza no definida en loot.yml (rarities): " + unknown);
+    }
+
+    @Test
     void noEnchantmentExceedsMaxLevel() {
         YamlConfiguration items = YamlConfiguration.loadConfiguration(res("items.yml"));
         int max = items.getInt("settings.max-enchant-level", 7);

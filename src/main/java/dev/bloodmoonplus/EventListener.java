@@ -124,15 +124,11 @@ public final class EventListener implements Listener {
 
         List<ItemStack> loot = plugin.loot().roll(table, killer, diff, true);
         Location loc = ent.getLocation();
-        boolean directAll = killer != null && plugin.getConfig().getBoolean("loot.direct-to-inventory", false);
+        boolean forceAll = plugin.getConfig().getBoolean("loot.direct-to-inventory", false);
         for (ItemStack it : loot) {
-            boolean direct = directAll || killer != null;
-            if (!direct) {
-                String rarity = it.getItemMeta() != null
-                        ? it.getItemMeta().getPersistentDataContainer().get(Keys.ITEM_RARITY, PersistentDataType.STRING)
-                        : null;
-                direct = plugin.loot().directToInventory(rarity);
-            }
+            // Solo se entrega en el inventario si hay a quién dárselo (el que mató). Con
+            // loot.direct-to-inventory va todo; si no, solo las rarezas ALTAS (raro en adelante).
+            boolean direct = killer != null && (forceAll || plugin.loot().directToInventory(plugin.loot().rarityOf(it)));
             if (direct) plugin.loot().giveOrDrop(killer, it);
             else plugin.loot().dropAt(loc, it);
         }
@@ -149,13 +145,15 @@ public final class EventListener implements Listener {
             w.strikeLightningEffect(e.getEntity().getLocation());
             w.playSound(e.getEntity().getLocation(), org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.7f, 0.5f);
             String cause = e.getDeathMessage() != null ? e.getDeathMessage() : plugin.locales().get("event.death-cause-unknown");
-            plugin.messages().all("event.player-died", "player", e.getEntity().getName(), "cause", cause);
+            if (plugin.messages().announce("player-deaths", false))
+                plugin.messages().all("event.player-died", "player", e.getEntity().getName(), "cause", cause);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onMobDeathAnnounce(EntityDeathEvent e) {
         // Anuncio aleatorio (no todos, para no spamear) cuando muere un mob de la horda
+        if (!plugin.messages().announce("mob-kills", false)) return; // configurable: off por defecto
         if (!EventManager.isTagged(e.getEntity())) return;
         if (e.getEntity().getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) return; // bosses ya tienen su mensaje
         if (java.util.concurrent.ThreadLocalRandom.current().nextInt(5) != 0) return; // 1 de cada 5

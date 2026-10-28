@@ -44,6 +44,10 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public final class ItemAbilities implements Listener {
     private final BloodMoonPlus plugin;
+    /** Indica que el evento de daño actual ya está siendo mutado por este plugin.
+     *  Sin esta guarda, el daño que aplicamos nosotros (rayo, cadena, sangrado) volvía a
+     *  entrar en onDamage y re-disparaba las habilidades del arma recursivamente. */
+    private boolean processing;
     /** Mobs con sangrado activo: evita escanear TODOS los mobs de TODOS los mundos cada 2 s. */
     private final Set<UUID> bleeding = new HashSet<>();
 
@@ -78,7 +82,6 @@ public final class ItemAbilities implements Listener {
         try { return Double.parseDouble(a[i].trim()); } catch (NumberFormatException e) { return def; }
     }
 
-    /** Indica que el evento de daño actual ya está siendo mutado por este plugin. */
     private static Player playerSource(Entity damager) {
         if (damager instanceof Player p) return p;
         if (damager instanceof Projectile pr && pr.getShooter() instanceof Player p) return p;
@@ -87,6 +90,7 @@ public final class ItemAbilities implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent e) {
+        if (processing) return;
         Player attacker = playerSource(e.getDamager());
         if (attacker != null && e.getEntity() instanceof LivingEntity victim) offense(attacker, victim, e);
         if (e.getEntity() instanceof Player defender) defense(defender, e);
@@ -127,7 +131,8 @@ public final class ItemAbilities implements Listener {
                 case "LIGHTNING" -> {
                     if (rnd.nextDouble() < d(a, 1, 0.1)) {
                         victim.getWorld().strikeLightningEffect(victim.getLocation());
-                        victim.damage(d(a, 2, 4), attacker);
+                        processing = true;
+                        try { victim.damage(d(a, 2, 4), attacker); } finally { processing = false; }
                     }
                 }
                 case "CHAIN_LIGHTNING" -> {
@@ -149,7 +154,8 @@ public final class ItemAbilities implements Listener {
                             }
                             if (next == null) break;
                             next.getWorld().strikeLightningEffect(next.getLocation());
-                            next.damage(chainDmg, attacker);
+                            processing = true;
+                            try { next.damage(chainDmg, attacker); } finally { processing = false; }
                             hit.add(next);
                             current = next;
                             chainDmg *= (1 - decay);
@@ -164,11 +170,12 @@ public final class ItemAbilities implements Listener {
                 }
                 case "BLEED" -> {
                     if (rnd.nextDouble() < d(a, 1, 0.25)) {
-                        // Marca de sangrado: un marker en el PDC que el scheduler aplica daño
+                        // Marca de sangrado: un marker en el PDC que el scheduler aplica daño.
+                        // El daño por aplicación es el configurado en el item (BLEED:prob:seg:daño).
                         var pdc = victim.getPersistentDataContainer();
                         int ticks = (int) (d(a, 2, 5) * 20);
-                        int perSec = (int) d(a, 3, 1);
                         pdc.set(Keys.BLEED, org.bukkit.persistence.PersistentDataType.INTEGER, ticks);
+                        pdc.set(Keys.BLEED_DMG, org.bukkit.persistence.PersistentDataType.DOUBLE, d(a, 3, 1.0));
                         bleeding.add(victim.getUniqueId());
                         victim.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, victim.getLocation().add(0, 1, 0), 5, 0.3, 0.5, 0.3, 0.05);
                         // La aplicación del daño real la hace el tickPassives
@@ -295,9 +302,11 @@ public final class ItemAbilities implements Listener {
                 var pdc = le.getPersistentDataContainer();
                 Integer bleedTicks = pdc.get(Keys.BLEED, org.bukkit.persistence.PersistentDataType.INTEGER);
                 if (bleedTicks == null || bleedTicks <= 0) { it.remove(); continue; }
-                double perHit = 1.0;
+                Double configured = pdc.get(Keys.BLEED_DMG, org.bukkit.persistence.PersistentDataType.DOUBLE);
+                double perHit = configured != null ? configured : 1.0;
                 int left = bleedTicks - 40;
-                le.damage(perHit);
+                processing = true;
+                try { le.damage(perHit); } finally { processing = false; }
                 if (left <= 0) { pdc.remove(Keys.BLEED); it.remove(); }
                 else pdc.set(Keys.BLEED, org.bukkit.persistence.PersistentDataType.INTEGER, left);
                 le.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, le.getLocation().add(0, 1, 0), 2, 0.2, 0.3, 0.2, 0.01);

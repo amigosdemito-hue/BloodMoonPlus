@@ -5,7 +5,7 @@ import org.bukkit.plugin.Plugin;
 
 final class Keys {
     static NamespacedKey MOB, BOSS, SCALE, DIFF, TABLE, ITEM_ID, ITEM_ABILITIES, ITEM_PASSIVES,
-            ITEM_RARITY, ITEM_SERIAL, BLEED, HEAL_AURA;
+            ITEM_RARITY, ITEM_SERIAL, BLEED, BLEED_DMG, HEAL_AURA;
 
     private static Keys instance;
 
@@ -29,6 +29,7 @@ final class Keys {
         ITEM_RARITY = new NamespacedKey(p, "rarity");
         ITEM_SERIAL = new NamespacedKey(p, "serial");
         BLEED = new NamespacedKey(p, "bleed_ticks");
+        BLEED_DMG = new NamespacedKey(p, "bleed_damage");
         HEAL_AURA = new NamespacedKey(p, "heal_aura");
     }
 }

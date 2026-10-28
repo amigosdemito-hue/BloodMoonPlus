@@ -46,8 +46,15 @@ public final class ItemFactory {
             Map<String, Integer> ench = new LinkedHashMap<>();
             ConfigurationSection es = s.getConfigurationSection("enchants");
             if (es != null) for (String k : es.getKeys(false)) ench.put(k, es.getInt(k));
+            String rarity = Util.key(s.getString("rarity", "COMUN"));
+            // Una rareza no definida en loot.yml es un agujero SILENCIOSO: el roll la
+            // descarta al ponderar y la tabla suelta menos cosas sin ningún aviso.
+            if (!plugin.loot().hasRarity(rarity)) {
+                plugin.getLogger().warning("items.yml: rareza '" + rarity + "' de '" + id
+                        + "' no existe en loot.yml (rarities); caerá como COMUN. Añádela a loot.yml.");
+            }
             defs.put(id, new ItemDef(id, m, s.getString("name"), s.getStringList("lore"),
-                    Util.key(s.getString("rarity", "COMUN")), ench, s.getBoolean("unbreakable"),
+                    rarity, ench, s.getBoolean("unbreakable"),
                     s.getBoolean("glow"), s.getString("item-model"), s.getInt("limit", 0),
                     s.getStringList("abilities"), s.getStringList("passives")));
         }

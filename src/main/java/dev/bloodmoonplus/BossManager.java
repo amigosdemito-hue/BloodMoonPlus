@@ -196,16 +196,19 @@ public final class BossManager {
                     String display = plugin.mythic().getDisplayName(mythicName);
                     le.customName(Util.mini(display));
                     s.world.strikeLightningEffect(loc);
-                    plugin.messages().all("boss.spawn", "boss", display);
+                    if (plugin.messages().announce("bosses", true))
+                        plugin.messages().all("boss.spawn", "boss", display);
                     for (Player p : s.world.getPlayers()) p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 0.7f);
                     plugin.stats().recordBossSpawned();
                 }
             } else {
-                plugin.messages().world(s.world, "boss.mythic-not-found", "name", mythicName, "world", s.world.getName());
+                if (plugin.messages().announce("bosses", true))
+                    plugin.messages().world(s.world, "boss.mythic-not-found", "name", mythicName, "world", s.world.getName());
             }
             // Si Mythic falla y hay fallback, crear vanilla
             if (le == null && bossCfg.mythicFallback()) {
-                plugin.messages().world(s.world, "boss.mythic-fallback", "world", s.world.getName());
+                if (plugin.messages().announce("bosses", true))
+                    plugin.messages().world(s.world, "boss.mythic-fallback", "world", s.world.getName());
             } else if (le == null) {
                 return false;
             }
@@ -213,7 +216,7 @@ public final class BossManager {
 
         // Modo NONE: no crear nada
         if ("NONE".equals(bossCfg.mode()) && le == null) {
-            plugin.messages().world(s.world, "boss.disabled");
+            if (plugin.messages().announce("bosses", true)) plugin.messages().world(s.world, "boss.disabled");
             return false;
         }
 
@@ -237,7 +240,7 @@ public final class BossManager {
                 AttributeInstance kb = le.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
                 if (kb != null) kb.setBaseValue(Math.min(1.0, d.knockbackRes()));
             }
-            if (d.announce()) {
+            if (d.announce() && plugin.messages().announce("bosses", true)) {
                 s.world.strikeLightningEffect(loc);
                 plugin.messages().all("boss.spawn", "boss", d.name());
                 for (Player p : s.world.getPlayers()) p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 0.7f);
@@ -526,6 +529,12 @@ public final class BossManager {
         hideBar(bi);
         defeatedCount++;
         plugin.stats().recordBossDefeated();
+        // Recuerda el último jefe caído en su mundo para el histórico de estadísticas
+        EventManager.Session ses = plugin.events().session(bi.world);
+        if (ses != null) {
+            ses.lastBossName = bi.def.name();
+            ses.lastBossType = bi.def.type().name();
+        }
         e.getDrops().clear();
         e.setDroppedExp(bi.def.exp());
 
@@ -536,26 +545,24 @@ public final class BossManager {
 
         Location loc = ent.getLocation();
         if (bi.def.lootTable() != null) {
+            boolean forceAll = plugin.getConfig().getBoolean("loot.direct-to-inventory", false);
             for (ItemStack it : plugin.loot().roll(bi.def.lootTable(), killer, bi.diff, false)) {
-                boolean direct = killer != null;
-                if (!direct) {
-                    String rarity = it.getItemMeta() != null
-                            ? it.getItemMeta().getPersistentDataContainer().get(Keys.ITEM_RARITY, PersistentDataType.STRING)
-                            : null;
-                    direct = plugin.loot().directToInventory(rarity);
-                }
+                // Nunca se entrega a un destinatario nulo: sin killer (ni top-damage) el loot cae al suelo.
+                boolean direct = killer != null && (forceAll || plugin.loot().directToInventory(plugin.loot().rarityOf(it)));
                 if (direct) plugin.loot().giveOrDrop(killer, it);
                 else plugin.loot().dropAt(loc, it);
             }
         }
-        plugin.messages().world(ent.getWorld(), "boss.killed", "boss", bi.def.name(),
-                "player", killer != null ? killer.getName() : "?");
-        if (!top.isEmpty()) {
-            plugin.messages().world(ent.getWorld(), "boss.top-header");
-            for (int i = 0; i < Math.min(3, top.size()); i++) {
-                String nm = Bukkit.getOfflinePlayer(top.get(i).getKey()).getName();
-                plugin.messages().world(ent.getWorld(), "boss.top-line", "pos", String.valueOf(i + 1),
-                        "player", nm == null ? "?" : nm, "damage", String.valueOf(Math.round(top.get(i).getValue())));
+        if (plugin.messages().announce("bosses", true)) {
+            plugin.messages().world(ent.getWorld(), "boss.killed", "boss", bi.def.name(),
+                    "player", killer != null ? killer.getName() : "?");
+            if (!top.isEmpty()) {
+                plugin.messages().world(ent.getWorld(), "boss.top-header");
+                for (int i = 0; i < Math.min(3, top.size()); i++) {
+                    String nm = Bukkit.getOfflinePlayer(top.get(i).getKey()).getName();
+                    plugin.messages().world(ent.getWorld(), "boss.top-line", "pos", String.valueOf(i + 1),
+                            "player", nm == null ? "?" : nm, "damage", String.valueOf(Math.round(top.get(i).getValue())));
+                }
             }
         }
         if (topPlayer != null && bi.def.topTable() != null) {

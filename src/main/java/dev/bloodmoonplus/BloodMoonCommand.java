@@ -154,18 +154,20 @@ public final class BloodMoonCommand implements TabExecutor {
         }
         double dv = diff != null ? diff : plugin.getConfig().getDouble("difficulty.default", 1.0);
         int mv = minutes != null ? minutes : plugin.getConfig().getInt("event.duration-minutes", 20);
+        String startedLabel;
         if (worldName != null) {
             org.bukkit.World w = Bukkit.getWorld(worldName);
             if (w == null) { m().send(s, "unknown-world"); return; }
-            if (!plugin.events().start(w, dv, Math.max(1, mv))) { m().send(s, "event.already-active"); return; }
+            if (!plugin.events().startIn(List.of(w), dv, Math.max(1, mv))) { m().send(s, "event.already-active"); return; }
+            startedLabel = w.getName();
         } else {
-            boolean started = false;
-            for (org.bukkit.World w : Bukkit.getWorlds()) {
-                if (plugin.events().start(w, dv, Math.max(1, mv))) started = true;
-            }
-            if (!started) { m().send(s, "event.already-active"); return; }
+            // Sin mundo explícito: el evento es GLOBAL y arranca en todos los mundos de golpe
+            List<org.bukkit.World> targets = plugin.events().defaultWorlds();
+            if (targets.isEmpty()) { m().send(s, "unknown-world"); return; }
+            if (!plugin.events().startIn(targets, dv, Math.max(1, mv))) { m().send(s, "event.already-active"); return; }
+            startedLabel = targets.size() == 1 ? targets.get(0).getName() : "global";
         }
-        m().send(s, "cmd.started");
+        m().send(s, "cmd.started", "world", startedLabel);
     }
 
     private void stop(CommandSender s, String[] a) {
@@ -178,41 +180,52 @@ public final class BloodMoonCommand implements TabExecutor {
             org.bukkit.World w = Bukkit.getWorld(a[0]);
             if (w == null) { m().send(s, "unknown-world"); return; }
             if (!plugin.events().stop(w, false)) { m().send(s, "event.not-active"); return; }
-        } else {
-            if (!plugin.events().stop(null, false)) { m().send(s, "event.not-active"); return; }
+            m().send(s, "cmd.stopped", "world", w.getName());
+            return;
         }
-        m().send(s, "cmd.stopped");
+        if (!plugin.events().stop(null, false)) { m().send(s, "event.not-active"); return; }
+        m().send(s, "cmd.stopped-all");
     }
 
     private void difficulty(CommandSender s, String[] a) {
         if (a.length < 1) { m().send(s, "cmd.usage-difficulty"); return; }
         Double d = parseMult(a[0]);
         if (d == null) { m().send(s, "cmd.usage-difficulty"); return; }
-        EventManager.Session ses = plugin.events().globalSession();
-        if (ses == null) { m().send(s, "event.not-active"); return; }
-        ses.difficulty = Math.max(0.1, Math.min(plugin.getConfig().getDouble("difficulty.max", 10), d));
-        m().send(s, "cmd.difficulty-set", "difficulty", Util.fmt(ses.difficulty));
+        Collection<EventManager.Session> all = plugin.events().sessions();
+        if (all.isEmpty()) { m().send(s, "event.not-active"); return; }
+        // Cambio global: afecta a TODOS los mundos del evento en curso
+        double v = Math.max(0.1, Math.min(plugin.getConfig().getDouble("difficulty.max", 10), d));
+        for (EventManager.Session ses : all) ses.difficulty = v;
+        m().send(s, "cmd.difficulty-set", "difficulty", Util.fmt(v));
     }
 
     private void boss(CommandSender s, String[] a) {
         if (a.length < 1) { m().send(s, "cmd.usage-boss", "bosses", String.join(", ", plugin.bosses().ids())); return; }
-        EventManager.Session ses = plugin.events().globalSession();
-        if (ses == null) { m().send(s, "event.not-active"); return; }
-        if (plugin.bosses().spawn(ses, a[0])) m().send(s, "cmd.boss-spawned", "boss", a[0]);
+        Collection<EventManager.Session> all = plugin.events().sessions();
+        if (all.isEmpty()) { m().send(s, "event.not-active"); return; }
+        int spawned = 0;
+        for (EventManager.Session ses : all) if (plugin.bosses().spawn(ses, a[0])) spawned++;
+        if (spawned > 0) m().send(s, "cmd.boss-spawned", "boss", a[0]);
         else m().send(s, "cmd.boss-failed", "boss", a[0]);
     }
 
     private void horde(CommandSender s, String[] a) {
-        EventManager.Session ses = plugin.events().globalSession();
-        if (ses == null) { m().send(s, "event.not-active"); return; }
-        m().send(s, "cmd.horde-spawned", "count", String.valueOf(plugin.events().spawnWave(ses)));
+        Collection<EventManager.Session> all = plugin.events().sessions();
+        if (all.isEmpty()) { m().send(s, "event.not-active"); return; }
+        int total = 0;
+        for (EventManager.Session ses : all) total += plugin.events().spawnWave(ses);
+        m().send(s, "cmd.horde-spawned", "count", String.valueOf(total));
     }
 
     private void killmobs(CommandSender s, String[] a) {
-        EventManager.Session ses = plugin.events().globalSession();
-        if (ses == null) { m().send(s, "cmd.killed", "count", "0"); return; }
-        plugin.bosses().removeAll(ses.world);
-        m().send(s, "cmd.killed", "count", String.valueOf(plugin.events().removeTagged(ses.world)));
+        Collection<EventManager.Session> all = plugin.events().sessions();
+        if (all.isEmpty()) { m().send(s, "cmd.killed", "count", "0"); return; }
+        int removed = 0;
+        for (EventManager.Session ses : all) {
+            plugin.bosses().removeAll(ses.world);
+            removed += plugin.events().removeTagged(ses.world);
+        }
+        m().send(s, "cmd.killed", "count", String.valueOf(removed));
     }
 
     private void give(CommandSender s, String[] a) {
@@ -255,7 +268,8 @@ public final class BloodMoonCommand implements TabExecutor {
             }
             return;
         }
-        m().send(s, "cmd.status-line", "world", ses.world.getName(),
+        String worldLabel = plugin.events().activeWorlds() > 1 ? "global" : ses.world.getName();
+        m().send(s, "cmd.status-line", "world", worldLabel,
                 "time", Util.dur((ses.endMs - System.currentTimeMillis()) / 1000), "difficulty", Util.fmt(ses.difficulty));
         List<ScheduleManager.Upcoming> up = plugin.schedule().upcoming(1);
         if (!up.isEmpty()) {

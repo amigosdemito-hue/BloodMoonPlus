@@ -151,7 +151,7 @@ public final class StatisticsStore {
 
     // ------------ API: incrementar contadores ------------
 
-    public void recordEventCompleted(long durationSec, long deaths, long uniqueDeaths,
+    public void recordEventCompleted(String world, long durationSec, long deaths, long uniqueDeaths,
                                      long participants, long survivors,
                                      String bossName, String bossType) {
         lock.lock();
@@ -163,7 +163,7 @@ public final class StatisticsStore {
                     data.totalBossesSpawned(),
                     data.totalBossesDefeated(),
                     new HistoricalStatistics.LastEvent(
-                            /*world*/ "", durationSec, deaths, uniqueDeaths, participants, survivors,
+                            world == null ? "" : world, durationSec, deaths, uniqueDeaths, participants, survivors,
                             bossName, bossType, Instant.now())
             );
         } finally {

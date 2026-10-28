@@ -9,6 +9,7 @@ Built to run smoothly on **40+ player** servers without changing the gameplay.
 ## ✨ Highlights
 
 - **🗓️ Fixed schedules** — `weekly` mode (per weekday at a real time, configurable timezone, defaults to `America/Mexico_City`) or `interval` mode (every N hours). You can set **multiple runs on the same day**.
+- **🌐 Server-wide event** — one Blood Moon for **every loaded world at the same time** (`event.global: true`): night, hordes, bosses, the boss bar and survivor rewards all run everywhere together. Set it to `false` to go back to a `worlds` list.
 - **👹 9 bosses** with custom health bars, **enrage** phases, minimum difficulty, abilities and their own loot.
 - **🎁 45 items** sorted by rarity: common (always drop), rare, epic, legendary and **mythic** (extremely rare, ~0.1%).
 - **📦 Rare loot delivery**: rare, epic, legendary and mythic drops now go straight to the killer's inventory when there is one.

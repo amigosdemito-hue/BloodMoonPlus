@@ -77,11 +77,14 @@ schedule:
 # ------------------------------------------------------------
 event:
   duration-minutes: 20
+  global: true                 # true: el evento arranca en TODOS los mundos cargados al mismo tiempo
+                               #       (hordas, jefes, barra, noche y participantes en cada mundo).
+                               # false: solo en los mundos de la lista "worlds" de abajo.
   lock-night: true              # fija la noche durante el evento
   night-time-ticks: 18000
   end-time-ticks: 23000         # hora del mundo al terminar (amanecer cercano)
   clear-weather: true
-  first-wave-delay-seconds: 10
+  first-wave-delay-seconds: 3   # segundos exactos del arranque a la primera horda
   remove-mobs-on-end: true
   force-difficulty: true           # sube la dificultad del mundo a EASY si está en Pacífico (necesario para spawnear mobs); se restaura al terminar
   protect-terrain: true            # las explosiones de mobs (creepers, etc.) NO rompen bloques; el jefe de la Luna SÍ los rompe (como el Wither vanilla)
@@ -90,6 +93,25 @@ event:
   commands-on-start: []         # consola; {world}
   commands-on-end: []
   survivor-commands: []         # consola, por superviviente; {player}  ej: "eco give {player} 500"
+
+# ------------------------------------------------------------
+#  ANUNCIOS DE CHAT
+#  Por defecto SOLO se anuncian hordas, jefes y loot. Todo lo demás
+#  (muertes de mobs, muertes de jugadores, inicio/fin del evento,
+#  especiales, supervivientes y avisos) está apagado para que el chat
+#  no se sature. Cambia a true lo que quieras volver a ver.
+#  Efectivo con /luna reload
+# ------------------------------------------------------------
+announce:
+  horde: true                 # "¡Las hordas descienden sobre <jugador>!"
+  bosses: true                # aparición de jefes, su caída y el top de daño
+  loot: true                  # drop LEGENDARIO / MÍTICO conseguido
+  mob-kills: false            # "Nova ha matado a Zombi Sanguinario" (1 de cada 5 muertes)
+  player-deaths: false        # "Nova ha muerto por <causa>"
+  event: false                # inicio, fin y resumen del evento
+  specials: false             # eclipse, tormenta, niebla, silencio
+  survivors: false            # resultados de supervivientes
+  warnings: false             # avisos 10/5/1 min antes de que empiece
 
 # ------------------------------------------------------------
 #  DIFICULTAD

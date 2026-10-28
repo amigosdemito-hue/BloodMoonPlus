@@ -33,6 +33,9 @@ public final class PlaceholderSnapshotService {
 
     /** Publica snapshots desde el thread principal. Llamar cada 10 ticks. */
     public void publish() {
+        // Refresca el histórico desde el almacén: antes vivía congelado desde onEnable
+        // (solo lo "actualizaba" recrear la instancia en un reload).
+        history.set(stats.get());
         var global = plugin.events().globalSession();
         if (global != null) {
             sessionCache.put(global.world.getName(), new SessionPlaceholderState(

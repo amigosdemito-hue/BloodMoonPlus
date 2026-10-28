@@ -52,4 +52,10 @@ public final class Messages {
     public void all(String key, String... kv) {
         Bukkit.broadcast(prefixed(key, kv));
     }
+
+    /** ¿Está activa esta categoría de anuncio global? Lee announce.<categoría> de config.yml.
+     *  `def` es el valor si la clave no existiera ni siquiera en la config embebida. */
+    public boolean announce(String category, boolean def) {
+        return plugin.getConfig().getBoolean("announce." + category, def);
+    }
 }

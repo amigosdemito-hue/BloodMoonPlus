@@ -141,10 +141,6 @@ public final class ScheduleManager {
     public ZoneId zone() { return zone; }
     public Mode mode() { return mode; }
 
-    private List<String> worldsFor(Slot s) {
-        return s.worlds().isEmpty() ? plugin.getConfig().getStringList("worlds") : s.worlds();
-    }
-
     // ------------------------------------------------------------------ tick
 
     public void tick() {
@@ -189,8 +185,18 @@ public final class ScheduleManager {
         long nowMs = System.currentTimeMillis();
         String key = "interval";
 
-        // Verificar warnings
         Long lastFired = plugin.data().getLastIntervalFire();
+        // Primera vez en modo interval (data.yml sin registro): el próximo evento es
+        // interval-hours desde AHORA, igual que calcula upcoming(). Sin esto, con lastFired
+        // ausente/0 se disparaba en el primer tick, o con la marca fija "interval" anterior
+        // solo llegaba a dispararse UNA vez para siempre.
+        if (lastFired == null || lastFired <= 0) {
+            plugin.data().setLastIntervalFire(nowMs);
+            warned.clear();
+            return;
+        }
+
+        // Verificar warnings
         long nextFire = lastFired + (long) intervalHours * 3600_000L;
         long untilMs = nextFire - nowMs;
         long untilSec = untilMs / 1000;
@@ -203,26 +209,64 @@ public final class ScheduleManager {
             }
         }
 
-        // Disparar si llegó la hora
+        // Disparar si llegó la hora: lastFired marca el ciclo, así que cada N horas vuelve
+        // a disparar (la marca "interval" en fired era permanente y bloqueaba los ciclos
+        // siguientes).
         if (untilMs <= 0) {
-            if (plugin.data().isFired("interval")) {
-                // Ya se disparó en este ciclo, no repetir
-            } else {
-                plugin.data().markFired("interval");
-                plugin.data().setLastIntervalFire(nowMs);
-                fireInterval();
-            }
+            plugin.data().setLastIntervalFire(nowMs);
+            warned.clear();
+            fireInterval();
         }
 
         // Limpiar warned viejo (más de 1 hora)
         warned.entrySet().removeIf(e -> nowMs - e.getValue() > 3600_000L);
     }
 
-    private void warnInterval(int minutes) {
-        for (String wn : plugin.getConfig().getStringList("worlds")) {
+    /** Mundos sobre los que opera un aviso o un disparo.
+     *  En modo global (event.global: true) son TODOS los mundos cargados; si el slot
+     *  trae una lista explícita de mundos, se respeta esa lista. */
+    private List<World> resolveWorlds(List<String> slotWorlds) {
+        List<World> out = new ArrayList<>();
+        if (slotWorlds == null || slotWorlds.isEmpty()) {
+            if (plugin.events().isGlobalMode()) {
+                out.addAll(Bukkit.getWorlds());
+            } else {
+                for (String wn : plugin.getConfig().getStringList("worlds")) {
+                    World w = Bukkit.getWorld(wn);
+                    if (w != null) out.add(w);
+                }
+            }
+            return out;
+        }
+        for (String wn : slotWorlds) {
             World w = Bukkit.getWorld(wn);
-            if (w == null || plugin.events().isActive(w)) continue;
-            plugin.messages().world(w, "schedule.warning", "min", String.valueOf(minutes), "difficulty", "1");
+            if (w == null) plugin.getLogger().warning("Mundo '" + wn + "' no está cargado.");
+            else out.add(w);
+        }
+        return out;
+    }
+
+    /** Filtro común: no arrancamos en mundos vacíos si skip-if-no-players está activo.
+     *  Con nadie online TODOS los mundos quedan vacíos y el evento no se dispara. */
+    private List<World> startable(List<World> worlds) {
+        List<World> out = new ArrayList<>();
+        for (World w : worlds) {
+            if (plugin.events().isActive(w)) continue;
+            if (skipEmpty && w.getPlayers().isEmpty()) {
+                plugin.getLogger().info("Evento omitido en '" + w.getName() + "': no hay jugadores.");
+                continue;
+            }
+            out.add(w);
+        }
+        return out;
+    }
+
+    private void warnInterval(int minutes) {
+        double defDiff = plugin.getConfig().getDouble("difficulty.default", 1.0);
+        for (World w : resolveWorlds(List.of())) {
+            if (plugin.events().isActive(w)) continue;
+            if (!plugin.messages().announce("warnings", false)) continue;
+            plugin.messages().world(w, "schedule.warning", "min", String.valueOf(minutes), "difficulty", Util.fmt(defDiff));
         }
     }
 
@@ -230,40 +274,23 @@ public final class ScheduleManager {
         double defDiff = plugin.getConfig().getDouble("difficulty.default", 1.0);
         int defDur = plugin.getConfig().getInt("event.duration-minutes", 20);
 
-        boolean skipBecauseEmpty = skipEmpty && !Bukkit.getOnlinePlayers().isEmpty();
-        for (String wn : plugin.getConfig().getStringList("worlds")) {
-            World w = Bukkit.getWorld(wn);
-            if (w == null) { plugin.getLogger().warning("Mundo '" + wn + "' no está cargado."); continue; }
-            if (plugin.events().isActive(w)) continue;
-            if (skipBecauseEmpty && w.getPlayers().isEmpty()) {
-                plugin.getLogger().info("Evento omitido en '" + wn + "': no hay jugadores.");
-                continue;
-            }
-            plugin.events().start(w, defDiff, Math.max(1, defDur));
-        }
-        if (plugin.events().hasGlobalSession()) {
-            plugin.getLogger().info("Evento interval disparado globalmente (cada " + intervalHours + "h)");
+        List<World> targets = startable(resolveWorlds(List.of()));
+        if (targets.isEmpty()) return;
+        if (plugin.events().startIn(targets, defDiff, Math.max(1, defDur))) {
+            plugin.getLogger().info("Evento interval disparado globalmente en " + targets.size()
+                    + " mundo(s) (cada " + intervalHours + "h)");
         }
     }
 
     private void fire(Slot slot) {
-        boolean skipBecauseEmpty = slot.worlds().isEmpty() && skipEmpty && !Bukkit.getOnlinePlayers().isEmpty();
-        for (String wn : worldsFor(slot)) {
-            World w = Bukkit.getWorld(wn);
-            if (w == null) { plugin.getLogger().warning("Mundo '" + wn + "' no está cargado."); continue; }
-            if (plugin.events().isActive(w)) continue;
-            if (skipBecauseEmpty && w.getPlayers().isEmpty()) {
-                plugin.getLogger().info("Evento omitido en '" + wn + "': no hay jugadores.");
-                continue;
-            }
-            plugin.events().start(w, slot.difficulty(), slot.duration());
-        }
+        List<World> targets = startable(resolveWorlds(slot.worlds()));
+        if (!targets.isEmpty()) plugin.events().startIn(targets, slot.difficulty(), slot.duration());
     }
 
     private void warn(Slot slot, int minutes) {
-        for (String wn : worldsFor(slot)) {
-            World w = Bukkit.getWorld(wn);
-            if (w == null || plugin.events().isActive(w)) continue;
+        for (World w : resolveWorlds(slot.worlds())) {
+            if (plugin.events().isActive(w)) continue;
+            if (!plugin.messages().announce("warnings", false)) continue;
             plugin.messages().world(w, "schedule.warning", "min", String.valueOf(minutes), "difficulty", Util.fmt(slot.difficulty()));
         }
     }

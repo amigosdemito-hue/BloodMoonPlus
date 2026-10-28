@@ -9,6 +9,7 @@
 #
 # Uso:
 #   .\publish.ps1
+#   .\publish.ps1 -SyncProject   # además actualiza resumen y descripción de la ficha
 #   .\publish.ps1 -DryRun
 #
 # Scope necesario del token: PROJECT_CREATE, PROJECT_READ, PROJECT_WRITE,
@@ -25,10 +26,10 @@ param(
     [string[]]$AdditionalCategories = @("equipment"),
     [string]  $Token        = "",
     [switch]  $SkipProject,
-    [switch]  $SkipVersion,
-    [switch]  $SkipSubmit,
-    [switch]  $Submit,
-    [switch]  $DryRun
+    [switch]  $SkipVersion,    [switch] $SkipSubmit,
+    [switch] $Submit,
+    [switch] $SyncProject,
+    [switch] $DryRun
 )
 
 $ErrorActionPreference = "Stop"
@@ -151,6 +152,7 @@ if (-not $SkipProject) {
 
 if ($existing) {
     Write-Host "El proyecto ya existe (id=$($existing.id), status=$($existing.status)). No se recrea." -ForegroundColor Yellow
+    Write-Host "  La ficha (resumen/descripción/topics) solo se actualiza con -SyncProject." -ForegroundColor Yellow
 } elseif ($SkipProject) {
     Write-Host "[-SkipProject] Se omite la creacion." -ForegroundColor Yellow
 } else {
@@ -211,7 +213,7 @@ if ($SkipVersion) {
 } else {
     $env:MODRINTH_TOKEN = $Token   # upload.ps1 lo lee de la variable de entorno
     & (Join-Path $PSScriptRoot "upload.ps1") -ProjectSlug $ProjectSlug -VersionNumber $VersionNumber `
-        -GameVersions $GameVersions -Loaders $Loaders
+        -GameVersions $GameVersions -Loaders $Loaders -SyncProject:$SyncProject
 }
 
 # ---------------------------------------------------------------- enviar a revision

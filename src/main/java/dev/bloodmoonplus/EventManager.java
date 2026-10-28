@@ -55,6 +55,9 @@ public final class EventManager {
         long lastHordeAnnounceMs = 0;
         /** Última vez que se reprodujo un trueno ambiental aleatorio. */
         long lastAmbientThunderMs = 0;
+        /** Último jefe derrotado en este mundo (para el histórico de estadísticas). */
+        String lastBossName = "";
+        String lastBossType = "NONE";
 
         Session(World world, long startMs, long endMs, double difficulty) {
             this.world = world;
@@ -70,10 +73,14 @@ public final class EventManager {
     private static final int[] DY = {0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8};
 
     private final BloodMoonPlus plugin;
-    private Session globalSession;
+    /** Una sesión por mundo (clave = nombre del mundo), todas las de un mismo evento
+     *  arrancan y terminan juntas: es lo que hace que el evento sea GLOBAL. */
+    private final Map<String, Session> sessions = new LinkedHashMap<>();
     private final List<MobDef> mobs = new ArrayList<>();
 
     private boolean hordeEnabled;
+    /** event.global: el evento cubre TODOS los mundos cargados, no solo los de la lista. */
+    private boolean globalMode = true;
     private boolean skipEmpty = true;
     private double waveInterval, minDist, maxDist, firstWaveDelay;
     /** Tope de la progresión de oleadas (1ª=5, 2ª=10, 3ª=15... hasta este valor). */
@@ -123,6 +130,7 @@ public final class EventManager {
         defaultTable = c.getString("loot.default-table", "mob_horde");
         // Enforce: si no hay players online en el mundo del evento, no generamos la horda
         skipEmpty = c.getBoolean("schedule.skip-if-no-players", true);
+        globalMode = c.getBoolean("event.global", true);
         keepVanilla = c.getBoolean("loot.keep-vanilla-drops", false);
         if (!c.contains("loot.keep-vanilla-drops")) keepVanilla = false;
 
@@ -171,34 +179,97 @@ public final class EventManager {
     /** Si true, las explosiones de los mobs de la horda no rompen bloques (el jefe sí puede). */
     public boolean protectTerrain() { return protectTerrain; }
 
-    public Session session(World w) { return globalSession; }
+    /** Sesión de UN mundo concreto: hordas, jefes y barra viven en su propio mundo. */
+    public Session session(World w) { return w == null ? null : sessions.get(w.getName()); }
 
-    public boolean isActive(World w) { return globalSession != null; }
+    public boolean isActive(World w) { return w != null && sessions.containsKey(w.getName()); }
 
-    public Session globalSession() { return globalSession; }
+    /** Sesión "principal" para placeholders/estado: todas comparten inicio, fin y dificultad. */
+    public Session globalSession() { return sessions.isEmpty() ? null : sessions.values().iterator().next(); }
 
-    public boolean hasGlobalSession() { return globalSession != null; }
+    public boolean hasGlobalSession() { return !sessions.isEmpty(); }
+
+    public Collection<Session> sessions() { return sessions.values(); }
+
+    public int activeWorlds() { return sessions.size(); }
+
+    /** event.global activo: el evento se lanza en todos los mundos cargados. */
+    public boolean isGlobalMode() { return globalMode; }
+
+    /** Mundos donde debe arrancar el evento cuando no se especifica una lista. */
+    public List<World> defaultWorlds() {
+        List<World> out = new ArrayList<>();
+        if (globalMode) {
+            out.addAll(Bukkit.getWorlds());
+        } else {
+            for (String wn : plugin.getConfig().getStringList("worlds")) {
+                World w = Bukkit.getWorld(wn);
+                if (w != null) out.add(w);
+            }
+        }
+        return out;
+    }
+
+    /** Mundos sin reloj propio: Paper 26.2+ lanza IllegalArgumentException en World.setTime. */
+    private final Set<String> worldsWithoutClock = new HashSet<>();
+
+    /** Fija la hora del mundo SIN romper el tick si el mundo no tiene reloj propio
+     *  (Paper 26.2+: Nether/End u otros mundos sin ciclo de día). Se recuerda por mundo
+     *  para no reintentar cada segundo ni ensuciar la consola. Sin esta protección,
+     *  la excepción abortaba startInternal y CORTABA tickSession ANTES de spawnWave,
+     *  tickSpawns y los eventos especiales: por eso "no caían las hordas". */
+    private void setWorldTime(World w, long time) {
+        if (w == null || worldsWithoutClock.contains(w.getName())) return;
+        try {
+            w.setTime(time);
+        } catch (IllegalArgumentException ex) {
+            worldsWithoutClock.add(w.getName());
+            plugin.getLogger().warning("No se puede fijar la hora en '" + w.getName()
+                    + "': el mundo no tiene reloj propio en esta versión de Paper; la noche fija no aplica ahí.");
+        }
+    }
 
     // ------------------------------------------------------------------ inicio / fin
 
     public boolean start(World w, double diff, int minutes) {
         long now = System.currentTimeMillis();
-        return startInternal(w, diff, now, now + minutes * 60_000L, false);
+        return startInternal(w, diff, now, now + Math.max(1, minutes) * 60_000L, false, true);
     }
 
-    private boolean startInternal(World w, double diff, long startMs, long endMs, boolean resumed) {
-        if (globalSession != null) return false;
-        diff = Math.max(0.1, Math.min(maxMult, diff));
-        globalSession = new Session(w, startMs, endMs, diff);
-        globalSession.lastWaveMs = System.currentTimeMillis() - (long) (waveInterval * 1000) + (long) (firstWaveDelay * 1000);
-        plugin.data().saveActive("global", startMs, endMs, diff);
+    /** Arranca el evento en una lista de mundos a la vez (evento global). El anuncio
+     *  global se emite UNA sola vez, aunque arranquen varios mundos. */
+    public boolean startIn(Collection<World> worlds, double diff, int minutes) {
+        if (worlds == null || worlds.isEmpty()) return false;
+        long now = System.currentTimeMillis();
+        long endMs = now + Math.max(1, minutes) * 60_000L;
+        boolean any = false;
+        for (World w : worlds) {
+            if (w == null) continue;
+            if (startInternal(w, diff, now, endMs, false, !any)) any = true;
+        }
+        return any;
+    }
 
-        if (lockNight) w.setTime(nightTime);
+    private boolean startInternal(World w, double diff, long startMs, long endMs, boolean resumed, boolean announce) {
+        if (w == null || sessions.containsKey(w.getName())) return false;
+        diff = Math.max(0.1, Math.min(maxMult, diff));
+        Session s = new Session(w, startMs, endMs, diff);
+        // La primera oleada llega a firstWaveDelay segundos EXACTOS del arranque (no tras
+        // firstWaveDelay + un intervalo completo como antes). Retrocedemos lastWaveMs un
+        // intervalo para que el primer tick que supere el delay lance la horda de inmediato.
+        double firstInterval = Math.max(4, waveInterval / plugin.scaled(diff, "spawn-speed"));
+        s.lastWaveMs = startMs + (long) (firstWaveDelay * 1000) - (long) (firstInterval * 1000);
+        sessions.put(w.getName(), s);
+        // Clave = nombre del mundo: así el evento se RETOMA tras un reinicio (resume()
+        // resuelve cada clave con Bukkit.getWorld). Antes se guardaba como "global" y se perdía.
+        plugin.data().saveActive(w.getName(), startMs, endMs, diff);
+
+        if (lockNight) setWorldTime(w, nightTime);
         if (clearWeather) { w.setStorm(false); w.setThundering(false); }
 
         // En Pacífico no se pueden spawnear monstruos: se sube la dificultad durante el evento
         if (forceDifficulty && w.getDifficulty() == Difficulty.PEACEFUL) {
-            globalSession.originalDifficulty = Difficulty.PEACEFUL;
+            s.originalDifficulty = Difficulty.PEACEFUL;
             w.setDifficulty(Difficulty.EASY);
             plugin.getLogger().info("Dificultad de '" + w.getName() + "' subida a EASY durante el evento (estaba en Pacífico).");
         }
@@ -225,38 +296,63 @@ public final class EventManager {
                 // Glowing rojo para que la niebla visual sea continua
                 p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.GLOWING, 20 * 30, 0, false, false));
             }
-            plugin.messages().all("event.start", "difficulty", d, "minutes", String.valueOf(minutes));
+            if (announce && plugin.messages().announce("event", false)) plugin.messages().all("event.start", "difficulty", d, "minutes", String.valueOf(minutes));
             runCommands(cmdStart, w, null);
         }
-        plugin.bosses().plan(globalSession, resumed);
+        plugin.bosses().plan(s, resumed);
         return true;
     }
 
+    /** w == null detiene TODOS los mundos del evento (parada global). */
     public boolean stop(World w, boolean natural) {
-        Session s = globalSession;
-        if (s == null) return false;
-        globalSession = null;
-        plugin.data().clearActive("global");
+        List<Session> toStop = new ArrayList<>();
+        if (w == null) {
+            toStop.addAll(sessions.values());
+        } else {
+            Session s = sessions.get(w.getName());
+            if (s != null) toStop.add(s);
+        }
+        if (toStop.isEmpty()) return false;
+        stopSessions(toStop, natural);
+        return true;
+    }
+
+    /** Detiene varios mundos a la vez. Las estadísticas históricas se registran UNA sola vez
+     *  con los totales agregados del grupo (todos arrancan y terminan juntos). */
+    private void stopSessions(List<Session> toStop, boolean natural) {
+        if (natural) recordHistory(toStop);
+        for (Session s : toStop) {
+            sessions.remove(s.world.getName());
+            stopOne(s, natural);
+        }
+    }
+
+    private void recordHistory(List<Session> group) {
+        long durationSec = 0, deaths = 0, uniqueDeaths = 0, participants = 0, survivorsCount = 0;
+        String bossName = "", bossType = "NONE";
+        for (Session s : group) {
+            durationSec = Math.max(durationSec, Math.max(0, (s.endMs - s.startMs) / 1000));
+            deaths += s.kills.values().stream().mapToInt(Integer::intValue).sum();
+            uniqueDeaths += s.died.size();
+            participants += s.participants.size();
+            survivorsCount += s.participants.size() - s.died.size();
+            if (s.lastBossName != null && !s.lastBossName.isEmpty()) {
+                bossName = s.lastBossName;
+                bossType = s.lastBossType;
+            }
+        }
+        String world = group.size() == 1 ? group.get(0).world.getName() : "global";
+        plugin.stats().recordEventCompleted(world, durationSec, deaths, uniqueDeaths,
+                participants, survivorsCount, bossName, bossType);
+    }
+
+    private void stopOne(Session s, boolean natural) {
+        plugin.data().clearActive(s.world.getName());
         for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(s.bar);
         plugin.bosses().removeAll(s.world);
         if (removeOnEnd) removeTagged(s.world);
-        if (lockNight) s.world.setTime(endTime);
+        if (lockNight) setWorldTime(s.world, endTime);
         restoreDifficulty(s.world, s);
-
-        // Estadísticas históricas (solo si fue un evento completo, no un crash)
-        if (natural) {
-            long durationSec = Math.max(0, (s.endMs - s.startMs) / 1000);
-            long deaths = s.kills.values().stream().mapToInt(Integer::intValue).sum();
-            long uniqueDeaths = s.died.size();
-            long participants = s.participants.size();
-            long survivorsCount = participants - uniqueDeaths;
-            String bossName = "", bossType = "NONE";
-            // Buscar el último boss de la sesión
-            plugin.stats().recordEventCompleted(
-                    durationSec, deaths, uniqueDeaths,
-                    participants, survivorsCount,
-                    bossName, bossType);
-        }
 
         List<Player> survivors = new ArrayList<>();
         for (UUID id : s.participants) {
@@ -270,19 +366,20 @@ public final class EventManager {
             if (!eligible.isEmpty()) giveSurvivorRewards(s, eligible);
         }
 
-        plugin.messages().world(s.world, natural ? "event.end" : "event.stopped");
-        if (!s.kills.isEmpty()) {
-            List<Map.Entry<UUID, Integer>> top = new ArrayList<>(s.kills.entrySet());
-            top.sort((a, b) -> b.getValue() - a.getValue());
-            plugin.messages().world(s.world, "event.summary-header");
-            for (int i = 0; i < Math.min(3, top.size()); i++) {
-                String name = Bukkit.getOfflinePlayer(top.get(i).getKey()).getName();
-                plugin.messages().world(s.world, "event.summary-line", "pos", String.valueOf(i + 1),
-                        "player", name == null ? "?" : name, "kills", String.valueOf(top.get(i).getValue()));
+        if (plugin.messages().announce("event", false)) {
+            plugin.messages().world(s.world, natural ? "event.end" : "event.stopped");
+            if (!s.kills.isEmpty()) {
+                List<Map.Entry<UUID, Integer>> top = new ArrayList<>(s.kills.entrySet());
+                top.sort((a, b) -> b.getValue() - a.getValue());
+                plugin.messages().world(s.world, "event.summary-header");
+                for (int i = 0; i < Math.min(3, top.size()); i++) {
+                    String name = Bukkit.getOfflinePlayer(top.get(i).getKey()).getName();
+                    plugin.messages().world(s.world, "event.summary-line", "pos", String.valueOf(i + 1),
+                            "player", name == null ? "?" : name, "kills", String.valueOf(top.get(i).getValue()));
+                }
             }
         }
         runCommands(cmdEnd, s.world, null);
-        return true;
     }
 
     private void giveSurvivorRewards(Session s, List<Player> survivors) {
@@ -302,7 +399,8 @@ public final class EventManager {
         }
     }
 
-    /** Se llama al reiniciar el servidor: retoma eventos que seguían activos y limpia mobs huérfanos. */
+    /** Se llama al reiniciar el servidor: retoma eventos que seguían activos y limpia mobs huérfanos.
+     *  Las claves de data.yml son nombres de mundo, así que el evento SOBREVIVE al reinicio. */
     public void resume() {
         long now = System.currentTimeMillis();
         ConfigurationSection a = plugin.data().active();
@@ -311,25 +409,25 @@ public final class EventManager {
                 World w = Bukkit.getWorld(wn);
                 long end = a.getLong(wn + ".end");
                 if (w == null || end <= now) { plugin.data().clearActive(wn); continue; }
-                startInternal(w, a.getDouble(wn + ".difficulty", 1), a.getLong(wn + ".start", now), end, true);
-                plugin.getLogger().info("Evento retomado en '" + wn + "' (quedan " + Util.dur((end - now) / 1000) + ").");
+                if (startInternal(w, a.getDouble(wn + ".difficulty", 1), a.getLong(wn + ".start", now), end, true, false)) {
+                    plugin.getLogger().info("Evento retomado en '" + wn + "' (quedan " + Util.dur((end - now) / 1000) + ").");
+                }
             }
         }
         for (String wn : plugin.getConfig().getStringList("worlds")) {
             World w = Bukkit.getWorld(wn);
-            if (w != null && globalSession == null) removeTagged(w);
+            if (w != null && sessions.isEmpty()) removeTagged(w);
         }
     }
 
-    /** Apagado del servidor: limpia mobs y barras pero conserva el estado para retomar. */
+    /** Apagado del servidor: limpia mobs y barras pero conserva el estado en data.yml para retomar. */
     public void shutdown() {
-        Session global = globalSession;
-        if (global != null) {
-            for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(global.bar);
-            plugin.bosses().removeAll(global.world);
-            removeTagged(global.world);
+        for (Session s : new ArrayList<>(sessions.values())) {
+            for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(s.bar);
+            plugin.bosses().removeAll(s.world);
+            removeTagged(s.world);
         }
-        globalSession = null;
+        sessions.clear();
     }
 
     /** Restaura la dificultad original del mundo si fue forzada por el evento. */
@@ -343,17 +441,50 @@ public final class EventManager {
 
     public void tick() {
         long now = System.currentTimeMillis();
-        Session global = globalSession;
-        if (global == null) return;
+        if (sessions.isEmpty()) return;
+
+        // Mundos cuyo evento ya terminó o que se descargaron: se retiran como grupo
+        List<Session> ended = null;
+        List<Session> orphan = null;
+        for (Session s : sessions.values()) {
+            if (Bukkit.getWorld(s.world.getName()) == null) {
+                if (orphan == null) orphan = new ArrayList<>();
+                orphan.add(s);
+            } else if (now >= s.endMs) {
+                if (ended == null) ended = new ArrayList<>();
+                ended.add(s);
+            }
+        }
+        if (orphan != null) {
+            for (Session s : orphan) {
+                sessions.remove(s.world.getName());
+                plugin.data().clearActive(s.world.getName());
+            }
+        }
+        if (ended != null) stopSessions(ended, true);
+
+        // Una sesión por mundo: CADA mundo recibe su noche, su horda, su barra y sus partidas.
+        // Un fallo en un mundo NO debe dejar sin tick al resto (matar el tick del scheduler
+        // dejaba a los demás mundos sin noche, sin hordas y sin jefes).
+        for (Session s : new ArrayList<>(sessions.values())) {
+            try {
+                tickSession(s, now);
+            } catch (Exception ex) {
+                plugin.getLogger().log(java.util.logging.Level.WARNING,
+                        "Error en el tick del evento del mundo '" + s.world.getName() + "': " + ex.getMessage(), ex);
+            }
+        }
+    }
+
+    private void tickSession(Session global, long now) {
         World w = global.world;
-        if (Bukkit.getWorld(w.getName()) == null) { globalSession = null; return; }
-        if (now >= global.endMs) { stop(w, true); return; }
+        if (Bukkit.getWorld(w.getName()) == null) return;
 
         for (Player p : w.getPlayers()) {
             if (p.getGameMode() == GameMode.SURVIVAL || p.getGameMode() == GameMode.ADVENTURE) global.participants.add(p.getUniqueId());
         }
         updateBar(global, now);
-        if (lockNight) w.setTime(nightTime);
+        if (lockNight) setWorldTime(w, nightTime);
         // Ambiente cinematográfico reducido para servidores con mods y muchos jugadores:
         // se mantiene el ambiente pero se van los truenos/sonidos muy frecuentes y la niebla constante.
         if (w.hasStorm()) w.setStorm(false);
@@ -415,11 +546,12 @@ public final class EventManager {
     private void triggerRandomSpecial(Session s) {
         int pick = ThreadLocalRandom.current().nextInt(4);
         World w = s.world;
+        boolean sp = plugin.messages().announce("specials", false);
         switch (pick) {
             case 0 -> { // Eclipse: oscurecer el cielo
-                w.setTime(18000);
+                setWorldTime(w, 18000);
                 w.playSound(net.kyori.adventure.sound.Sound.sound(org.bukkit.Sound.ENTITY_ENDER_DRAGON_GROWL, net.kyori.adventure.sound.Sound.Source.MASTER, 1f, 0.6f));
-                plugin.messages().world(w, "special.eclipse");
+                if (sp) plugin.messages().world(w, "special.eclipse");
             }
             case 1 -> { // Tormenta breve: 60s
                 w.setStorm(true);
@@ -430,14 +562,14 @@ public final class EventManager {
                         w.setThundering(false);
                     }
                 }, 20L * 60L);
-                plugin.messages().world(w, "special.storm");
+                if (sp) plugin.messages().world(w, "special.storm");
             }
             case 2 -> { // Niebla densa
                 for (Player p : w.getPlayers()) {
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(
                             org.bukkit.potion.PotionEffectType.BLINDNESS, 20 * 45, 0));
                 }
-                plugin.messages().world(w, "special.fog");
+                if (sp) plugin.messages().world(w, "special.fog");
             }
             case 3 -> { // Silencio: mobs no hacen sonido, jugadores escuchan solo su corazón
                 w.playSound(net.kyori.adventure.sound.Sound.sound(org.bukkit.Sound.ENTITY_WARDEN_HEARTBEAT, net.kyori.adventure.sound.Sound.Source.MASTER, 1f, 1f));
@@ -445,7 +577,7 @@ public final class EventManager {
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(
                             org.bukkit.potion.PotionEffectType.DARKNESS, 20 * 30, 0));
                 }
-                plugin.messages().world(w, "special.silence");
+                if (sp) plugin.messages().world(w, "special.silence");
             }
         }
     }
@@ -524,7 +656,8 @@ public final class EventManager {
                     w.playSound(rayPoint, org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.6f, 0.8f);
                 }
                 s.lastHordeAnnounceMs = System.currentTimeMillis();
-                plugin.messages().all("event.horde-descending", "player", p.getName());
+                if (plugin.messages().announce("horde", true))
+                    plugin.messages().all("event.horde-descending", "player", p.getName());
             }
             for (int i = 0; i < amount; i++) {
                 Location loc = findSpawn(p.getLocation(), minDist, maxDist);

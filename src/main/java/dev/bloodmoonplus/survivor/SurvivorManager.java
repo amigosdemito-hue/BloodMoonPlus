@@ -55,12 +55,14 @@ public final class SurvivorManager {
         }
 
         if (eligible.isEmpty()) {
-            plugin.messages().all("event.survivors-none", "world", s.world.getName());
+            if (plugin.messages().announce("survivors", false))
+                plugin.messages().all("event.survivors-none", "world", s.world.getName());
             return List.of();
         }
 
         // Mensaje de cabecera
-        plugin.messages().world(s.world, "event.survivors-header", "world", s.world.getName());
+        if (plugin.messages().announce("survivors", false))
+            plugin.messages().world(s.world, "event.survivors-header", "world", s.world.getName());
 
         // Construir contexto base
         RewardContext base = new RewardContext(

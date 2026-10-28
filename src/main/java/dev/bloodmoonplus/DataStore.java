@@ -112,7 +112,7 @@ public final class DataStore {
     void setPity(UUID u, String rarity, int v) {
         lock.lock();
         try {
-            cfg.set("pity." + u + "." + rarity, v <= 0 ? null : v);
+            cfg.set("pity." + u + "." + rarity, v < 0 ? null : v);
             dirty = true;
         } finally {
             lock.unlock();
@@ -154,7 +154,7 @@ public final class DataStore {
     Long getLastIntervalFire() {
         lock.lock();
         try {
-            return cfg.contains("interval.lastFire") ? cfg.getLong("interval.lastFire") : null;
+            return cfg.getLong("interval.lastFire");
         } finally {
             lock.unlock();
         }

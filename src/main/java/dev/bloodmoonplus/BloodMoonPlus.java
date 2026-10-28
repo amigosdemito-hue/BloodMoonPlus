@@ -86,32 +86,28 @@ public final class BloodMoonPlus extends JavaPlugin {
         if (stats != null) stats.saveNow();
     }
 
+    /** Recarga la configuración IN SITU: cada manager conserva su instancia y su estado
+     *  vivo (sesiones del evento, jefes, horarios, listeners ya registrados).
+     *
+     *  IMPORTANTE: aquí NO se deben crear instancias nuevas de los managers. Antes había
+     *  un reassign() que recreaba EventManager/ScheduleManager/etc. DESPUÉS de recargarlos,
+     *  dejando al activo con los campos por defecto de Java (lock-night=false,
+     *  horde.enabled=false, mobs vacío, difficulty.max=0 → dificultad x0.1 y schedule
+     *  deshabilitado): el evento no hacía noche, no spawneaba hordas y no arrancaba por
+     *  horario. Los managers ya implementan reload() con lo que necesitan. */
     public void reloadAll() {
         reloadConfig();
         locales.reload();
         worldConfigs.reload();
         messages.reload();
-        items.reload();
+        // loot ANTES que items: items.reload() valida las rarezas contra loot.yml y necesita
+        // las rarezas ya cargadas para no avisar en falso en el primer arranque.
         loot.reload();
+        items.reload();
         bosses.reload();
         events.reload();
         schedule.reload();
-        reassign();
         getLogger().info("BloodMoonPlus recargado.");
-    }
-
-    private void reassign() {
-        messages = new Messages(this, locales);
-        data = new DataStore(this);
-        items = new ItemFactory(this);
-        loot = new LootManager(this);
-        events = new EventManager(this);
-        bosses = new BossManager(this);
-        schedule = new ScheduleManager(this);
-        abilities = new ItemAbilities(this);
-        snapshots = new PlaceholderSnapshotService(this, stats);
-        survivors = new SurvivorManager(this);
-        mythic = new MythicBridge(this);
     }
 
     public Keys keys() { return Keys.instance(); }
