@@ -5,6 +5,11 @@
 #          abilities, passives.
 #  ENCANTAMIENTOS: el nivel NUNCA supera settings.max-enchant-level (7 por defecto);
 #                  cualquier valor mayor se recorta al cargar.
+#  MALDICIÓN DE DESAPARICIÓN: toda ARMA, HERRAMIENTA (espada, hacha, pico, pala, azada, arco,
+#                  ballesta, tridente, maza) y ARMADURA (yelmo, peto, grebas, botas, élitros) de
+#                  rareza igual o superior a settings.vanishing-curse-min-rarity recibe
+#                  vanishing_curse 1 automáticamente. Los escudos no la reciben.
+#                  Pon OFF para desactivarla.
 #  ATRIBUTOS = passives (efectos de poción mientras se porta el item):
 #                  strength:1  resistance:0  health_boost:2  speed:1  regeneration:0
 #                  fire_resistance:0  night_vision:0  slow_falling:0  jump_boost:1 ...
@@ -23,6 +28,9 @@ settings:
   show-rarity-line: true
   # Nivel máximo de encantamiento (el usuario pidió 7; no se debe pasar de aquí).
   max-enchant-level: 7
+  # Rareza mínima de las armas, herramientas y armaduras que llevan Maldición de
+  # desaparición (RARO = desde Raro; OFF o NONE = desactivada).
+  vanishing-curse-min-rarity: RARO
 
 items:
   # ---------------- COMUNES / POCO COMUNES (vanilla) ----------------

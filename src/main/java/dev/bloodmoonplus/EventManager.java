@@ -55,6 +55,11 @@ public final class EventManager {
         long lastHordeAnnounceMs = 0;
         /** Última vez que se reprodujo un trueno ambiental aleatorio. */
         long lastAmbientThunderMs = 0;
+        /** Muertes de JUGADORES durante el evento (eventos de muerte, no jugadores únicos).
+         *  Ojo: s.kills son los MOBS matados por jugadores, que es otra cosa. */
+        public int deathCount = 0;
+        /** Última vez que se disparó un evento especial EN ESTE mundo. */
+        long lastSpecialEventMs = 0;
         /** Último jefe derrotado en este mundo (para el histórico de estadísticas). */
         String lastBossName = "";
         String lastBossType = "NONE";
@@ -332,10 +337,15 @@ public final class EventManager {
         String bossName = "", bossType = "NONE";
         for (Session s : group) {
             durationSec = Math.max(durationSec, Math.max(0, (s.endMs - s.startMs) / 1000));
-            deaths += s.kills.values().stream().mapToInt(Integer::intValue).sum();
+            // Muertes de JUGADORES. Antes se sumaban los kills de mobs (s.kills), que es otra cosa.
+            deaths += s.deathCount;
             uniqueDeaths += s.died.size();
             participants += s.participants.size();
-            survivorsCount += s.participants.size() - s.died.size();
+            // Supervivientes exactos: participantes que nunca murieron. Así el número no puede
+            // quedar negativo (participants - died) si alguien muere sin estar en participants.
+            long survived = 0;
+            for (UUID id : s.participants) if (!s.died.contains(id)) survived++;
+            survivorsCount += survived;
             if (s.lastBossName != null && !s.lastBossName.isEmpty()) {
                 bossName = s.lastBossName;
                 bossType = s.lastBossType;
@@ -528,17 +538,17 @@ public final class EventManager {
         tickSpecialEvent(global, now);
     }
 
-    private long lastSpecialEventMs = 0;
-
-    /** Dispara un evento especial aleatorio cada 5-10 minutos. */
+    /** Dispara un evento especial aleatorio cada 5-10 minutos, POR MUNDO.
+     *  El temporizador vive en la sesión: antes era un campo único del manager y con evento
+     *  global solo el primer mundo que tickeaba recibía eclipses, tormentas y niebla. */
     private void tickSpecialEvent(Session s, long now) {
-        // Inicializar el temporizador al primer tick
-        if (lastSpecialEventMs == 0) lastSpecialEventMs = now;
-        long since = now - lastSpecialEventMs;
+        // Inicializar el temporizador al primer tick de ESTA sesión
+        if (s.lastSpecialEventMs == 0) s.lastSpecialEventMs = now;
+        long since = now - s.lastSpecialEventMs;
         // Próximo evento entre 5 y 10 minutos desde el último
         if (since < 5 * 60_000L) return;
         if (ThreadLocalRandom.current().nextDouble() < (since - 5 * 60_000L) / (5 * 60_000L * 0.1)) {
-            lastSpecialEventMs = now;
+            s.lastSpecialEventMs = now;
             triggerRandomSpecial(s);
         }
     }

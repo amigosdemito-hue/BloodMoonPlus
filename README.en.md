@@ -287,7 +287,7 @@ The rolled item has its **own** drop probability. **If it fails, that roll gives
 
 - **Mythics:** at most **3 copies on the whole server** (serial number in the lore); once exhausted, they stop dropping.
 - **Broken Rare/Legendary weapons capped at 5%**: Blood Sword, Crimson Bow, Shadow Dagger, Storm Bow and Vampiric Fang.
-- **Legendary weapons have the Curse of Vanishing**: if you die with them, they disappear (a real risk to carrying them).
+- **Rare-or-higher weapons, tools and armor have the Curse of Vanishing**: if you die with them, they disappear (a real risk to carrying them). *(Since 1.0.2.)*
 - **Enchantments:** the level never exceeds **7** (trimmed on load).
 - Kills only count when a player is nearby (`require-player-kill`).
 - Legendary and Mythic items **glow** when dropped and ignore lava and explosions.
@@ -377,9 +377,12 @@ Step 3 percentages in each table (before the individual drop-chance):
 
 ### Legendaries
 
-> ⚠️ **All legendary weapons carry the Curse of Vanishing** (`vanishing_curse`):
-> if you die with one in your inventory, the weapon **disappears** — it doesn't drop to the ground and nobody can pick it up.
-> It only applies to weapons (Fang, Lunar Bow, Hammer, Crossbow), not to legendary armor.
+> ⚠️ **Every weapon, tool and armor piece from Rare to Mythic carries the Curse of Vanishing**
+> (`vanishing_curse`): if you die with one in your inventory, the item **disappears** — it doesn't drop
+> to the ground and nobody can pick it up. It applies to swords, axes, pickaxes, shovels, hoes, bows,
+> crossbows, tridents, maces and armor (helmet, chestplate, leggings, boots, elytra) of Rare, Epic,
+> Legendary and Mythic rarity. Shields never carry it.
+> Controlled by `settings.vanishing-curse-min-rarity` in `items.yml` (`OFF` disables it).
 
 | Item | Material | Drop | Abilities |
 |------|----------|------|-----------|

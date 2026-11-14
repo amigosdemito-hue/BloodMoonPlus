@@ -36,33 +36,39 @@ public final class PlaceholderSnapshotService {
         // Refresca el histórico desde el almacén: antes vivía congelado desde onEnable
         // (solo lo "actualizaba" recrear la instancia en un reload).
         history.set(stats.get());
-        var global = plugin.events().globalSession();
-        if (global != null) {
-            sessionCache.put(global.world.getName(), new SessionPlaceholderState(
+        // Una entrada por CADA mundo con evento. Antes solo se publicaba el primero
+        // (globalSession), así que los placeholders de los demás mundos salían vacíos.
+        Set<String> live = new HashSet<>();
+        for (EventManager.Session s : plugin.events().sessions()) {
+            live.add(s.world.getName());
+            sessionCache.put(s.world.getName(), new SessionPlaceholderState(
                     UUID.randomUUID(),  // por simplicidad
-                    global.world.getName(),
-                    Math.max(0, (global.endMs - System.currentTimeMillis()) / 1000),
-                    global.kills.size(),
-                    global.died.size(),
-                    global.participants.size(),
-                    countSurvivors(global)
+                    s.world.getName(),
+                    Math.max(0, (s.endMs - System.currentTimeMillis()) / 1000),
+                    // Muertes de JUGADORES (antes se colaba s.kills.size(): jugadores que mataron mobs).
+                    s.deathCount,
+                    s.died.size(),
+                    s.participants.size(),
+                    countSurvivors(s)
             ));
-        } else {
-            sessionCache.clear();
         }
-        // Players
+        sessionCache.keySet().removeIf(k -> !live.contains(k));
+        // Players: el estado se toma de la sesión del MUNDO del jugador, no de la primera sesión.
         for (Player p : Bukkit.getOnlinePlayers()) {
+            EventManager.Session own = plugin.events().session(p.getWorld());
             PlayerPlaceholderState snap = PlayerPlaceholderState.empty(p);
-            if (global != null && global.participants.contains(p.getUniqueId())) {
+            if (own != null && own.participants.contains(p.getUniqueId())) {
                 snap = new PlayerPlaceholderState(
                         p.getUniqueId(), p.getName(),
                         true, 0, 0,
-                        !global.died.contains(p.getUniqueId()),
-                        global.died.contains(p.getUniqueId()) ? "placeholder.disqualified" : "placeholder.eligible"
+                        !own.died.contains(p.getUniqueId()),
+                        own.died.contains(p.getUniqueId()) ? "placeholder.disqualified" : "placeholder.eligible"
                 );
             }
             playerCache.put(p.getUniqueId(), snap);
         }
+        // Evita que el caché crezca con jugadores que ya se desconectaron.
+        playerCache.keySet().removeIf(id -> Bukkit.getPlayer(id) == null);
         // Boss
         var bosses = plugin.bosses().aliveSnapshot();
         if (bosses != null) {
@@ -70,8 +76,11 @@ public final class PlaceholderSnapshotService {
         }
     }
 
+    /** Participantes que nunca murieron. Contarlos así evita resultados negativos. */
     private long countSurvivors(EventManager.Session s) {
-        return s.participants.size() - s.died.size();
+        long survived = 0;
+        for (UUID id : s.participants) if (!s.died.contains(id)) survived++;
+        return survived;
     }
 
     public HistoricalStatistics history() { return history.get(); }

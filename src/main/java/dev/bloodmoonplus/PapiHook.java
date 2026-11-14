@@ -48,12 +48,15 @@ public final class PapiHook extends PlaceholderExpansion {
         String sub = parts.length > 1 ? parts[1] : "";
         String extra = parts.length > 2 ? parts[2] : "";
 
-        // Resolver el mundo del jugador si está online, si no el primer mundo con sesión
+        // Mundo del jugador si está online (placeholders POR MUNDO). Sin jugador (consola)
+        // se usa el primer mundo con sesión. Antes siempre se usaba globalSession(), así que
+        // con evento global todos los mundos mostraban los datos del primero.
         String worldName = null;
         if (player instanceof Player p2) worldName = p2.getWorld().getName();
-        SessionPlaceholderState session = null;
         var global = plugin.events().globalSession();
-        if (global != null) session = plugin.snapshots().sessionFor(global.world.getName());
+        SessionPlaceholderState session = worldName != null
+                ? plugin.snapshots().sessionFor(worldName)
+                : (global == null ? null : plugin.snapshots().sessionFor(global.world.getName()));
         boolean active = session != null;
         PlayerPlaceholderState playerState = (player != null && player.isOnline())
                 ? plugin.snapshots().playerFor(player.getUniqueId())

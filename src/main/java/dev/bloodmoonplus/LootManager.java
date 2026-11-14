@@ -108,6 +108,19 @@ public final class LootManager {
     /** true si la rareza (ya normalizada con Util.key) está definida en loot.yml. */
     public boolean hasRarity(String id) { return id != null && rarities.containsKey(id); }
 
+    /** Posición de una rareza en loot.yml (orden de definición): 0 = la más común.
+     *  Devuelve -1 si no existe. Sirve para comparar rarezas ("Raro en adelante"). */
+    public int rarityRank(String id) {
+        if (id == null || id.isEmpty()) return -1;
+        String k = Util.key(id);
+        int rank = 0;
+        for (String key : rarities.keySet()) {
+            if (key.equals(k)) return rank;
+            rank++;
+        }
+        return -1;
+    }
+
     public Set<String> tableIds() { return tables.keySet(); }
 
     public boolean hasTable(String id) { return tables.containsKey(id); }

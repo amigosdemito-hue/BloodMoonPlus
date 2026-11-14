@@ -8,6 +8,50 @@ Modrinth. Lines marked with ⭐ are the most eye-catching features for the
 project page.
 -->
 
+## [1.0.2-beta] — Curse of Vanishing for all rare-or-higher gear + audit fixes
+
+First beta of 1.0.2: high-rarity gear now carries the curse its rarity implies, and four bugs
+found in the code audit are fixed.
+
+### Fixed ⭐
+- **The historical stats counted mob kills as player deaths.** `total_death_events` and
+  `last_event.death_count` were fed with the number of horde mobs killed by players. Player deaths
+  are now counted separately, so `total_death_events`, `death_count` and `unique_deaths` finally
+  describe the same thing (`%bloodmoon_death_count%`, `%bloodmoon_last_event_death_count%`).
+- **Survivors could be negative.** `participants - deaths` was used as the survivor count, so a
+  player who died without being registered as a participant (another world, creative mode) made it
+  drop below zero. Survivors are now counted exactly as participants who never died (statistics
+  and `%bloodmoon_survivors_current%`).
+- **Per-world placeholders showed another world's data.** With the global event, the placeholder
+  service only published the first world's session, so `%bloodmoon_world%`,
+  `%bloodmoon_time_remaining%`, `%bloodmoon_participating%` and `%bloodmoon_survivor_*%` returned
+  the first world for every player. Each world now has its own published snapshot and each player
+  is read from their own world's session (console still falls back to the global one).
+- **Special events only fired in one world.** The 5-10 minute timer for eclipses, storms, fog and
+  silence was a single field shared by the manager, so with the global event only the first world
+  ticked it. The timer now lives in each world's session, so every world gets its own specials.
+- Minor: the placeholder player cache no longer keeps disconnected players forever.
+
+### Changed ⭐
+- **Every weapon, tool and armor piece from Rare to Mythic now carries the Curse of Vanishing**
+  (`vanishing_curse`): swords, axes, pickaxes, shovels, hoes, bows, crossbows, tridents, maces and
+  helmets, chestplates, leggings, boots and elytra. Previously only four legendary weapons had it,
+  so Rare and Epic gear (Blood Sword, Crimson Bow, Shadow Dagger, Storm Bow, Umbral Pickaxe,
+  Executioner's Axe, Ruin Sword, Abyssal Crossbow, Blizzard Axe, Hunter's armor, Thunder Boots) and
+  the Mythics (Eclipse Blade, Reaper's Scythe, Abyss Trident, Colossus Mace, Apocalypse Axe,
+  Eclipse Crown/Chest/Legs) could be kept after dying. Shields never carry it.
+- The curse is applied **when the item is built**, so it also covers servers that already have an
+  `items.yml` (no config edit needed) and any item added to `items.yml` in the future.
+- New `items.yml` setting **`settings.vanishing-curse-min-rarity: RARO`**: minimum rarity that
+  receives the curse; `OFF` (or `NONE`) disables it.
+
+### Documentation
+- `README.md` / `README.en.md`, `DROPS.md` / `DROPS.en.md`: the Curse of Vanishing note now covers
+  "Rare and above: weapons, tools and armor".
+
+### Compatibility
+- Paper **26.2** and **26.3**. Built with Java 25.
+
 ## [1.0.1] — Global event overhaul: all worlds, fixed night, configurable chat, faster waves
 
 The definitive stability release. The Blood Moon now truly covers the whole server, the

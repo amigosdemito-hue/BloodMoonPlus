@@ -25,6 +25,9 @@ public final class ItemFactory {
     private boolean showRarityLine = true;
     /** Nivel máximo de encantamiento en items (los que superen el límite se recortan al cargar). */
     private int maxEnchantLevel = 7;
+    /** Rareza mínima (posición en loot.yml) que recibe Maldición de desaparición en armas,
+     *  herramientas y armadura; -1 = desactivado. Por defecto RARO (posición 2). */
+    private int vanishingMinRank = 2;
 
     ItemFactory(BloodMoonPlus plugin) { this.plugin = plugin; }
 
@@ -33,6 +36,18 @@ public final class ItemFactory {
         YamlConfiguration y = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "items.yml"));
         showRarityLine = y.getBoolean("settings.show-rarity-line", true);
         maxEnchantLevel = Math.max(1, y.getInt("settings.max-enchant-level", 7));
+        // Maldición de desaparición automática desde cierta rareza (OFF/NONE la desactiva).
+        String vanishFrom = y.getString("settings.vanishing-curse-min-rarity", "RARO");
+        if (vanishFrom == null || vanishFrom.isBlank()
+                || Util.key(vanishFrom).equals("OFF") || Util.key(vanishFrom).equals("NONE")) {
+            vanishingMinRank = -1;
+        } else {
+            vanishingMinRank = plugin.loot().rarityRank(vanishFrom);
+            if (vanishingMinRank < 0) {
+                plugin.getLogger().warning("items.yml: vanishing-curse-min-rarity '" + vanishFrom
+                        + "' no existe en loot.yml (rarities); no se aplicará la maldición.");
+            }
+        }
         ConfigurationSection sec = y.getConfigurationSection("items");
         if (sec == null) return;
         for (String id : sec.getKeys(false)) {
@@ -59,6 +74,20 @@ public final class ItemFactory {
                     s.getStringList("abilities"), s.getStringList("passives")));
         }
         plugin.getLogger().info("Items cargados: " + defs.size());
+    }
+
+    /** Equipo que recibe la Maldición de desaparición: armas y herramientas (espadas, hachas,
+     *  picos, palas, azadas, arcos, ballestas, tridentes y mazas) MÁS armadura (yelmo, peto,
+     *  grebas, botas y élitros). Se compara por nombre de material para no depender de tags
+     *  que cambian entre versiones de la API. Los escudos y los materiales quedan fuera. */
+    private static boolean isGear(Material m) {
+        if (m == null) return false;
+        String n = m.name();
+        return n.endsWith("_SWORD") || n.endsWith("_AXE") || n.endsWith("_PICKAXE")
+                || n.endsWith("_SHOVEL") || n.endsWith("_HOE")
+                || n.equals("BOW") || n.equals("CROSSBOW") || n.equals("TRIDENT") || n.equals("MACE")
+                || n.endsWith("_HELMET") || n.endsWith("_CHESTPLATE") || n.endsWith("_LEGGINGS")
+                || n.endsWith("_BOOTS") || n.equals("ELYTRA");
     }
 
     public ItemDef get(String id) { return id == null ? null : defs.get(id); }
@@ -107,6 +136,14 @@ public final class ItemFactory {
             }
             // Nivel de encantamiento recortado al máximo permitido (7 por defecto)
             meta.addEnchant(en, Math.min(maxEnchantLevel, Math.max(1, e.getValue())), true);
+        }
+        // Maldición de desaparición obligatoria en ARMAS, HERRAMIENTAS y ARMADURA de rareza
+        // alta (Raro en adelante por defecto): si mueres con ellas se pierden, como corresponde
+        // a su rareza. Ajustable con settings.vanishing-curse-min-rarity (OFF la desactiva).
+        Enchantment vanish = Reg.enchantment("vanishing_curse");
+        if (vanish != null && vanishingMinRank >= 0 && isGear(d.material())
+                && plugin.loot().rarityRank(d.rarity()) >= vanishingMinRank) {
+            meta.addEnchant(vanish, 1, true);
         }
         if (d.unbreakable()) meta.setUnbreakable(true);
         if (d.glow()) meta.setEnchantmentGlintOverride(true);

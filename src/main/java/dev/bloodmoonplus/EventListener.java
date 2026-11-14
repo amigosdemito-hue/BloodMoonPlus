@@ -140,6 +140,8 @@ public final class EventListener implements Listener {
         if (s != null) {
             s.dead.add(e.getEntity().getUniqueId());
             s.died.add(e.getEntity().getUniqueId());
+            // Contador de MUERTES de jugadores para el histórico (s.kills son kills de mobs).
+            s.deathCount++;
             // Rayo visual + anuncio inmersivo
             org.bukkit.World w = e.getEntity().getWorld();
             w.strikeLightningEffect(e.getEntity().getLocation());

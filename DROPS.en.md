@@ -79,8 +79,11 @@
 
 ### Legendaries
 
-> ⚠️ The **legendary weapons** (Vampiric Fang, Lunar Bow, Thunder Hammer, Dawn Crossbow)
-> carry the **Curse of Vanishing**: on death, the weapon disappears instead of dropping.
+> ⚠️ **Rare-or-higher weapons, tools and armor** carry the **Curse of Vanishing**: on death, the
+> item disappears instead of dropping. This includes Rare and Epic gear (Blood Sword, Crimson Bow,
+> Shadow Dagger, Storm Bow, Umbral Pickaxe, Executioner's Axe, Ruin Sword, Abyssal Crossbow,
+> Blizzard Axe), the armor pieces (Hunter's Helm/Chest/Legs/Boots, Thunder Boots, Nightwalker Boots,
+> Guardian's Chestplate, Eclipse Crown/Chest/Legs) and every Mythic. Shields do not carry it.
 
 | Item | Material | Drop | Abilities |
 |------|----------|------|-----------|

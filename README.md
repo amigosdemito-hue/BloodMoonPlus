@@ -287,7 +287,7 @@ El item sorteado tiene su **propia** probabilidad de drop. **Si falla, esa tirad
 
 - **Míticos:** máximo **3 ejemplares en todo el servidor** (número de serie en el lore); al agotarse, dejan de caer.
 - **Armas rotas Raro/Legendario capadas al 5%**: Espada Sanguinaria, Arco Carmesí, Daga de las Sombras, Arco de la Tormenta y Colmillo Vampírico.
-- **Armas legendarias con Maldición de desvanecimiento**: si mueres con ellas, desaparecen (riesgo real de llevarlas).
+- **Armas, herramientas y armaduras de Raro en adelante con Maldición de desvanecimiento**: si mueres con ellas, desaparecen (riesgo real de llevarlas). *(Desde 1.0.2.)*
 - **Encantamientos:** el nivel nunca supera **7** (se recorta al cargar).
 - Solo cuenta matar a mobs de la horda con un jugador cerca (`require-player-kill`).
 - Los items Legendario y Mítico **brillan** al caer e ignoran lava y explosiones.
@@ -377,9 +377,12 @@ Porcentajes del paso 3 en cada tabla (antes del drop-chance individual):
 
 ### Legendarios
 
-> ⚠️ **Todas las armas legendarias llevan Maldición de desvanecimiento** (`vanishing_curse`):
-> si mueres con ella en el inventario, el arma **desaparece** — no cae al suelo y nadie puede recogerla.
-> Solo aplica a armas (Colmillo, Arco Lunar, Martillo, Ballesta), no a la armadura legendaria.
+> ⚠️ **Todas las armas, herramientas y armaduras de rareza Raro en adelante llevan Maldición de
+> desvanecimiento** (`vanishing_curse`): si mueres con ellas en el inventario, el objeto **desaparece** —
+> no cae al suelo y nadie puede recogerlo. Aplica a espadas, hachas, picos, palas, azadas, arcos,
+> ballestas, tridentes, mazas y a la armadura (yelmo, peto, grebas, botas, élitros) de rareza Raro,
+> Épico, Legendario y Mítico. Los escudos no la llevan.
+> Se controla con `settings.vanishing-curse-min-rarity` en `items.yml` (`OFF` para desactivarla).
 
 | Item | Material | Drop | Habilidades |
 |------|----------|------|-------------|
