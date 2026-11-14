@@ -48,8 +48,9 @@ public final class SurvivorManager {
                 continue;
             }
             if (policy.disqualifyOnDeath() && s.died.contains(id)) continue;
-            // Participation: estimación simple = duración del evento
-            long participation = (endMs - startMs) / 1000;
+            // Participación real: desde que el jugador entró al evento hasta que terminó.
+            long joined = s.joinedAtMs.getOrDefault(id, endMs);
+            long participation = Math.max(0, (endMs - joined) / 1000);
             if (participation < policy.minParticipationSeconds()) continue;
             eligible.add(p);
         }
@@ -75,7 +76,8 @@ public final class SurvivorManager {
         for (Player p : eligible) {
             for (String msg : policy.messages()) {
                 String resolved = base.resolve(msg, p);
-                p.sendMessage(dev.bloodmoonplus.Util.mini(resolved));
+                // Los mensajes del template usan colores legacy con '&' (estilo Reborn).
+                p.sendMessage(dev.bloodmoonplus.Util.mini(dev.bloodmoonplus.Util.ampToSection(resolved)));
             }
         }
 

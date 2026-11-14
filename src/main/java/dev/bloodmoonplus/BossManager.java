@@ -72,7 +72,6 @@ public final class BossManager {
     private final Map<String, BossDef> defs = new LinkedHashMap<>();
     private final List<Spawn> spawns = new ArrayList<>();
     private final Map<UUID, Instance> alive = new HashMap<>();
-    private long defeatedCount = 0;
 
     /**
      * Verdadero mientras el plugin está invocando a un jefe de la Luna.
@@ -425,7 +424,8 @@ public final class BossManager {
                 return true;
             }
             case "SKULL" -> {
-                // Dispara calaveras de wither a los jugadores (sin romper terreno: yield 0)
+                // Dispara calaveras de wither a los jugadores. El jefe SÍ rompe bloques (yield 1),
+                // igual que el Wither vanilla: la protección de terreno exime al jefe.
                 int count = (int) arg(a, 0, 3);
                 Collections.shuffle(near);
                 int fired = 0;
@@ -527,11 +527,12 @@ public final class BossManager {
         Instance bi = alive.remove(ent.getUniqueId());
         if (bi == null) return;
         hideBar(bi);
-        defeatedCount++;
         plugin.stats().recordBossDefeated();
-        // Recuerda el último jefe caído en su mundo para el histórico de estadísticas
+        // Recuerda el último jefe caído en su mundo para el histórico y para el placeholder
+        // %bloodmoon_bosses_defeated_session% (contador por sesión, no global).
         EventManager.Session ses = plugin.events().session(bi.world);
         if (ses != null) {
+            ses.bossesDefeated++;
             ses.lastBossName = bi.def.name();
             ses.lastBossType = bi.def.type().name();
         }
@@ -569,6 +570,59 @@ public final class BossManager {
             for (ItemStack it : plugin.loot().roll(bi.def.topTable(), topPlayer, bi.diff, false)) plugin.loot().giveOrDrop(topPlayer, it);
             topPlayer.sendMessage(plugin.messages().prefixed("boss.top-reward"));
         }
+        giveBossRewards(ent, bi, killer, topPlayer);
+    }
+
+    /** Comandos de recompensa del jefe (Boss.Rewards del config por mundo).
+     *  Antes esa sección se leía pero nunca se ejecutaba: la documentación prometía
+     *  comandos al matar al jefe y no pasaba nada. */
+    private void giveBossRewards(LivingEntity boss, Instance bi, Player killer, Player topPlayer) {
+        var cfg = plugin.worldConfigs().get(bi.world.getName()).boss();
+        if (!cfg.rewardsEnabled() || cfg.rewardCommands().isEmpty()) return;
+        if (cfg.requirePlayerKiller() && killer == null) return;
+
+        List<Player> targets = new ArrayList<>();
+        switch (String.valueOf(cfg.rewardsMode()).toUpperCase(Locale.ROOT)) {
+            case "ALL" -> targets.addAll(nearbyPlayers(boss, 40));
+            case "TOP_DAMAGE" -> { if (topPlayer != null) targets.add(topPlayer); }
+            default -> { if (killer != null) targets.add(killer); }
+        }
+        if (targets.isEmpty()) return;
+
+        EventManager.Session ses = plugin.events().session(bi.world);
+        // RewardOnce: una sola vez por evento de este mundo.
+        if (cfg.rewardOnce() && ses != null) {
+            if (ses.bossRewardGiven) return;
+            ses.bossRewardGiven = true;
+        }
+
+        long start = ses != null ? ses.startMs : System.currentTimeMillis();
+        long end = ses != null ? ses.endMs : start;
+        dev.bloodmoonplus.survivor.RewardContext ctx = new dev.bloodmoonplus.survivor.RewardContext(
+                bi.world, UUID.randomUUID().toString(), start, end,
+                ses != null ? ses.participants.size() : 0,
+                ses != null ? ses.deathCount : 0,
+                ses != null ? ses.survivors() : 0,
+                bi.def.name(), bi.def.type().name(),
+                killer != null ? killer.getName() : "", killer != null ? killer.getUniqueId() : null,
+                bi.world.getName(), boss.getX(), boss.getY(), boss.getZ(),
+                boss.getHealth(), Util.maxHealth(boss));
+
+        for (String raw : cfg.rewardCommands()) {
+            var parsed = dev.bloodmoonplus.survivor.RewardContext.parse(raw);
+            if (parsed == null) continue;
+            switch (parsed.audience()) {
+                case CONSOLE_PER_PLAYER -> {
+                    for (Player p : targets) {
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), ctx.resolve(parsed.command(), p));
+                    }
+                }
+                case PLAYER_EXEC -> {
+                    for (Player p : targets) p.performCommand(ctx.resolve(parsed.command(), p));
+                }
+                default -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), ctx.resolve(parsed.command(), null));
+            }
+        }
     }
 
     private void hideBar(Instance bi) {
@@ -588,8 +642,6 @@ public final class BossManager {
         }
         return n;
     }
-
-    public long defeatedCount() { return defeatedCount; }
 
     /** Snapshot del primer boss vivo (para placeholders). */
     public dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot aliveSnapshot() {

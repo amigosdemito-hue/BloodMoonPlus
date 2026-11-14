@@ -232,14 +232,18 @@ public final class ItemAbilities implements Listener {
         if (reflect > 0 && e.getDamager() instanceof LivingEntity refAttacker) {
             if (rnd.nextDouble() < Math.min(0.5, reflect)) {
                 double ret = e.getFinalDamage() * d(new String[]{"REFLECT", String.valueOf(reflect)}, 1, 0.3);
-                refAttacker.damage(ret, defender);
+                // Guarda de reentrada: el daño devuelto no debe re-disparar las habilidades
+                // del arma del atacante (ni las de esta armadura) en cascada.
+                processing = true;
+                try { refAttacker.damage(ret, defender); } finally { processing = false; }
                 defender.getWorld().spawnParticle(Particle.ENCHANT, defender.getLocation().add(0, 1, 0), 10, 0.3, 0.5, 0.3, 0.05);
             }
         }
         if (!thorns.isEmpty() && e.getDamager() instanceof LivingEntity attacker) {
             for (String[] a : thorns) {
                 if (rnd.nextDouble() < d(a, 1, 0.2)) {
-                    attacker.damage(d(a, 2, 3), defender);
+                    processing = true;
+                    try { attacker.damage(d(a, 2, 3), defender); } finally { processing = false; }
                 }
             }
         }
@@ -251,8 +255,11 @@ public final class ItemAbilities implements Listener {
                 LivingEntity strike = self ? defender : sourceOf(e.getDamager());
                 if (strike == null || strike.isDead()) continue;
                 strike.getWorld().strikeLightningEffect(strike.getLocation());
-                if (self) strike.damage(d(a, 2, 6));
-                else strike.damage(d(a, 2, 6), defender);
+                processing = true;
+                try {
+                    if (self) strike.damage(d(a, 2, 6));
+                    else strike.damage(d(a, 2, 6), defender);
+                } finally { processing = false; }
             }
         }
         // BLAST_WAVE: onda expansiva que daña y lanza al atacante; NO rompe bloques
@@ -265,7 +272,8 @@ public final class ItemAbilities implements Listener {
                 Vector dir = src.getLocation().toVector().subtract(defender.getLocation().toVector()).setY(0);
                 if (dir.lengthSquared() < 0.01) dir = new Vector(rnd.nextDouble() - 0.5, 0, rnd.nextDouble() - 0.5);
                 src.setVelocity(dir.normalize().multiply(d(a, 3, 1.3)).setY(0.7));
-                src.damage(d(a, 2, 5), defender);
+                processing = true;
+                try { src.damage(d(a, 2, 5), defender); } finally { processing = false; }
                 src.getWorld().spawnParticle(Particle.EXPLOSION, src.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3, 0.1);
                 src.getWorld().playSound(src.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 0.7f, 1.5f);
             }

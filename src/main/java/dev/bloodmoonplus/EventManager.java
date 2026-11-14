@@ -44,6 +44,8 @@ public final class EventManager {
          *  deja de recibir hordas (dead solo marca mientras está muerto y se limpia al reaparecer). */
         public final Set<UUID> died = new HashSet<>();
         public final Set<UUID> participants = new HashSet<>();
+        /** Primera vez que cada jugador participó: tiempo real de participación. */
+        public final Map<UUID, Long> joinedAtMs = new HashMap<>();
         public final Map<UUID, Integer> kills = new HashMap<>();
         final List<BossManager.Pending> pendingBosses = new ArrayList<>();
         /** Dificultad original del mundo, para restaurarla al terminar si fue forzada. */
@@ -58,11 +60,22 @@ public final class EventManager {
         /** Muertes de JUGADORES durante el evento (eventos de muerte, no jugadores únicos).
          *  Ojo: s.kills son los MOBS matados por jugadores, que es otra cosa. */
         public int deathCount = 0;
+        /** Jefes derrotados en este mundo durante el evento (para placeholders). */
+        public int bossesDefeated = 0;
+        /** Ya se pagaron las recompensas de jefe de este evento (Boss.Rewards.RewardOnce). */
+        boolean bossRewardGiven = false;
         /** Última vez que se disparó un evento especial EN ESTE mundo. */
         long lastSpecialEventMs = 0;
         /** Último jefe derrotado en este mundo (para el histórico de estadísticas). */
         String lastBossName = "";
         String lastBossType = "NONE";
+
+        /** Participantes que nunca murieron. Contarlo así evita resultados negativos. */
+        public long survivors() {
+            long n = 0;
+            for (UUID id : participants) if (!died.contains(id)) n++;
+            return n;
+        }
 
         Session(World world, long startMs, long endMs, double difficulty) {
             this.world = world;
@@ -302,7 +315,7 @@ public final class EventManager {
                 p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.GLOWING, 20 * 30, 0, false, false));
             }
             if (announce && plugin.messages().announce("event", false)) plugin.messages().all("event.start", "difficulty", d, "minutes", String.valueOf(minutes));
-            runCommands(cmdStart, w, null);
+            runCommands(cmdStart, w, null, diff);
         }
         plugin.bosses().plan(s, resumed);
         return true;
@@ -341,11 +354,8 @@ public final class EventManager {
             deaths += s.deathCount;
             uniqueDeaths += s.died.size();
             participants += s.participants.size();
-            // Supervivientes exactos: participantes que nunca murieron. Así el número no puede
-            // quedar negativo (participants - died) si alguien muere sin estar en participants.
-            long survived = 0;
-            for (UUID id : s.participants) if (!s.died.contains(id)) survived++;
-            survivorsCount += survived;
+            // Supervivientes exactos: participantes que nunca murieron (nunca negativo).
+            survivorsCount += s.survivors();
             if (s.lastBossName != null && !s.lastBossName.isEmpty()) {
                 bossName = s.lastBossName;
                 bossType = s.lastBossType;
@@ -389,22 +399,26 @@ public final class EventManager {
                 }
             }
         }
-        runCommands(cmdEnd, s.world, null);
+        runCommands(cmdEnd, s.world, null, s.difficulty);
     }
 
     private void giveSurvivorRewards(Session s, List<Player> survivors) {
         for (Player p : survivors) {
             for (ItemStack it : plugin.loot().roll(survivorTable, p, s.difficulty, false)) plugin.loot().giveOrDrop(p, it);
-            runCommands(cmdSurvivor, s.world, p);
+            runCommands(cmdSurvivor, s.world, p, s.difficulty);
             p.sendMessage(plugin.messages().prefixed("event.survivors"));
         }
     }
 
-    void runCommands(List<String> cmds, World w, Player p) {
+    /** Ejecuta comandos de config. Soporta %world%/%player%/%difficulty% (lo documentado en
+     *  worlds-template) y también {world}/{player}/{difficulty}. */
+    void runCommands(List<String> cmds, World w, Player p, double diff) {
+        String diffText = Util.fmt(diff);
         for (String c : cmds) {
-            String cmd = c.replace("{world}", w.getName());
-            if (p != null) cmd = cmd.replace("{player}", p.getName());
-            else if (cmd.contains("{player}")) continue;
+            String cmd = c.replace("{world}", w.getName()).replace("%world%", w.getName())
+                    .replace("{difficulty}", diffText).replace("%difficulty%", diffText);
+            if (p != null) cmd = cmd.replace("{player}", p.getName()).replace("%player%", p.getName());
+            else if (cmd.contains("{player}") || cmd.contains("%player%")) continue;
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
         }
     }
@@ -460,7 +474,9 @@ public final class EventManager {
             if (Bukkit.getWorld(s.world.getName()) == null) {
                 if (orphan == null) orphan = new ArrayList<>();
                 orphan.add(s);
-            } else if (now >= s.endMs) {
+            } else if (now >= s.endMs
+                    && !plugin.worldConfigs().get(s.world.getName()).permanentBloodMoon()) {
+                // WorldPermanent: el evento no termina solo, solo se detiene con /luna stop.
                 if (ended == null) ended = new ArrayList<>();
                 ended.add(s);
             }
@@ -489,9 +505,21 @@ public final class EventManager {
     private void tickSession(Session global, long now) {
         World w = global.world;
         if (Bukkit.getWorld(w.getName()) == null) return;
+        // WorldPermanent: en lugar de dejar el evento "terminado" con la barra en 00:00,
+        // se desliza el final minuto a minuto para que barra, placeholders y el guardado
+        // de data.yml (retomar tras reiniciar) sigan siendo coherentes.
+        if (now >= global.endMs && plugin.worldConfigs().get(w.getName()).permanentBloodMoon()) {
+            global.endMs = now + 60_000L;
+            plugin.data().saveActive(w.getName(), global.startMs, global.endMs, global.difficulty);
+        }
 
         for (Player p : w.getPlayers()) {
-            if (p.getGameMode() == GameMode.SURVIVAL || p.getGameMode() == GameMode.ADVENTURE) global.participants.add(p.getUniqueId());
+            if (p.getGameMode() == GameMode.SURVIVAL || p.getGameMode() == GameMode.ADVENTURE) {
+                global.participants.add(p.getUniqueId());
+                // Hora de entrada real (los placeholders y SurvivorRewards ya no usan la
+                // duración total del evento como "participación").
+                global.joinedAtMs.putIfAbsent(p.getUniqueId(), now);
+            }
         }
         updateBar(global, now);
         if (lockNight) setWorldTime(w, nightTime);
@@ -756,6 +784,17 @@ public final class EventManager {
 
     public static boolean isTagged(Entity e) {
         return e.getPersistentDataContainer().has(Keys.MOB, PersistentDataType.BYTE);
+    }
+
+    /** Mobs de la horda VIVOS en un mundo (etiquetados y que no son jefes). Lo usa el
+     *  placeholder %bloodmoon_horde_count%; lo llama el snapshot cada ~2 s, no PAPI. */
+    public int countHordeAlive(World w) {
+        if (w == null) return 0;
+        int n = 0;
+        for (LivingEntity le : w.getLivingEntities()) {
+            if (isTagged(le) && !le.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) n++;
+        }
+        return n;
     }
 
     public int removeTagged(World w) {

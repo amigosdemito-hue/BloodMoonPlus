@@ -51,6 +51,14 @@ public final class Util {
     private static final Pattern LEGACY_HEX = Pattern.compile("(?i)§x(§[0-9a-f]){6}");
     private static final Pattern LEGACY_CODE = Pattern.compile("(?i)§([0-9a-fk-or])");
 
+    /** Convierte códigos legacy con '&' (estilo config de Reborn: "&a¡Hola!") a '§'.
+     *  Se usa SOLO en textos de configuración escritos por el usuario, no en mensajes
+     *  generales: un "&" normal ("A & B") no debe convertirse por accidente. */
+    public static String ampToSection(String s) {
+        if (s == null || s.indexOf('&') < 0) return s;
+        return s.replaceAll("(?i)&([0-9a-fk-or])", "§$1");
+    }
+
     /** Convierte códigos legacy (§c, §4§l, §x§R§R§G§G§B§B) a etiquetas MiniMessage. */
     public static String legacyToMini(String s) {
         if (s == null || s.indexOf('§') < 0) return s;

@@ -37,3 +37,12 @@ modrinth/token.txt
 .todo-plan.json
 todo-plan.json
 plan.json
+
+# Servidor de pruebas local y artefactos (no deben versionarse)
+.testserver/
+EventoPvP/
+*.log
+*_err.txt
+reupload_jar.ps1
+modrinth/.tmp-*
+/C:*

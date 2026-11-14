@@ -157,22 +157,15 @@ public final class PapiHook extends PlaceholderExpansion {
                 }
                 yield null;
             }
-            case "bosses_defeated_session" -> {
-                long n = 0;
-                if (global != null && global.kills.size() > 0) n = countDefeatedBosses();
-                yield String.valueOf(n);
-            }
+            // %bloodmoon_bosses_defeated_session% -> parts: "bosses" | "defeated" | "session"
+            case "bosses" -> switch (sub) {
+                case "defeated" -> String.valueOf(session != null ? session.bossesDefeated() : 0);
+                default -> null;
+            };
             case "horde" -> switch (sub) {
                 case "active" -> String.valueOf(active);
-                case "count" -> {
-                    if (!active) { yield "0"; }
-                    // Conteo aproximado de mobs de la horda vivos en el mundo del evento.
-                    // No hacemos un recorrido completo porque puede ser muy costoso con
-                    // muchos jugadores/mobs. El valor es conservador: part. * 8 como
-                    // estimación superior de mobs activos por jugador.
-                    long approx = Math.max(0, session.participantsCurrent() * 8);
-                    yield String.valueOf(approx);
-                }
+                // Mobs de la horda realmente vivos en el mundo (contados en el snapshot).
+                case "count" -> String.valueOf(session != null ? session.hordeAlive() : 0);
                 default -> null;
             };
             case "abilities" -> sub.equals("count") && player instanceof Player pp
@@ -187,9 +180,10 @@ public final class PapiHook extends PlaceholderExpansion {
             case "permanent" -> sub.equals("world") && worldName != null
                     ? String.valueOf(plugin.worldConfigs().get(worldName).permanentBloodMoon())
                     : "false";
-            case "event" -> sub.equals("elapsed") && active
-                    ? formatTime((20 * 60 - session.timeRemainingSeconds()))
-                    : "0:00";
+            // Tiempo transcurrido real de la sesión (antes se asumían 20 min fijos).
+            case "event" -> sub.equals("elapsed")
+                    ? formatTime(session != null ? session.elapsedSeconds() : 0)
+                    : null;
             default -> null;
         };
     }
@@ -236,10 +230,6 @@ public final class PapiHook extends PlaceholderExpansion {
             }
         }
         return "100%";
-    }
-
-    private long countDefeatedBosses() {
-        return plugin.bosses().defeatedCount();
     }
 
     private int countAbilities(Player p) {

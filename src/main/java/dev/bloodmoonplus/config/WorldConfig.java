@@ -12,38 +12,28 @@ import java.util.*;
  *
  * Estructura (igual a Reborn para permitir migrar):
  *   SurvivorRewards: { Enabled, RequireOnlineAtEnd, MinimumParticipationSeconds, ... }
- *   Boss: { Mode, VanillaBossBar, Rewards, MythicMobs }
+ *   Boss: { Mode, Rewards, MythicMobs }   (la barra se define en bosses.yml)
  *   CommandsOnStart: [ lista con sufijos ;s, ;f, ;p ]
  *   CommandsOnEnd:   [ lista con sufijos ;s, ;f, ;p ]
- *   BedNotAllowed: bool
- *   WorldPermanent: bool
- *   DyingLossesInventory: bool
- *   DyingLossesExperience: bool
+ *   BedNotAllowed: bool                  (bloquea dormir durante el evento)
+ *   WorldPermanent: bool                 (el evento no termina solo; solo con /luna stop)
+ *   DyingLossesInventory: bool           (morir en el evento borra el inventario)
+ *   DyingLossesExperience: bool          (morir en el evento no suelta experiencia)
  */
 public final class WorldConfig {
 
     public record SurvivorPolicy(
             boolean enabled,
             boolean requireOnlineAtEnd,
-            boolean includeLateJoiners,
             int minParticipationSeconds,
             boolean disqualifyOnDeath,
             boolean disqualifyOnWorldLeave,
-            boolean disqualifyOnDisconnect,
-            boolean rewardOncePerSession,
             List<String> messages,
             List<String> commands
     ) {}
 
     public record BossConfig(
             String mode,                 // VANILLA, MYTHICMOBS, NONE
-            boolean barEnabled,
-            String barTitle,
-            String barColor,
-            String barStyle,
-            String barAudience,          // NEARBY, WORLD, ALL
-            int barViewDistance,
-            boolean showHealthNumbers,
             boolean rewardsEnabled,
             String rewardsMode,          // KILLER, TOP_DAMAGE, ALL
             boolean requirePlayerKiller,
@@ -51,8 +41,6 @@ public final class WorldConfig {
             List<String> rewardCommands,
             boolean mythicEnabled,
             String mythicInternalName,
-            boolean mythicUseMythicRewards,
-            boolean mythicRunBloodMoonRewards,
             boolean mythicFallback
     ) {}
 
@@ -81,16 +69,13 @@ public final class WorldConfig {
     }
 
     private static SurvivorPolicy parseSurvivor(ConfigurationSection s) {
-        if (s == null) return new SurvivorPolicy(false, true, true, 60, true, false, false, true, List.of(), List.of());
+        if (s == null) return new SurvivorPolicy(false, true, 60, true, false, List.of(), List.of());
         return new SurvivorPolicy(
                 s.getBoolean("Enabled", false),
                 s.getBoolean("RequireOnlineAtEnd", true),
-                s.getBoolean("IncludeLateJoiners", true),
                 s.getInt("MinimumParticipationSeconds", 60),
                 s.getBoolean("DisqualifyOnDeath", true),
                 s.getBoolean("DisqualifyOnWorldLeave", false),
-                s.getBoolean("DisqualifyOnDisconnect", false),
-                s.getBoolean("RewardOncePerSession", true),
                 s.getStringList("Messages"),
                 s.getStringList("Commands")
         );
@@ -98,24 +83,13 @@ public final class WorldConfig {
 
     private static BossConfig parseBoss(ConfigurationSection s) {
         if (s == null) {
-            return new BossConfig("VANILLA", true, "%boss_name% &c%boss_health%&7/&c%boss_max_health%",
-                    "RED", "SEGMENTED_10", "NEARBY", 64, true,
-                    false, "KILLER", true, true, List.of(),
-                    false, "BloodMoonBoss", true, false, true);
+            return new BossConfig("VANILLA", false, "KILLER", true, true, List.of(),
+                    false, "BloodMoonBoss", true);
         }
-        String mode = s.getString("Mode", "VANILLA");
-        ConfigurationSection bar = s.getConfigurationSection("VanillaBossBar");
         ConfigurationSection rew = s.getConfigurationSection("Rewards");
         ConfigurationSection myt = s.getConfigurationSection("MythicMobs");
         return new BossConfig(
-                mode,
-                bar != null && bar.getBoolean("Enabled", true),
-                bar != null ? bar.getString("Title", "%boss_name% &c%boss_health%&7/&c%boss_max_health%") : "%boss_name%",
-                bar != null ? bar.getString("Color", "RED") : "RED",
-                bar != null ? bar.getString("Style", "SEGMENTED_10") : "SEGMENTED_10",
-                bar != null ? bar.getString("Audience", "NEARBY") : "NEARBY",
-                bar != null ? bar.getInt("ViewDistance", 64) : 64,
-                bar != null && bar.getBoolean("ShowHealthNumbers", true),
+                s.getString("Mode", "VANILLA"),
                 rew != null && rew.getBoolean("Enabled", false),
                 rew != null ? rew.getString("Mode", "KILLER") : "KILLER",
                 rew != null && rew.getBoolean("RequirePlayerKiller", true),
@@ -123,8 +97,6 @@ public final class WorldConfig {
                 rew != null ? rew.getStringList("Commands") : List.of(),
                 myt != null && myt.getBoolean("Enabled", false),
                 myt != null ? myt.getString("InternalName", "BloodMoonBoss") : "BloodMoonBoss",
-                myt != null && myt.getBoolean("UseMythicMobsRewards", true),
-                myt != null && myt.getBoolean("RunBloodMoonRewardCommands", false),
                 myt != null && myt.getBoolean("FallbackToVanilla", true)
         );
     }

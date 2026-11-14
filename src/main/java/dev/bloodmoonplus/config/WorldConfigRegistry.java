@@ -28,34 +28,10 @@ public final class WorldConfigRegistry {
 
     public void init() {
         worldsDir.mkdirs();
-        // Auto-instala README y EXAMPLES como Reborn (no se sobreescriben)
-        installIfMissing("README.txt", "distribution/README.txt");
-        File examples = new File(plugin.getDataFolder(), "EXAMPLES");
-        if (!examples.exists()) {
-            examples.mkdirs();
-            installIfMissing("EXAMPLES/BossRewards-en.yml", "distribution/EXAMPLES/BossRewards-en.yml");
-            installIfMissing("EXAMPLES/BossRewards-es.yml", "distribution/EXAMPLES/BossRewards-es.yml");
-            installIfMissing("EXAMPLES/CommandsOnStart-en.yml", "distribution/EXAMPLES/CommandsOnStart-en.yml");
-            installIfMissing("EXAMPLES/CommandsOnStart-es.yml", "distribution/EXAMPLES/CommandsOnStart-es.yml");
-            installIfMissing("EXAMPLES/CommandsOnEnd-en.yml", "distribution/EXAMPLES/CommandsOnEnd-en.yml");
-            installIfMissing("EXAMPLES/CommandsOnEnd-es.yml", "distribution/EXAMPLES/CommandsOnEnd-es.yml");
-            installIfMissing("EXAMPLES/SurvivorRewards-en.yml", "distribution/EXAMPLES/SurvivorRewards-en.yml");
-            installIfMissing("EXAMPLES/SurvivorRewards-es.yml", "distribution/EXAMPLES/SurvivorRewards-es.yml");
-        }
+        // Antes se intentaba instalar README.txt y EXAMPLES desde recursos "distribution/*"
+        // que NO existen en el jar: fallaba en silencio y nunca creaba nada. Se eliminó ese
+        // bloque en lugar de prometer archivos que el plugin no trae.
         reload();
-    }
-
-    private void installIfMissing(String target, String resource) {
-        File f = new File(plugin.getDataFolder(), target);
-        if (!f.exists()) {
-            f.getParentFile().mkdirs();
-            try {
-                plugin.saveResource(resource, false);
-            } catch (IllegalArgumentException ex) {
-                // El recurso no está en el JAR; solo lo advertimos.
-                plugin.getLogger().fine("Recurso no empaquetado: " + resource + " (se omite)");
-            }
-        }
     }
 
     public void reload() {

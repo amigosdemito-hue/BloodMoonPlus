@@ -134,6 +134,15 @@ public final class EventListener implements Listener {
         }
     }
 
+    /** BedNotAllowed: durante el evento de ese mundo no se puede dormir. */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBedEnter(org.bukkit.event.player.PlayerBedEnterEvent e) {
+        if (!plugin.events().isActive(e.getPlayer().getWorld())) return;
+        if (plugin.worldConfigs().get(e.getPlayer().getWorld().getName()).bedNotAllowed()) {
+            e.setCancelled(true);
+        }
+    }
+
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
         EventManager.Session s = plugin.events().session(e.getEntity().getWorld());
@@ -142,6 +151,10 @@ public final class EventListener implements Listener {
             s.died.add(e.getEntity().getUniqueId());
             // Contador de MUERTES de jugadores para el histórico (s.kills son kills de mobs).
             s.deathCount++;
+            // Reglas por mundo (WorldConfig): perder inventario / experiencia al morir.
+            var wc = plugin.worldConfigs().get(e.getEntity().getWorld().getName());
+            if (wc.dyingLossesInventory()) e.getDrops().clear();
+            if (wc.dyingLossesExperience()) e.setDroppedExp(0);
             // Rayo visual + anuncio inmersivo
             org.bukkit.World w = e.getEntity().getWorld();
             w.strikeLightningEffect(e.getEntity().getLocation());

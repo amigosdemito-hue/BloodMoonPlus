@@ -31,6 +31,29 @@ found in the code audit are fixed.
   silence was a single field shared by the manager, so with the global event only the first world
   ticked it. The timer now lives in each world's session, so every world gets its own specials.
 - Minor: the placeholder player cache no longer keeps disconnected players forever.
+- **Participation was fake**: `%bloodmoon_participating_seconds%`,
+  `%bloodmoon_participating_percent%` and `SurvivorRewards.MinimumParticipationSeconds` used the
+  whole event duration for every player. They now use each player's real join time, recorded when
+  they first take part in the event.
+- **`%bloodmoon_horde_count%` now counts the real horde mobs alive** in the event world
+  (tagged mobs that are not bosses), refreshed every ~2 s. Before it returned
+  participants x 8, an invented estimate.
+- **`%bloodmoon_event_elapsed%` uses the real session time** (it assumed a fixed 20 minutes,
+  so 25/30-minute events showed the wrong value).
+- **`%bloodmoon_bosses_defeated_session%` counts bosses defeated in that session** and now
+  actually resolves: PAPI splits the placeholder in three parts, so the old case name never
+  matched and the placeholder always returned nothing.
+- **Per-world config keys that did nothing now work**: `BedNotAllowed` (no sleeping during the
+  event), `DyingLossesInventory` (death clears the inventory), `DyingLossesExperience` (death
+  drops no experience) and `WorldPermanent` (the event does not end on its own; only
+  `/luna stop` stops it).
+- **`Boss.Rewards` now runs its commands** on boss death, with `KILLER` / `TOP_DAMAGE` / `ALL`
+  modes, `RequirePlayerKiller`, `RewardOnce` and the ;s / ;f / ;p suffixes.
+- **`CommandsOnStart` / `CommandsOnEnd` / `SurvivorRewards.Commands` accept the documented
+  `%world%`, `%player%` and `%difficulty%`** (they only replaced the brace form and ignored
+  difficulty). `SurvivorRewards.Messages` now understands legacy `&` colour codes.
+- **Damage reflection, thorns, thunder guard and blast wave apply their damage through the
+  re-entrancy guard**, so they cannot re-trigger weapon abilities in a cascade.
 
 ### Changed ⭐
 - **Every weapon, tool and armor piece from Rare to Mythic now carries the Curse of Vanishing**
@@ -45,9 +68,19 @@ found in the code audit are fixed.
 - New `items.yml` setting **`settings.vanishing-curse-min-rarity: RARO`**: minimum rarity that
   receives the curse; `OFF` (or `NONE`) disables it.
 
+### Removed
+- `messages.yml` (packaged but never read by any code) and the attempt to install
+  `distribution/README.txt` + `distribution/EXAMPLES/*` resources that never existed in the jar.
+- Per-world keys that were parsed but unused and cannot be honoured: `Boss.VanillaBossBar.*`
+  (the bar comes from `bosses.yml`), `SurvivorRewards.IncludeLateJoiners`,
+  `SurvivorRewards.DisqualifyOnDisconnect`, `SurvivorRewards.RewardOncePerSession` and
+  `MythicMobs.UseMythicMobsRewards` / `RunBloodMoonRewardCommands`.
+
 ### Documentation
 - `README.md` / `README.en.md`, `DROPS.md` / `DROPS.en.md`: the Curse of Vanishing note now covers
   "Rare and above: weapons, tools and armor".
+- `worlds-template/config.yml`: only documents keys the plugin actually honours, and explains the
+  real behaviour of `WorldPermanent` and the boss rewards.
 
 ### Compatibility
 - Paper **26.2** and **26.3**. Built with Java 25.
