@@ -20,7 +20,11 @@ public final class LocaleManager {
     private final File localesDir;
     private YamlConfiguration active = new YamlConfiguration();
     private YamlConfiguration fallback = new YamlConfiguration();
-    private String language = "en";
+    /** Copias DENTRO del jar: red de seguridad para claves nuevas en servidores que ya tienen
+     *  un locales/*.yml de una versión anterior (el plugin no sobrescribe archivos del usuario). */
+    private YamlConfiguration bundled = new YamlConfiguration();
+    private YamlConfiguration bundledEn = new YamlConfiguration();
+    private String language = "";
     private boolean useBundled = true;
 
     public LocaleManager(BloodMoonPlus plugin) {
@@ -44,23 +48,41 @@ public final class LocaleManager {
             plugin.saveResource("locales/locales.yml", false);
         }
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(cfgFile);
+        boolean firstLoad = active == null;
+        String previous = language;
         language = cfg.getString("Language", "en").toLowerCase(Locale.ROOT);
         useBundled = cfg.getBoolean("UseBundledLocales", true);
         active = YamlConfiguration.loadConfiguration(new File(localesDir, language + ".yml"));
         fallback = YamlConfiguration.loadConfiguration(new File(localesDir, "en.yml"));
-        plugin.getLogger().info("Idioma activo: " + language);
+        bundled = loadBundled(language);
+        bundledEn = loadBundled("en");
+        // Solo se anuncia cuando cambia de verdad: reloadAll carga el locale varias veces entre
+        // managers y antes el arranque escupía "Idioma activo" tres veces seguidas.
+        if (firstLoad || !language.equals(previous)) {
+            plugin.getLogger().info("Idioma activo: " + language);
+        }
     }
 
-    /** Obtiene la cadena localizada con fallback a inglés. */
-    public String get(String key) {
-        if (useBundled) {
-            String v = active.getString(key);
-            if (v == null) v = fallback.getString(key);
-            if (v != null) return v;
-        } else {
-            String v = active.getString(key);
-            if (v != null) return v;
+    /** Carga un locale empaquetado en el jar (sin copiarlo al disco). */
+    private YamlConfiguration loadBundled(String lang) {
+        var in = plugin.getResource("locales/" + lang + ".yml");
+        if (in == null) return new YamlConfiguration();
+        try (var reader = new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)) {
+            return YamlConfiguration.loadConfiguration(reader);
+        } catch (Exception ex) {
+            return new YamlConfiguration();
         }
+    }
+
+    /** Obtiene la cadena localizada: archivo del servidor -> en.yml -> jar del idioma -> jar en. */
+    public String get(String key) {
+        String v = active.getString(key);
+        if (v == null) v = fallback.getString(key);
+        if (v == null && useBundled) {
+            v = bundled.getString(key);
+            if (v == null) v = bundledEn.getString(key);
+        }
+        if (v != null) return v;
         return "<red>[i18n missing: " + key + "]</red>";
     }
 

@@ -31,8 +31,8 @@ event:
   survivors-none: "<gray>Nadie fue elegible para la recompensa de superviviente en {world}."
   survivor-disqualified-death: "<red>Moriste y ya no puedes recibir la recompensa de supervivencia."
   survivor-insufficient-participation: "<yellow>No participaste el tiempo suficiente para recibir la recompensa de supervivencia."
-  already-active: "<red>Ya hay un evento activo en {world}."
-  not-active: "<red>No hay evento activo en {world}."
+  already-active: "<red>Ya hay un evento activo en ese mundo."
+  not-active: "<red>No hay ningún evento activo."
   cannot-stop-world: "<red>No puedes detener la Luna de Sangre en este mundo."
   world-permanent: "<red>Este mundo permanece bajo una Luna de Sangre."
 
@@ -67,7 +67,7 @@ item:
 
 # ==================== Commands ====================
 cmd:
-  usage: "<yellow>Uso: /luna <next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload|survivors>"
+  usage: "<yellow>Uso: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload>"
   reloaded: "<green>Configuración recargada."
   started: "<green>Luna de Sangre iniciada en {world}."
   stopped: "<yellow>Luna de Sangre detenida en {world}."
@@ -82,7 +82,8 @@ cmd:
   difficulty-set: "<green>Dificultad cambiada a x{difficulty}. Afecta a los mobs que aparezcan desde ahora."
   usage-boss: "<yellow>Uso: /luna boss <id> [mundo]. Jefes: {bosses}"
   boss-spawned: "<green>Jefe {boss} invocado."
-  boss-failed: "<red>No se pudo invocar el jefe {boss} (¿id correcto y jugadores elegibles?)."
+  boss-failed: "<red>No se pudo invocar el jefe {boss}: no hay jugadores elegibles en el mundo del evento."
+  boss-unknown: "<red>El jefe {boss} no existe. Jefes: {bosses}"
   horde-spawned: "<green>Oleada generada: {count} mobs."
   killed: "<green>Se eliminaron {count} mobs de la Luna de Sangre."
   usage-give: "<yellow>Uso: /luna give <jugador> <item> [cantidad]"

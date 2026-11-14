@@ -94,7 +94,7 @@ bosses:
     damage: 2.8
     speed: 1.4
     scale: 1.3
-    bar-color: BLACK
+    bar-color: PURPLE
     bar-overlay: NOTCHED_10
     equipment: { main-hand: BOW, chest: LEATHER_CHESTPLATE }
     abilities: ["AURA:20:15:invisibility:8:0", "LIGHTNING:25:2:5"]

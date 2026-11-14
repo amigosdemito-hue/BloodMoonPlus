@@ -10,13 +10,14 @@ import java.util.*;
 
 public final class BloodMoonCommand implements TabExecutor {
     private static final Map<String, String> ALIASES = new LinkedHashMap<>();
-    private static final List<String> USE_SUBS = List.of("next");
+    private static final List<String> USE_SUBS = List.of("next", "status");
     private static final List<String> ADMIN_SUBS = List.of("start", "stop", "difficulty", "boss", "horde",
             "killmobs", "give", "items", "chances", "reload");
 
     static {
-        for (String s : new String[]{"next", "start", "stop", "difficulty", "boss", "horde", "killmobs",
+        for (String s : new String[]{"status", "next", "start", "stop", "difficulty", "boss", "horde", "killmobs",
                 "give", "items", "chances", "reload"}) ALIASES.put(s, s);
+        ALIASES.put("estado", "status");
         ALIASES.put("proxima", "next"); ALIASES.put("siguiente", "next");
         ALIASES.put("iniciar", "start"); ALIASES.put("detener", "stop"); ALIASES.put("parar", "stop");
         ALIASES.put("dificultad", "difficulty"); ALIASES.put("jefe", "boss"); ALIASES.put("horda", "horde");
@@ -39,6 +40,7 @@ public final class BloodMoonCommand implements TabExecutor {
         String[] a = args.length <= 1 ? new String[0] : Arrays.copyOfRange(args, 1, args.length);
 
         switch (sub) {
+            case "status" -> status(s);
             case "next" -> next(s);
             case "start" -> start(s, a);
             case "stop" -> stop(s, a);
@@ -158,32 +160,41 @@ public final class BloodMoonCommand implements TabExecutor {
         if (worldName != null) {
             org.bukkit.World w = Bukkit.getWorld(worldName);
             if (w == null) { m().send(s, "unknown-world"); return; }
-            if (!plugin.events().startIn(List.of(w), dv, Math.max(1, mv))) { m().send(s, "event.already-active"); return; }
+            // Se pasa el mundo también en el error: los servidores que conservan un locales/*.yml
+            // viejo tienen ese mensaje con {world} y sin argumento se imprimía el placeholder crudo.
+            if (!plugin.events().startIn(List.of(w), dv, Math.max(1, mv))) {
+                m().send(s, "event.already-active", "world", w.getName());
+                return;
+            }
             startedLabel = w.getName();
         } else {
             // Sin mundo explícito: el evento es GLOBAL y arranca en todos los mundos de golpe
             List<org.bukkit.World> targets = plugin.events().defaultWorlds();
             if (targets.isEmpty()) { m().send(s, "unknown-world"); return; }
-            if (!plugin.events().startIn(targets, dv, Math.max(1, mv))) { m().send(s, "event.already-active"); return; }
-            startedLabel = targets.size() == 1 ? targets.get(0).getName() : "global";
+            String label = targets.size() == 1 ? targets.get(0).getName() : "global";
+            if (!plugin.events().startIn(targets, dv, Math.max(1, mv))) {
+                m().send(s, "event.already-active", "world", label);
+                return;
+            }
+            startedLabel = label;
         }
         m().send(s, "cmd.started", "world", startedLabel);
     }
 
     private void stop(CommandSender s, String[] a) {
         if (a.length > 0 && a[0].equalsIgnoreCase("all")) {
-            if (!plugin.events().stop(null, false)) { m().send(s, "event.not-active"); return; }
+            if (!plugin.events().stop(null, false)) { m().send(s, "cmd.status-none"); return; }
             m().send(s, "cmd.stopped-all");
             return;
         }
         if (a.length > 0) {
             org.bukkit.World w = Bukkit.getWorld(a[0]);
             if (w == null) { m().send(s, "unknown-world"); return; }
-            if (!plugin.events().stop(w, false)) { m().send(s, "event.not-active"); return; }
+            if (!plugin.events().stop(w, false)) { m().send(s, "event.not-active", "world", w.getName()); return; }
             m().send(s, "cmd.stopped", "world", w.getName());
             return;
         }
-        if (!plugin.events().stop(null, false)) { m().send(s, "event.not-active"); return; }
+        if (!plugin.events().stop(null, false)) { m().send(s, "cmd.status-none"); return; }
         m().send(s, "cmd.stopped-all");
     }
 
@@ -192,7 +203,7 @@ public final class BloodMoonCommand implements TabExecutor {
         Double d = parseMult(a[0]);
         if (d == null) { m().send(s, "cmd.usage-difficulty"); return; }
         Collection<EventManager.Session> all = plugin.events().sessions();
-        if (all.isEmpty()) { m().send(s, "event.not-active"); return; }
+        if (all.isEmpty()) { m().send(s, "cmd.status-none"); return; }
         // Cambio global: afecta a TODOS los mundos del evento en curso
         double v = Math.max(0.1, Math.min(plugin.getConfig().getDouble("difficulty.max", 10), d));
         for (EventManager.Session ses : all) ses.difficulty = v;
@@ -202,7 +213,11 @@ public final class BloodMoonCommand implements TabExecutor {
     private void boss(CommandSender s, String[] a) {
         if (a.length < 1) { m().send(s, "cmd.usage-boss", "bosses", String.join(", ", plugin.bosses().ids())); return; }
         Collection<EventManager.Session> all = plugin.events().sessions();
-        if (all.isEmpty()) { m().send(s, "event.not-active"); return; }
+        if (all.isEmpty()) { m().send(s, "cmd.status-none"); return; }
+        if (!plugin.bosses().ids().contains(a[0])) {
+            m().send(s, "cmd.boss-unknown", "boss", a[0], "bosses", String.join(", ", plugin.bosses().ids()));
+            return;
+        }
         int spawned = 0;
         for (EventManager.Session ses : all) if (plugin.bosses().spawn(ses, a[0])) spawned++;
         if (spawned > 0) m().send(s, "cmd.boss-spawned", "boss", a[0]);
@@ -211,7 +226,7 @@ public final class BloodMoonCommand implements TabExecutor {
 
     private void horde(CommandSender s, String[] a) {
         Collection<EventManager.Session> all = plugin.events().sessions();
-        if (all.isEmpty()) { m().send(s, "event.not-active"); return; }
+        if (all.isEmpty()) { m().send(s, "cmd.status-none"); return; }
         int total = 0;
         for (EventManager.Session ses : all) total += plugin.events().spawnWave(ses);
         m().send(s, "cmd.horde-spawned", "count", String.valueOf(total));

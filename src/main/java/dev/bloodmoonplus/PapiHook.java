@@ -47,6 +47,11 @@ public final class PapiHook extends PlaceholderExpansion {
         String p = parts[0];
         String sub = parts.length > 1 ? parts[1] : "";
         String extra = parts.length > 2 ? parts[2] : "";
+        // "rest" es TODO lo que sigue al primer "_". PAPI ya parte el nombre en trozos, así que
+        // mirar solo 'sub' hacía que los placeholders de varias palabras (%bloodmoon_last_event_world%,
+        // %bloodmoon_total_bosses_spawned%, %bloodmoon_boss_health_percent%, %bloodmoon_death_count%...)
+        // no entraran nunca en su case y devolvieran vacío.
+        String rest = extra.isEmpty() ? sub : sub + "_" + extra;
 
         // Mundo del jugador si está online (placeholders POR MUNDO). Sin jugador (consola)
         // se usa el primer mundo con sesión. Antes siempre se usaba globalSession(), así que
@@ -73,12 +78,12 @@ public final class PapiHook extends PlaceholderExpansion {
             case "world" -> active
                     ? session.worldName()
                     : plugin.locales().get("placeholder.none");
-            case "time" -> switch (sub) {
-                case "remaining", "remainingseconds" -> String.valueOf(active ? session.timeRemainingSeconds() : 0);
-                case "remainingformatted" -> formatTime(active ? session.timeRemainingSeconds() : 0);
+            case "time" -> switch (rest) {
+                case "remaining", "remainingseconds", "remaining_seconds" -> String.valueOf(active ? session.timeRemainingSeconds() : 0);
+                case "remainingformatted", "remaining_formatted" -> formatTime(active ? session.timeRemainingSeconds() : 0);
                 default -> null;
             };
-            case "boss" -> switch (sub) {
+            case "boss" -> switch (rest) {
                 case "alive" -> String.valueOf(bossSnap.state() == BossPlaceholderState.ALIVE);
                 case "name" -> bossSnap.state() == BossPlaceholderState.ALIVE
                         ? bossSnap.bossName()
@@ -90,12 +95,9 @@ public final class PapiHook extends PlaceholderExpansion {
                 case "health_formatted" -> bossSnap.healthPercent() + "%";
                 case "state" -> bossSnap.state().name();
                 case "state_formatted" -> formatBossState(bossSnap.state());
-                case "display" -> switch (extra) {
-                    case "line_1" -> formatDisplayLine1(bossSnap);
-                    case "line_2" -> formatDisplayLine2(bossSnap);
-                    case "line_3" -> formatDisplayLine3(bossSnap);
-                    default -> null;
-                };
+                case "display_line_1" -> formatDisplayLine1(bossSnap);
+                case "display_line_2" -> formatDisplayLine2(bossSnap);
+                case "display_line_3" -> formatDisplayLine3(bossSnap);
                 default -> null;
             };
             case "participating" -> switch (sub) {
@@ -112,15 +114,20 @@ public final class PapiHook extends PlaceholderExpansion {
                         : plugin.locales().get("placeholder.not-participating");
                 default -> null;
             };
-            case "death", "deaths" -> sub.isEmpty()
+            // %bloodmoon_death_count% también cuenta: antes solo servían "death"/"deaths".
+            case "death", "deaths" -> rest.isEmpty() || rest.equals("count")
                     ? String.valueOf(active ? session.deaths() : 0)
                     : null;
-            case "unique", "unique_deaths" -> sub.equals("deaths")
+            case "unique" -> rest.isEmpty() || rest.equals("deaths")
                     ? String.valueOf(active ? session.uniqueDeaths() : 0)
                     : null;
-            case "participants", "participants_current" -> String.valueOf(active ? session.participantsCurrent() : 0);
-            case "survivors", "survivors_current" -> String.valueOf(active ? session.survivorsCurrent() : 0);
-            case "total" -> switch (sub) {
+            case "participants" -> rest.isEmpty() || rest.equals("current")
+                    ? String.valueOf(active ? session.participantsCurrent() : 0)
+                    : null;
+            case "survivors" -> rest.isEmpty() || rest.equals("current")
+                    ? String.valueOf(active ? session.survivorsCurrent() : 0)
+                    : null;
+            case "total" -> switch (rest) {
                 case "events" -> String.valueOf(hist.totalEvents());
                 case "death_events" -> String.valueOf(hist.totalDeathEvents());
                 case "unique_deaths" -> String.valueOf(hist.totalUniqueDeaths());
@@ -128,7 +135,7 @@ public final class PapiHook extends PlaceholderExpansion {
                 case "bosses_defeated" -> String.valueOf(hist.totalBossesDefeated());
                 default -> null;
             };
-            case "last" -> switch (sub) {
+            case "last" -> switch (rest) {
                 case "event_world" -> hist.lastEvent().world().isEmpty() ? plugin.locales().get("placeholder.none") : hist.lastEvent().world();
                 case "event_duration_seconds" -> String.valueOf(hist.lastEvent().durationSeconds());
                 case "event_duration_formatted" -> formatTime(hist.lastEvent().durationSeconds());
@@ -145,8 +152,8 @@ public final class PapiHook extends PlaceholderExpansion {
             };
             // ==================== PLUS únicos ====================
             case "drop", "drop_chance" -> {
-                if (sub.equals("chance") && !extra.isEmpty()) {
-                    yield formatDropChance(extra);
+                if (rest.startsWith("chance_") && rest.length() > 7) {
+                    yield formatDropChance(rest.substring(7));
                 }
                 yield null;
             }
@@ -158,11 +165,11 @@ public final class PapiHook extends PlaceholderExpansion {
                 yield null;
             }
             // %bloodmoon_bosses_defeated_session% -> parts: "bosses" | "defeated" | "session"
-            case "bosses" -> switch (sub) {
-                case "defeated" -> String.valueOf(session != null ? session.bossesDefeated() : 0);
+            case "bosses" -> switch (rest) {
+                case "defeated", "defeated_session" -> String.valueOf(session != null ? session.bossesDefeated() : 0);
                 default -> null;
             };
-            case "horde" -> switch (sub) {
+            case "horde" -> switch (rest) {
                 case "active" -> String.valueOf(active);
                 // Mobs de la horda realmente vivos en el mundo (contados en el snapshot).
                 case "count" -> String.valueOf(session != null ? session.hordeAlive() : 0);
@@ -171,15 +178,21 @@ public final class PapiHook extends PlaceholderExpansion {
             case "abilities" -> sub.equals("count") && player instanceof Player pp
                     ? String.valueOf(countAbilities(pp))
                     : null;
-            case "items" -> sub.equals("unique_owned") && player instanceof Player pp2
+            case "items" -> rest.equals("unique_owned") && player instanceof Player pp2
                     ? String.valueOf(countUniqueItems(pp2))
                     : null;
             case "mythic" -> sub.equals("active")
                     ? String.valueOf(Bukkit.getPluginManager().getPlugin("MythicMobs") != null)
                     : null;
-            case "permanent" -> sub.equals("world") && worldName != null
-                    ? String.valueOf(plugin.worldConfigs().get(worldName).permanentBloodMoon())
-                    : "false";
+            // Sin jugador (consola, hologramas, --null) se usa el mundo de la sesión activa en
+            // lugar de devolver siempre "false".
+            case "permanent" -> {
+                String wname = worldName != null ? worldName
+                        : (global != null ? global.world.getName() : null);
+                yield rest.equals("world") && wname != null
+                        ? String.valueOf(plugin.worldConfigs().get(wname).permanentBloodMoon())
+                        : "false";
+            }
             // Tiempo transcurrido real de la sesión (antes se asumían 20 min fijos).
             case "event" -> sub.equals("elapsed")
                     ? formatTime(session != null ? session.elapsedSeconds() : 0)

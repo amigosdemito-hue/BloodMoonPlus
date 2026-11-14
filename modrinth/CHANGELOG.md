@@ -68,6 +68,28 @@ found in the code audit are fixed.
 - New `items.yml` setting **`settings.vanishing-curse-min-rarity: RARO`**: minimum rarity that
   receives the curse; `OFF` (or `NONE`) disables it.
 
+### Fixed (found on a live Paper 26.2 test server)
+- **`bosses.yml` no longer deletes a boss when one field is wrong.** `bar-color: BLACK` (not a valid
+  Adventure colour) removed `cazador_sombras` entirely with a cryptic enum error and only 8 of 9
+  bosses loaded. Each field is now validated separately, the warning names the field, the bad value
+  and the valid options, and the shipped file uses `PURPLE`.
+- **`/luna status` works.** It only existed as `/luna` with no arguments, so typing `/luna status`
+  printed the usage message. `estado` is accepted too, and the usage line no longer advertises the
+  non-existent `survivors` subcommand.
+- **Multi-word placeholders were never resolved.** PlaceholderAPI splits the name, so
+  `%bloodmoon_death_count%`, `%bloodmoon_last_event_world%`, `%bloodmoon_total_bosses_spawned%`,
+  `%bloodmoon_boss_health_percent%`, `%bloodmoon_items_unique_owned%` and the other long names
+  returned nothing. The expansion now matches the whole suffix; verified with `papi parse` for 40+
+  placeholders with and without an active event.
+- **New locale keys now reach servers that already have `locales/*.yml`.** Locale files are never
+  overwritten, so a version adding keys showed `[i18n missing: ...]`. Strings now fall back to the
+  copies inside the jar (server file → en.yml → jar), and command feedback passes the world so old
+  files no longer print a literal `{world}`.
+- **Quiet startup:** `Idioma activo` was printed three times and `BloodMoonPlus recargado.` appeared
+  on first boot; the locale is now announced once and only when it changes.
+- **No more world-clock warning** on every global event: Nether/End are detected before touching the
+  clock instead of warning each time.
+
 ### Removed
 - `messages.yml` (packaged but never read by any code) and the attempt to install
   `distribution/README.txt` + `distribution/EXAMPLES/*` resources that never existed in the jar.

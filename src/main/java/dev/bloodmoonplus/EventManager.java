@@ -238,6 +238,12 @@ public final class EventManager {
      *  tickSpawns y los eventos especiales: por eso "no caían las hordas". */
     private void setWorldTime(World w, long time) {
         if (w == null || worldsWithoutClock.contains(w.getName())) return;
+        // Nether/End no tienen ciclo de día: se marcan como "sin reloj" sin avisar. Antes se
+        // intentaba igual y cada evento global (event.global: true) escupía un WARN en consola.
+        if (w.getEnvironment() != World.Environment.NORMAL) {
+            worldsWithoutClock.add(w.getName());
+            return;
+        }
         try {
             w.setTime(time);
         } catch (IllegalArgumentException ex) {

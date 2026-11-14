@@ -97,8 +97,8 @@ public final class BloodMoonPlus extends JavaPlugin {
      *  horario. Los managers ya implementan reload() con lo que necesitan. */
     public void reloadAll() {
         reloadConfig();
-        locales.reload();
         worldConfigs.reload();
+        // messages.reload() ya recarga los locales; llamarlo aquí otra vez duplicaba la carga.
         messages.reload();
         // loot ANTES que items: items.reload() valida las rarezas contra loot.yml y necesita
         // las rarezas ya cargadas para no avisar en falso en el primer arranque.
@@ -107,7 +107,6 @@ public final class BloodMoonPlus extends JavaPlugin {
         bosses.reload();
         events.reload();
         schedule.reload();
-        getLogger().info("BloodMoonPlus recargado.");
     }
 
     public Keys keys() { return Keys.instance(); }

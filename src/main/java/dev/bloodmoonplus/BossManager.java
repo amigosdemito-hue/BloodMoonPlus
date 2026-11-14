@@ -93,16 +93,32 @@ public final class BossManager {
             for (String id : bs.getKeys(false)) {
                 ConfigurationSection s = bs.getConfigurationSection(id);
                 if (s == null) continue;
+                // Cada campo se valida por separado: un color o un overlay mal escrito NO debe
+                // borrar el jefe entero (antes un 'bar-color: BLACK' inexistente en Adventure
+                // hacía que el jefe desapareciera con solo un warning críptico).
                 EntityType type;
                 BossBar.Color color;
                 BossBar.Overlay overlay;
                 try {
-                    type = EntityType.valueOf(s.getString("type", "ZOMBIE").toUpperCase(Locale.ROOT));
-                    color = BossBar.Color.valueOf(s.getString("bar-color", "RED").toUpperCase(Locale.ROOT));
-                    overlay = BossBar.Overlay.valueOf(s.getString("bar-overlay", "NOTCHED_10").toUpperCase(Locale.ROOT));
+                    type = EntityType.valueOf(s.getString("type", "ZOMBIE").trim().toUpperCase(Locale.ROOT));
                 } catch (IllegalArgumentException ex) {
-                    plugin.getLogger().warning("bosses.yml: valor inválido en '" + id + "': " + ex.getMessage());
-                    continue;
+                    plugin.getLogger().warning("bosses.yml: 'type' inválido en '" + id + "' ('"
+                            + s.getString("type") + "'); se usa ZOMBIE.");
+                    type = EntityType.ZOMBIE;
+                }
+                try {
+                    color = BossBar.Color.valueOf(s.getString("bar-color", "RED").trim().toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException ex) {
+                    plugin.getLogger().warning("bosses.yml: 'bar-color' inválido en '" + id + "' ('"
+                            + s.getString("bar-color") + "'); debe ser PINK/BLUE/RED/GREEN/YELLOW/PURPLE/WHITE. Se usa RED.");
+                    color = BossBar.Color.RED;
+                }
+                try {
+                    overlay = BossBar.Overlay.valueOf(s.getString("bar-overlay", "NOTCHED_10").trim().toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException ex) {
+                    plugin.getLogger().warning("bosses.yml: 'bar-overlay' inválido en '" + id + "' ('"
+                            + s.getString("bar-overlay") + "'); se usa NOTCHED_10.");
+                    overlay = BossBar.Overlay.NOTCHED_10;
                 }
                 List<Ability> abilities = new ArrayList<>();
                 for (String a : s.getStringList("abilities")) {

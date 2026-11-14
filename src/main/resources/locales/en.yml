@@ -31,8 +31,8 @@ event:
   survivors-none: "<gray>No players were eligible for survivor rewards in {world}."
   survivor-disqualified-death: "<red>You died and are no longer eligible for the survivor reward."
   survivor-insufficient-participation: "<yellow>You did not participate long enough to receive the survivor reward."
-  already-active: "<red>There is already a Blood Moon active in {world}."
-  not-active: "<red>There is no Blood Moon active in {world}."
+  already-active: "<red>A Blood Moon is already active in that world."
+  not-active: "<red>There is no active Blood Moon."
   cannot-stop-world: "<red>You cannot stop the Blood Moon in this world."
   world-permanent: "<red>This world is permanently under a Blood Moon."
 
@@ -67,7 +67,7 @@ item:
 
 # ==================== Commands ====================
 cmd:
-  usage: "<yellow>Usage: /luna <next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload|survivors>"
+  usage: "<yellow>Usage: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload>"
   reloaded: "<green>Configuration reloaded."
   started: "<green>Blood Moon started in {world}."
   stopped: "<yellow>Blood Moon stopped in {world}."
@@ -82,7 +82,8 @@ cmd:
   difficulty-set: "<green>Difficulty changed to x{difficulty}. Affects mobs that spawn from now on."
   usage-boss: "<yellow>Usage: /luna boss <id> [world]. Bosses: {bosses}"
   boss-spawned: "<green>Boss {boss} summoned."
-  boss-failed: "<red>Could not summon boss {boss} (correct id and eligible players?)."
+  boss-failed: "<red>Could not summon boss {boss}: no eligible players in the event world."
+  boss-unknown: "<red>Boss {boss} does not exist. Bosses: {bosses}"
   horde-spawned: "<green>Horde generated: {count} mobs."
   killed: "<green>{count} Blood Moon mobs were removed."
   usage-give: "<yellow>Usage: /luna give <player> <item> [amount]"
