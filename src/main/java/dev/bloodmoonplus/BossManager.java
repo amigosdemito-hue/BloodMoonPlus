@@ -42,6 +42,10 @@ public final class BossManager {
 
     record Spawn(String boss, int delay, double chance, double minDifficulty, int count, boolean scaleCount) {}
 
+    /** Etiqueta de los mini-jefes que invoca un jefe (creepers que sí mueren al explotar).
+     *  Su explosión nunca rompe bloques, ni siquiera fuera de un evento. */
+    static final String MINION_TAG = "bloodmoon_minion";
+
     public record Pending(String bossId, long atMs) {}
 
     static final class Instance {
@@ -380,6 +384,27 @@ public final class BossManager {
         return out;
     }
 
+    /** Mini-jefe creeper: mediano, cargado y con la mecha encendida. Explota y muere en la
+     *  explosión; su daño no toca al jefe que lo invocó (el jefe es inmune a explosiones). */
+    private boolean spawnMini(Location loc, int fuseSec, double power) {
+        World w = loc.getWorld();
+        if (w == null) return false;
+        org.bukkit.entity.Creeper c = w.spawn(loc, org.bukkit.entity.Creeper.class);
+        c.customName(Util.mini("<green><bold>Mini Absorbedor"));
+        c.setCustomNameVisible(true);
+        AttributeInstance hp = c.getAttribute(Attribute.MAX_HEALTH);
+        if (hp != null) { hp.setBaseValue(30); c.setHealth(30); }
+        AttributeInstance sc = c.getAttribute(Attribute.SCALE);
+        if (sc != null) sc.setBaseValue(1.3);
+        c.setPowered(true);
+        c.setExplosionRadius((int) Math.max(1, Math.round(power)));
+        c.setFuseTicks(Math.max(20, fuseSec * 20));
+        c.setIgnited(true);
+        c.addScoreboardTag(EventManager.HORDE_TAG);
+        c.addScoreboardTag(MINION_TAG);
+        return true;
+    }
+
     private static double arg(Ability a, int i, double def) {
         if (i >= a.args().length) return def;
         try { return Double.parseDouble(a.args()[i].trim()); } catch (NumberFormatException e) { return def; }
@@ -568,6 +593,53 @@ public final class BossManager {
                     }
                     fb.getWorld().spawnParticle(Particle.CLOUD, fb.getLocation(), 10, 0.4, 0.2, 0.4, 0.05);
                 }, 0L, 2L);
+                return true;
+            }
+            case "EXPLODE" -> {
+                // La explosión que caracteriza al creeper: área grande (15 por defecto) y daño con
+                // caída por distancia. NO rompe bloques y NO puede matar al propio jefe (es inmune
+                // a las explosiones en EventListener), así que puede detonar sin autodestruirse.
+                // Args: radio : daño
+                double radius = arg(a, 0, 15);
+                double dmg = arg(a, 1, 12);
+                if (nearbyPlayers(boss, radius).isEmpty()) return false;
+                Location loc = boss.getLocation().clone().add(0, 0.6, 0);
+                w.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 3f, 0.5f);
+                w.playSound(loc, Sound.ENTITY_DRAGON_FIREBALL_EXPLODE, 2f, 0.6f);
+                w.spawnParticle(Particle.EXPLOSION_EMITTER, loc, 3, radius / 3, 0.4, radius / 3, 0.1);
+                w.spawnParticle(Particle.FLAME, loc, 180, radius / 2, 0.8, radius / 2, 0.09);
+                w.spawnParticle(Particle.SMOKE, loc, 120, radius / 2, 0.6, radius / 2, 0.05);
+                for (Entity ent : w.getNearbyEntities(loc, radius, radius, radius)) {
+                    if (ent.equals(boss) || !(ent instanceof LivingEntity le)) continue;
+                    if (le.isDead()) continue;
+                    if (le instanceof Player p && (p.isDead() || p.getGameMode() == GameMode.SPECTATOR)) continue;
+                    if (le.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) continue;
+                    double dist = le.getLocation().distance(loc);
+                    // 100 % en el centro, 25 % en el borde del radio
+                    double falloff = Math.max(0.25, 1 - dist / radius);
+                    le.damage(dmg * em * falloff, boss);
+                    Vector away = le.getLocation().toVector().subtract(loc.toVector()).setY(0);
+                    if (away.lengthSquared() > 0.01) le.setVelocity(away.normalize().multiply(1.4).setY(0.6));
+                    else le.setVelocity(new Vector(0, 0.8, 0));
+                }
+                return true;
+            }
+            case "SWARM" -> {
+                // Mini-jefes: creepers cargados que van a por los jugadores y EXPLOTAN (ahí mueren).
+                // Su explosión no daña al jefe original y no rompe bloques.
+                // Args: cantidad : segundos de mecha : radio de explosión
+                int count = Math.max(1, (int) arg(a, 0, 3));
+                int fuse = Math.max(1, (int) arg(a, 1, 3));
+                double power = arg(a, 2, 3);
+                int spawned = 0;
+                for (int i = 0; i < count; i++) {
+                    Location loc = plugin.events().findSpawn(boss.getLocation(), 2, 5);
+                    if (loc == null) continue;
+                    if (spawnMini(loc, fuse, power)) spawned++;
+                }
+                if (spawned == 0) return false;
+                w.playSound(boss.getLocation(), Sound.ENTITY_CREEPER_PRIMED, 1.5f, 0.7f);
+                w.spawnParticle(Particle.SMOKE, boss.getLocation().add(0, 1, 0), 40, 1, 1, 1, 0.05);
                 return true;
             }
             case "ROAR" -> {

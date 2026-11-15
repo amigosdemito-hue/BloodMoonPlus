@@ -104,6 +104,13 @@ public final class EventListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onMobExplode(EntityExplodeEvent e) {
+        // Los mini-jefes de un jefe nunca rompen bloques, ni siquiera fuera de un evento: son
+        // cebo ofensivo, no una herramienta de minería.
+        if (e.getEntity().getScoreboardTags().contains(BossManager.MINION_TAG)) {
+            e.blockList().clear();
+            e.setYield(0f);
+            return;
+        }
         if (!plugin.events().protectTerrain()) return;
         World w = e.getLocation().getWorld();
         if (w == null || !plugin.events().isActive(w)) return;
@@ -120,6 +127,18 @@ public final class EventListener implements Listener {
             e.blockList().clear();
             e.setYield(0f);
         }
+    }
+
+    /** El jefe es inmune a TODA explosión: la suya propia, las de sus mini-jefes, TNT, camas y
+     *  granadas. Así puede detonar con EXPLODE sin autodestruirse y las granjas de explosivos no
+     *  lo matan por accidente. */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onBossExplosionDamage(org.bukkit.event.entity.EntityDamageEvent e) {
+        var cause = e.getCause();
+        if (cause != org.bukkit.event.entity.EntityDamageEvent.DamageCause.BLOCK_EXPLOSION
+                && cause != org.bukkit.event.entity.EntityDamageEvent.DamageCause.ENTITY_EXPLOSION) return;
+        if (!plugin.bosses().isBoss(e.getEntity())) return;
+        e.setCancelled(true);
     }
 
     /** Registra el daño a jefes para repartir la recompensa. */

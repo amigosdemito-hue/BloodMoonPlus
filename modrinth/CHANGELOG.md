@@ -13,6 +13,18 @@ project page.
 First beta of 1.0.2: high-rarity gear now carries the curse its rarity implies, and four bugs
 found in the code audit are fixed.
 
+### Changed — the Absorbedor Cargado now explodes (and survives it)
+- **320 HP** instead of 180, so it can afford a long fight with its own detonations.
+- **New `EXPLODE` ability**: every **45 s** the boss detonates with a **15-block radius**, up to
+12 damage at the center falling to 25% at the edge, plus knockback. It does **not** break blocks
+and it **cannot kill the boss**: bosses are now immune to all explosion damage (their own, their
+minions', TNT, beds, grenades), so the explosion is a threat, never a suicide.
+- **New `SWARM` ability**: every **30 s** it summons **3 mini-bosses** (charged creepers with 30 HP,
+a 3 s fuse and a 3-block blast) that chase players, explode and die in the process. Their blast
+does **no damage to the original boss** and never breaks blocks, even outside an event.
+- Net effect: a boss that keeps pressure on with pulls, slams and charges while periodically
+detonating in the middle of a farming spot, so afk mob farms inside the event world pay for it.
+
 ### Fixed — full code audit
 - **The boss VORTEX lasted twice as long as configured.** The runnable steps every 2 ticks but
 decremented the remaining time by one per step, so `VORTEX:16` absorbed for 32 s.
