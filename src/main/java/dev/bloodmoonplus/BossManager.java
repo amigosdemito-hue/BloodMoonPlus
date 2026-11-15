@@ -428,7 +428,7 @@ public final class BossManager {
         World w = loc.getWorld();
         if (w == null) return false;
         org.bukkit.entity.Creeper c = w.spawn(loc, org.bukkit.entity.Creeper.class);
-        c.customName(Util.mini("<green><bold>Mini Absorbedor"));
+        c.customName(Util.mini("<green><bold>Cría del Cataclismo"));
         c.setCustomNameVisible(true);
         AttributeInstance hp = c.getAttribute(Attribute.MAX_HEALTH);
         if (hp != null) { hp.setBaseValue(30); c.setHealth(30); }
@@ -674,7 +674,7 @@ public final class BossManager {
                 return true;
             }
             case "SWARM" -> {
-                // Mini-jefes: creepers cargados que van a por los jugadores y EXPLOTAN (ahí mueren).
+                // Crías del Cataclismo: creepers cargados que van a por los jugadores y EXPLOTAN (ahí mueren).
                 // Su explosión no daña al jefe original y no rompe bloques.
                 // Args: cantidad : segundos de mecha : radio de explosión
                 int count = Math.max(1, Math.min(6, (int) arg(a, 0, 3)));

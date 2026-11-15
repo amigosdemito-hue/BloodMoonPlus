@@ -13,13 +13,16 @@ project page.
 First beta of 1.0.2: high-rarity gear now carries the curse its rarity implies, and four bugs
 found in the code audit are fixed.
 
-### Changed — the Absorbedor Cargado now explodes (and survives it)
+### Changed — the Cataclysm Maw now explodes (and survives it)
 - **320 HP** instead of 180, so it can afford a long fight with its own detonations.
 - **New `EXPLODE` ability**: every **50 s** the boss detonates with a **15-block radius**, up to
 12 damage at the center falling to 25% at the edge, plus knockback. It never breaks blocks in the
 normal phase; **only in its enraged phase** (below 40% health) it also opens a ~6-block crater.
 It **cannot kill the boss**: bosses are now immune to all explosion damage (their own, their
-minions', TNT, beds, grenades), so the explosion is a threat, never a suicide.
+  minions', TNT, beds, grenades), so the explosion is a threat, never a suicide.
+- **Renamed**: the boss is now **Fauces del Cataclismo** ("Cataclysm Maw") and its minions are
+**Crías del Cataclismo**, so the name itself announces what to expect: it devours you and it
+detonates.
 - **New `SWARM` ability**: every **35 s** it summons **3 mini-bosses** (charged creepers with 30 HP,
 a 3 s fuse and a 3-block blast) that chase players, explode and die in the process. Their blast
 does **no damage to the original boss** and never breaks blocks, even outside an event.

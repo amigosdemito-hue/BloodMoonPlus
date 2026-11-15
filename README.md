@@ -27,7 +27,7 @@ Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **si
 | Verdugo de la Noche | 330 s | 60% | 1.5 |
 | Cazador de las Sombras | 360 s | 50% | 1.0 |
 | Arquera Carmesí | 420 s | 60% | 1.0 |
-| Absorbedor Cargado | 270 s | 70% | 1.0 |
+| Fauces del Cataclismo | 270 s | 70% | 1.0 |
 | Guardián del Abismo | 540 s | 80% | 2.0 |
 | **Azote Carmesí** | 660 s | 50% | 2.5 |
 
@@ -43,7 +43,7 @@ Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **si
 | `arquera_carmesi` | SKELETON | 220 | 1.8 | 1.4× | — | 400 |
 | `verdugo_noche` | WITHER_SKELETON | 400 | 2.5 | 1.8× | ✅ 40% | 800 |
 | `warden_abismal` | WARDEN | 750 | 3.6 | 1.2× | ✅ 50% | 1100 |
-| `creeper_cargado` | CREEPER (cargado) | 180 | 2.2 | 2.0× | ✅ 40% | 650 |
+| `creeper_cargado` | CREEPER (cargado) | 320 | 2.2 | 2.0× | ✅ 40% | 650 |
 | `azote_carmesi` | WITHER | 900 | 4.0 | 1.0× | ✅ 50% | 1500 |
 
 ## Fichas detalladas
@@ -107,14 +107,15 @@ Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **si
 - **Aparición:** 540 s, 80%, dificultad mínima 2.0. **EXP:** 1100.
 - **Loot:** tabla `boss_verdugo`.
 
-### 🟩 Absorbedor Cargado (`creeper_cargado`) — creeper cargado
-- **Mob:** CREEPER **cargado (eléctrico)** del **doble de alto** que uno normal (escala 2.0×). **180 de vida**, daño 2.2, velocidad 1.05, resistencia al empuje 0.6.
+### 🟩 Fauces del Cataclismo (`creeper_cargado`) — creeper cargado
+- **Mob:** CREEPER **cargado (eléctrico)** del **doble de alto** que uno normal (escala 2.0×). **320 de vida**, daño 2.2, velocidad 1.05, resistencia al empuje 0.6.
 - **Barra:** verde, segmentada ×10.
-- **Habilidades:** **VORTEX** cada 16 s (radio 18 m, 4 s de absorción, fuerza 1.6, 2.5 de daño al tocar su cuerpo) · SLAM (radio 6, daño 4) · CHARGE (fuerza 1.2, 6 de daño).
-- **Fase 2 (enloquecido) al 40%** de vida: habilidades al 60% de cooldown, daño ×1.5.
+- **Habilidades (recargas escalonadas 12/16/24/35/50, nunca coinciden):** SLAM cada 12 s (radio 6, daño 4) · **VORTEX** cada 16 s (radio 18 m, 4 s de absorción, fuerza 1.6, 2.5 de daño al tocar su cuerpo) · CHARGE cada 24 s (fuerza 1.2, 6 de daño) · **SWARM** cada 35 s (3 **Crías del Cataclismo**: creepers cargados de 30 PV, mecha de 3 s y explosión de radio 3 que mueren al explotar) · **EXPLODE** cada 50 s (radio **15 m**, hasta 12 de daño en el centro con caída al 25% en el borde, más empuje).
+- **Inmunidad:** **no le hace daño ninguna explosión** — ni la suya, ni la de sus crías, ni TNT o camas — así que puede detonar sin autodestruirse. Máximo 6 crías vivas a la vez.
+- **Fase 2 (enloquecido) al 40%** de vida: habilidades al 60% de cooldown, daño ×1.5 y **su explosión abre un cráter de ~6 bloques** (en fase normal no toca el terreno).
 - **Aparición:** 270 s, 70%, dificultad mínima 1.0. **EXP:** 650.
 - **Loot:** tabla `boss_verdugo`.
-- **Nota:** **no explota**. `powered: true` solo le da el aspecto cargado: el fusible está desactivado, así que no se suicida ni rompe el terreno. Su amenaza es VORTEX, que **absorbe** a los jugadores (los arrastra hacia él durante 4 s) y los daña al llegar a su cuerpo.
+- **Nota:** es el jefe que castiga las granjas AFK: su explosión de 15 m golpea a **todos** los mobs y jugadores del área, y las crías obligan a moverse aunque te quedes a distancia.
 
 ### ☠️ Azote Carmesí (`azote_carmesi`) — JEFE FINAL
 - **Mob:** WITHER, resistencia al empuje 0.95 (no se deja mover). **900 de vida** (hasta 1024 tras el multiplicador de dificultad), daño 4.0, velocidad 1.25.

@@ -167,7 +167,7 @@ bosses:
     # cerca (SLAM), te persigue (CHARGE), llena el campo de mini-jefes (SWARM) y detona (EXPLODE).
     # La explosión NO lo mata (es inmune a todo daño por explosión). En fase normal solo empuja y
     # daña; al 40 % de vida, en su fase enloquecida, además abre un cráter de ~6 bloques.
-    name: "<green><bold>Absorbedor Cargado"
+    name: "<dark_green><bold>Fauces del Cataclismo"
     type: CREEPER
     powered: true
     scale: 2.0
