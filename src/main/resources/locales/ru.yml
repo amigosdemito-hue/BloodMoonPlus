@@ -1,0 +1,137 @@
+LocalesVersion: "2.0.0"
+LanguageName: "Русский"
+
+# ==================== General ====================
+prefix: "<dark_red><bold>🌙 Кровавая Луна</bold> <dark_gray>» <reset>"
+no-permission: "<red>У вас нет прав на это."
+unknown-world: "<red>Такого мира нет или он не загружен."
+general-error: "<red>Произошла ошибка при обработке запроса."
+plugin-reloaded: "<green>Конфигурация успешно перезагружена."
+bed-not-allowed: "<red>Во время Кровавой Луны спать нельзя."
+dying-results-inventory-loss: "<dark_red><bold>Смерть во время Кровавой Луны уничтожает ваш инвентарь."
+dying-results-xp-loss: "<dark_red><bold>Смерть во время Кровавой Луны сбрасывает ваш опыт."
+
+# ==================== Event ====================
+event:
+  title: "<dark_red><bold>🌙 КРОВАВАЯ ЛУНА"
+  subtitle: "<red>Доживите до рассвета <gray>(x{difficulty})"
+  start: "<red>Кровавая Луна началась! <gray>Сложность <red>x{difficulty}<gray> · Длительность <white>{minutes} мин"
+  end: "<green>Кровавая Луна закончилась. Наступает рассвет!"
+  stopped: "<yellow>Кровавая Луна была остановлена."
+  bar: "<dark_red>🌙 Кровавая Луна <gray>· <white>{time} <gray>· <red>x{difficulty}"
+  summary-header: "<gold>Лучшие охотники ночи:"
+  summary-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{kills} убийств"
+  survivors: "<green>Вы пережили Кровавую Луну! Получите награду."
+  horde-descending: "<dark_red><bold>⚡ Орда обрушивается на <white>{player}<dark_red>! ⚡"
+  player-died: "<dark_red>☠ <white>{player} <dark_red>пал во время Кровавой Луны. <gray>(<white>{cause}<gray>)"
+  mob-slain: "<gray>× <white>{player} <gray>победил <red>{mob}<gray>."
+  death-cause-unknown: "<gray>ночь поглотила его"
+  wither-blocked: "<red>Визер запрещён на этом сервере. Появиться может только босс Кровавой Луны."
+  survivors-header: "<gold>Выжившие в {world}:"
+  survivors-none: "<gray>Никто не получил права на награду выжившего в {world}."
+  survivor-disqualified-death: "<red>Вы погибли и больше не можете получить награду за выживание."
+  survivor-insufficient-participation: "<yellow>Вы участвовали слишком мало, чтобы получить награду за выживание."
+  already-active: "<red>В этом мире уже идёт событие."
+  not-active: "<red>Нет активного события."
+  cannot-stop-world: "<red>Вы не можете остановить Кровавую Луну в этом мире."
+  world-permanent: "<red>Этот мир остаётся под Кровавой Луной."
+
+# ==================== Schedule ====================
+schedule:
+  warning: "<yellow>Кровавая Луна начнётся через <red>{min} мин. <gray>(x{difficulty})<yellow>. Приготовьтесь!"
+  warning-title: "<dark_red><bold>Кровавая Луна пришла!"
+  warning-body: "<red>Опыт умножается, а существа дают дополнительную добычу.\n<red>Существа стали сильнее и накладывают особые эффекты."
+
+# ==================== Boss ====================
+boss:
+  spawn: "<dark_red>☠ {boss} <dark_red>появился!"
+  enraged: "<dark_red><bold>{boss} <dark_red><bold>ОБЕЗУМЕЛ! <red>Он стал быстрее и смертоноснее."
+  killed: "<green>{boss} <green>пал! Последний удар нанёс <white>{player}<green>."
+  top-header: "<gold>Наибольший урон по боссу:"
+  top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} урона"
+  top-reward: "<gold>За урон по боссу вы получаете дополнительную награду."
+  disabled: "<yellow>Босс Кровавой Луны отключён в этом мире."
+  spawn-failed: "<red>Не удалось создать настроенного босса."
+  mythic-not-found: "<red>MythicMob '{name}' не найден в {world}."
+  mythic-unavailable: "<red>MythicMobs недоступен или несовместим в {world}."
+  mythic-fallback: "<gray>Будет использован ванильный босс Кровавой Луны в {world}."
+
+# ==================== Loot ====================
+loot:
+  broadcast: "<yellow>{player} <yellow>получил {item} <dark_gray>[{rarity}<dark_gray>]<yellow>!"
+
+# ==================== Items ====================
+item:
+  rarity-line: "<gray>Редкость: {rarity}"
+  serial-line: "<dark_red>Уникальный экземпляр <white>#{serial}<gray>/{limit}"
+  no-disenchant: "<red>Предметы Кровавой Луны не теряют зачарования и проклятия."
+  updated: "<green>Ваши предметы Кровавой Луны обновлены последними улучшениями."
+
+# ==================== Commands ====================
+cmd:
+  usage: "<yellow>Использование: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
+  reloaded: "<green>Конфигурация перезагружена."
+  usage-refresh: "<yellow>Использование: /luna refresh <игрок|all>"
+  refreshed: "<green>Обновлено предметов Кровавой Луны у {player}: {count}."
+  refreshed-all: "<green>Обновлено предметов Кровавой Луны у всех онлайн-игроков: {count}."
+  started: "<green>Кровавая Луна запущена в {world}."
+  stopped: "<yellow>Кровавая Луна остановлена в {world}."
+  stopped-all: "<yellow>Все события остановлены."
+  status-none: "<gray>Нет активной Кровавой Луны."
+  status-line: "<red>● {world} <gray>· осталось <white>{time} <gray>· сложность <red>x{difficulty}"
+  next-line: "<gray>Следующая: <white>{when} <gray>(через {in}) · x{difficulty}"
+  next-header: "<gold>Ближайшие Кровавые Луны:"
+  next-entry: "<dark_gray>- <white>{when} <gray>· через {in} · <red>x{difficulty}"
+  next-none: "<gray>Расписание не настроено."
+  usage-difficulty: "<yellow>Использование: /luna difficulty <x3|x2|triple> [мир]"
+  difficulty-set: "<green>Сложность изменена на x{difficulty}. Влияет на мобов, которые появятся с этого момента."
+  usage-boss: "<yellow>Использование: /luna boss <id> [игрок]. Боссы: {bosses}"
+  usage-horde: "<yellow>Использование: /luna horde [игрок]"
+  boss-spawned: "<green>Босс {boss} вызван."
+  boss-spawned-player: "<green>Босс {boss} вызван над {player}."
+  boss-failed-target: "<red>Не удалось вызвать {boss} над {player} (мёртв, в другом мире или там нет события?)."
+  boss-failed: "<red>Не удалось вызвать босса {boss}: в мире события нет подходящих игроков."
+  boss-unknown: "<red>Босса {boss} не существует. Боссы: {bosses}"
+  horde-spawned: "<green>Орда создана: {count} мобов."
+  horde-spawned-player: "<green>Орда для {player}: {count} мобов."
+  killed: "<green>Удалено мобов Кровавой Луны: {count}."
+  usage-give: "<yellow>Использование: /luna give <игрок> <item> [количество]"
+  player-unknown: "<red>Игрок {player} не найден."
+  item-unknown: "<red>Предмета {item} не существует (используйте /luna items)."
+  item-limit: "<red>Предмет {item} достиг лимита в {limit} уникальных экземпляров."
+  target-unknown: "<red>Нет игрока или мира с именем {target}."
+  boss-spawned-world: "<green>Босс {boss} вызван в {world}."
+  boss-usage-no-event: "<red>Без активного события используйте /luna boss <id> <игрок|мир>."
+  given: "<green>Выдано {amount}x {item} игроку {player}."
+  items-header: "<gold>Доступные предметы:"
+  usage-chances: "<yellow>Использование: /luna chances <таблица>"
+  table-unknown: "<red>Таблицы {table} не существует."
+  survivors-header: "<gold>Подходящие выжившие в {world}:"
+  survivors-line: "<gray>- <white>{player} <gray>({seconds} участия)"
+  survivors-none: "<gray>Нет подходящих выживших в {world}."
+
+# ==================== Placeholders ====================
+placeholder:
+  active: "Активна"
+  inactive: "Неактивна"
+  none: "Нет"
+  eligible: "Подходит"
+  disqualified: "Дисквалифицирован"
+  not-participating: "Не участвует"
+  no-boss: "Ещё не появился"
+  boss-state-none: "Нет активного события"
+  boss-state-not-spawned: "Ещё не появился"
+  boss-state-alive: "Жив"
+  boss-state-defeated: "Побеждён"
+  boss-display-not-spawned: "<gray>Босс: <dark_gray>Ещё не появился"
+  boss-display-name: "<gray>Босс: <red>{name}"
+  boss-display-defeated: "<gray>Босс: <green>{name}"
+  boss-display-type: "<gray>Тип: <white>{type}"
+  boss-display-health: "<gray>Здоровье: <red>{health}"
+
+# ==================== Особые события ====================
+special:
+  eclipse: "<dark_purple>✦ <bold>Затмение опускается на Кровавую Луну!</bold> <dark_purple>✦"
+  storm: "<aqua>☂ Буря вырывается наружу. Кровавая Луна питается хаосом."
+  fog: "<gray>🌫 Густой туман окутывает выживших. <dark_gray>Вы ничего не видите."
+  silence: "<black>🔇 Тишина поглощает всё. <dark_gray>Вы слышите только своё сердце."

@@ -323,6 +323,15 @@ public final class EventManager {
             // Comandos por mundo (CommandsOnStart de <mundo>/config.yml). Eran leídos por
             // WorldConfig pero nunca ejecutados: la opción documentada no hacía nada.
             runCommands(plugin.worldConfigs().get(w.getName()).commandsOnStart(), w, null, diff);
+
+            // Aviso de las reglas de muerte del mundo: estas dos traducciones existían en los
+            // locales pero nunca se enviaban, así que el jugador descubría la pérdida de
+            // inventario/experiencia al morir.
+            var wc = plugin.worldConfigs().get(w.getName());
+            for (Player p : w.getPlayers()) {
+                if (wc.dyingLossesInventory()) plugin.messages().send(p, "dying-results-inventory-loss");
+                if (wc.dyingLossesExperience()) plugin.messages().send(p, "dying-results-xp-loss");
+            }
         }
         plugin.bosses().plan(s, resumed);
         return true;

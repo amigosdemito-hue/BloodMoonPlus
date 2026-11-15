@@ -43,6 +43,16 @@ processes at most **48 entities** and **1400 blocks**, and the minion summon is 
 per boss. Nothing in the kit allocates unbounded work per tick, so a large farm next to the fight
 cannot stall the server.
 
+### Added — 7 languages
+- **Spanish, English, Portuguese, French, German, Italian and Russian**, complete and selectable in
+  `plugins/BloodMoonPlus/locales/locales.yml` (`Language: pt`, `Language: ru`, …). All seven files are
+  copied on first start and `/luna reload` applies the change without restarting.
+- An unknown language now logs a warning and falls back to English instead of loading an empty file.
+- New tests fail the build if any locale misses a key or loses a `{placeholder}` relative to Spanish,
+  so translations can no longer silently drift.
+- **Death-rule warnings**: the per-world `DyingLossesInventory` / `DyingLossesExperience` messages were
+  translated but never sent; players now get them when the event starts.
+
 ### Added — Blood Moon gear can no longer be stripped
 - **Grindstone blocked**: Blood Moon items cannot be disenchanted or have their curses removed
   anymore (the grindstone result is cancelled and the player is told why). Adding enchantments and

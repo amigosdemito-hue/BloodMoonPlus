@@ -1,0 +1,137 @@
+LocalesVersion: "2.0.0"
+LanguageName: "Deutsch"
+
+# ==================== General ====================
+prefix: "<dark_red><bold>🌙 Blutmond</bold> <dark_gray>» <reset>"
+no-permission: "<red>Dazu hast du keine Berechtigung."
+unknown-world: "<red>Diese Welt existiert nicht oder ist nicht geladen."
+general-error: "<red>Beim Verarbeiten deiner Anfrage ist ein Fehler aufgetreten."
+plugin-reloaded: "<green>Konfiguration erfolgreich neu geladen."
+bed-not-allowed: "<red>Während eines Blutmonds kannst du nicht schlafen."
+dying-results-inventory-loss: "<dark_red><bold>Stirbst du während eines Blutmonds, verlierst du dein Inventar."
+dying-results-xp-loss: "<dark_red><bold>Stirbst du während eines Blutmonds, wird deine Erfahrung zurückgesetzt."
+
+# ==================== Event ====================
+event:
+  title: "<dark_red><bold>🌙 BLUTMOND"
+  subtitle: "<red>Überlebe bis zum Morgengrauen <gray>(x{difficulty})"
+  start: "<red>Der Blutmond hat begonnen! <gray>Schwierigkeit <red>x{difficulty}<gray> · Dauer <white>{minutes} Min."
+  end: "<green>Der Blutmond ist vorbei. Die Morgendämmerung kommt!"
+  stopped: "<yellow>Der Blutmond wurde gestoppt."
+  bar: "<dark_red>🌙 Blutmond <gray>· <white>{time} <gray>· <red>x{difficulty}"
+  summary-header: "<gold>Beste Jäger der Nacht:"
+  summary-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{kills} Kills"
+  survivors: "<green>Du hast den Blutmond überlebt! Hier ist deine Belohnung."
+  horde-descending: "<dark_red><bold>⚡ Eine Horde stürzt auf <white>{player}<dark_red>! ⚡"
+  player-died: "<dark_red>☠ <white>{player} <dark_red>ist im Blutmond gefallen. <gray>(<white>{cause}<gray>)"
+  mob-slain: "<gray>× <white>{player} <gray>besiegte <red>{mob}<gray>."
+  death-cause-unknown: "<gray>die Nacht hat ihn verschlungen"
+  wither-blocked: "<red>Der Wither ist auf diesem Server verboten. Nur der Blutmond-Boss darf erscheinen."
+  survivors-header: "<gold>Überlebende in {world}:"
+  survivors-none: "<gray>Niemand war für die Überlebenden-Belohnung in {world} berechtigt."
+  survivor-disqualified-death: "<red>Du bist gestorben und kannst keine Überlebenden-Belohnung mehr erhalten."
+  survivor-insufficient-participation: "<yellow>Du hast nicht lange genug teilgenommen, um die Überlebenden-Belohnung zu erhalten."
+  already-active: "<red>In dieser Welt läuft bereits ein Event."
+  not-active: "<red>Es läuft kein Event."
+  cannot-stop-world: "<red>Du kannst den Blutmond in dieser Welt nicht stoppen."
+  world-permanent: "<red>Diese Welt bleibt unter einem Blutmond."
+
+# ==================== Schedule ====================
+schedule:
+  warning: "<yellow>Der Blutmond beginnt in <red>{min} Minute(n) <gray>(x{difficulty})<yellow>. Macht euch bereit!"
+  warning-title: "<dark_red><bold>Der Blutmond ist da!"
+  warning-body: "<red>Erfahrung wird vervielfacht und Kreaturen lassen mehr Beute fallen.\n<red>Kreaturen sind stärker und wirken besondere Effekte."
+
+# ==================== Boss ====================
+boss:
+  spawn: "<dark_red>☠ {boss} <dark_red>ist erschienen!"
+  enraged: "<dark_red><bold>{boss} <dark_red><bold>IST RASEND GEWORDEN! <red>Er wird schneller und tödlicher."
+  killed: "<green>{boss} <green>ist gefallen! Letzter Schlag von <white>{player}<green>."
+  top-header: "<gold>Höchster Schaden am Boss:"
+  top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} Schaden"
+  top-reward: "<gold>Für deinen Schaden am Boss erhältst du eine Extra-Belohnung."
+  disabled: "<yellow>Der Blutmond-Boss ist in dieser Welt deaktiviert."
+  spawn-failed: "<red>Der konfigurierte Boss konnte nicht erzeugt werden."
+  mythic-not-found: "<red>Der MythicMob '{name}' wurde in {world} nicht gefunden."
+  mythic-unavailable: "<red>MythicMobs ist in {world} nicht verfügbar oder nicht kompatibel."
+  mythic-fallback: "<gray>Es wird der Vanilla-Blutmond-Boss in {world} verwendet."
+
+# ==================== Loot ====================
+loot:
+  broadcast: "<yellow>{player} <yellow>erhielt {item} <dark_gray>[{rarity}<dark_gray>]<yellow>!"
+
+# ==================== Items ====================
+item:
+  rarity-line: "<gray>Seltenheit: {rarity}"
+  serial-line: "<dark_red>Einzelstück <white>#{serial}<gray>/{limit}"
+  no-disenchant: "<red>Blutmond-Gegenstände verlieren niemals Verzauberungen oder Flüche."
+  updated: "<green>Deine Blutmond-Gegenstände wurden mit den neuesten Verbesserungen aktualisiert."
+
+# ==================== Commands ====================
+cmd:
+  usage: "<yellow>Benutzung: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
+  reloaded: "<green>Konfiguration neu geladen."
+  usage-refresh: "<yellow>Benutzung: /luna refresh <spieler|all>"
+  refreshed: "<green>{count} Blutmond-Gegenstand(-stände) von {player} aktualisiert."
+  refreshed-all: "<green>{count} Blutmond-Gegenstand(-stände) bei allen Online-Spielern aktualisiert."
+  started: "<green>Blutmond in {world} gestartet."
+  stopped: "<yellow>Blutmond in {world} gestoppt."
+  stopped-all: "<yellow>Alle Events wurden gestoppt."
+  status-none: "<gray>Es ist kein Blutmond aktiv."
+  status-line: "<red>● {world} <gray>· verbleibend <white>{time} <gray>· Schwierigkeit <red>x{difficulty}"
+  next-line: "<gray>Nächster: <white>{when} <gray>(in {in}) · x{difficulty}"
+  next-header: "<gold>Nächste Blutmonde:"
+  next-entry: "<dark_gray>- <white>{when} <gray>· in {in} · <red>x{difficulty}"
+  next-none: "<gray>Es sind keine Zeiten konfiguriert."
+  usage-difficulty: "<yellow>Benutzung: /luna difficulty <x3|x2|triple> [welt]"
+  difficulty-set: "<green>Schwierigkeit auf x{difficulty} geändert. Betrifft alle neu erscheinenden Monster."
+  usage-boss: "<yellow>Benutzung: /luna boss <id> [spieler]. Bosse: {bosses}"
+  usage-horde: "<yellow>Benutzung: /luna horde [spieler]"
+  boss-spawned: "<green>Boss {boss} beschworen."
+  boss-spawned-player: "<green>Boss {boss} über {player} beschworen."
+  boss-failed-target: "<red>{boss} konnte nicht über {player} beschworen werden (tot, in einer anderen Welt oder dort kein Event?)."
+  boss-failed: "<red>Boss {boss} konnte nicht beschworen werden: keine berechtigten Spieler in der Event-Welt."
+  boss-unknown: "<red>Der Boss {boss} existiert nicht. Bosse: {bosses}"
+  horde-spawned: "<green>Horde erzeugt: {count} Monster."
+  horde-spawned-player: "<green>Horde für {player}: {count} Monster."
+  killed: "<green>{count} Blutmond-Monster entfernt."
+  usage-give: "<yellow>Benutzung: /luna give <spieler> <item> [menge]"
+  player-unknown: "<red>Spieler {player} nicht gefunden."
+  item-unknown: "<red>Der Gegenstand {item} existiert nicht (nutze /luna items)."
+  item-limit: "<red>Der Gegenstand {item} hat das Limit von {limit} Einzelstücken erreicht."
+  target-unknown: "<red>Es gibt keinen Spieler und keine Welt namens {target}."
+  boss-spawned-world: "<green>Boss {boss} in {world} beschworen."
+  boss-usage-no-event: "<red>Ohne aktives Event nutze /luna boss <id> <spieler|welt>."
+  given: "<green>{amount}x {item} an {player} übergeben."
+  items-header: "<gold>Verfügbare Gegenstände:"
+  usage-chances: "<yellow>Benutzung: /luna chances <tabelle>"
+  table-unknown: "<red>Die Tabelle {table} existiert nicht."
+  survivors-header: "<gold>Berechtigte Überlebende in {world}:"
+  survivors-line: "<gray>- <white>{player} <gray>({seconds} Teilnahme)"
+  survivors-none: "<gray>Keine berechtigten Überlebenden in {world}."
+
+# ==================== Placeholders ====================
+placeholder:
+  active: "Aktiv"
+  inactive: "Inaktiv"
+  none: "Keiner"
+  eligible: "Berechtigt"
+  disqualified: "Disqualifiziert"
+  not-participating: "Nimmt nicht teil"
+  no-boss: "Noch nicht erschienen"
+  boss-state-none: "Kein aktives Event"
+  boss-state-not-spawned: "Noch nicht erschienen"
+  boss-state-alive: "Lebendig"
+  boss-state-defeated: "Besiegt"
+  boss-display-not-spawned: "<gray>Boss: <dark_gray>Noch nicht erschienen"
+  boss-display-name: "<gray>Boss: <red>{name}"
+  boss-display-defeated: "<gray>Boss: <green>{name}"
+  boss-display-type: "<gray>Typ: <white>{type}"
+  boss-display-health: "<gray>Leben: <red>{health}"
+
+# ==================== Spezial-Events ====================
+special:
+  eclipse: "<dark_purple>✦ <bold>Eine Sonnenfinsternis senkt sich über den Blutmond!</bold> <dark_purple>✦"
+  storm: "<aqua>☂ Der Sturm bricht los. Der Blutmond nährt sich vom Chaos."
+  fog: "<gray>🌫 Dichter Nebel umhüllt die Überlebenden. <dark_gray>Du siehst nichts."
+  silence: "<black>🔇 Die Stille ergreift alles. <dark_gray>Du hörst nur dein Herz schlagen."

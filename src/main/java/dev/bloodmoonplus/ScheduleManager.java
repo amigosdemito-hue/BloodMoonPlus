@@ -332,11 +332,23 @@ public final class ScheduleManager {
         return Math.max(0, Duration.between(ZonedDateTime.now(zone), u.at()).getSeconds());
     }
 
-    public String format(Upcoming u) {
-        if (mode == Mode.INTERVAL || u.slot().day() == null) {
-            return u.at().format(DateTimeFormatter.ofPattern("EEEE HH:mm", ES)) + " (" + zone.getId() + ")";
+    /** Locale del idioma activo: los nombres de día salían siempre en español aunque el
+     *  servidor usara inglés o ruso. */
+    private Locale displayLocale() {
+        try {
+            return Locale.forLanguageTag(plugin.locales().language()
+                    .replace('_', '-').toLowerCase(Locale.ROOT));
+        } catch (Exception e) {
+            return ES;
         }
-        String day = u.at().getDayOfWeek().getDisplayName(TextStyle.FULL, ES);
+    }
+
+    public String format(Upcoming u) {
+        Locale loc = displayLocale();
+        if (mode == Mode.INTERVAL || u.slot().day() == null) {
+            return u.at().format(DateTimeFormatter.ofPattern("EEEE HH:mm", loc)) + " (" + zone.getId() + ")";
+        }
+        String day = u.at().getDayOfWeek().getDisplayName(TextStyle.FULL, loc);
         return day + " " + u.at().format(DateTimeFormatter.ofPattern("HH:mm")) + " (" + zone.getId() + ")";
     }
 

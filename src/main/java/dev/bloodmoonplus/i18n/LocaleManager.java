@@ -5,16 +5,20 @@ import dev.bloodmoonplus.Util;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
- * Gestor de internacionalización. Carga en/es desde el JAR en plugins/BloodMoonPlus/locales/.
- * El usuario elige el idioma en locales.yml. Claves faltantes caen al inglés.
+ * Gestor de internacionalización. Idiomas empaquetados: es, en, pt, fr, de, it y ru.
+ * Se copian a plugins/BloodMoonPlus/locales/ la primera vez y el usuario elige el suyo en
+ * locales.yml. Claves faltantes caen al inglés (y, si tampoco están, al inglés del JAR).
  */
 public final class LocaleManager {
 
     public static final String VERSION = "1.0.2-beta";
+
+    /** Códigos empaquetados en el JAR, en orden de preferencia para el aviso de arranque. */
+    public static final List<String> SUPPORTED = List.of("es", "en", "pt", "fr", "de", "it", "ru");
 
     private final BloodMoonPlus plugin;
     private final File localesDir;
@@ -34,8 +38,10 @@ public final class LocaleManager {
 
     public void init() {
         localesDir.mkdirs();
-        // Copia en.yml y es.yml desde el JAR solo si no existen
-        for (String lang : new String[]{"en", "es"}) {
+        // Copia TODOS los idiomas del JAR que falten en el disco. Antes solo se copiaban en/es,
+        // así que elegir pt/fr/de/it/ru dejaba el plugin sin textos hasta que el admin los
+        // consiguiera a mano.
+        for (String lang : SUPPORTED) {
             File f = new File(localesDir, lang + ".yml");
             if (!f.exists()) plugin.saveResource("locales/" + lang + ".yml", false);
         }
@@ -50,9 +56,16 @@ public final class LocaleManager {
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(cfgFile);
         boolean firstLoad = active == null;
         String previous = language;
-        language = cfg.getString("Language", "en").toLowerCase(Locale.ROOT);
+        language = cfg.getString("Language", "en").toLowerCase(Locale.ROOT).trim();
         useBundled = cfg.getBoolean("UseBundledLocales", true);
-        active = YamlConfiguration.loadConfiguration(new File(localesDir, language + ".yml"));
+        File langFile = new File(localesDir, language + ".yml");
+        if (!langFile.exists()) {
+            plugin.getLogger().warning("Idioma '" + language + "' no existe en locales/ (disponibles: "
+                    + String.join(", ", SUPPORTED) + "); se usará inglés.");
+            language = "en";
+            langFile = new File(localesDir, "en.yml");
+        }
+        active = YamlConfiguration.loadConfiguration(langFile);
         fallback = YamlConfiguration.loadConfiguration(new File(localesDir, "en.yml"));
         bundled = loadBundled(language);
         bundledEn = loadBundled("en");
@@ -73,6 +86,12 @@ public final class LocaleManager {
             return new YamlConfiguration();
         }
     }
+
+    /** Idioma activo (código ya validado). */
+    public String language() { return language; }
+
+    /** Códigos de idioma empaquetados. */
+    public static List<String> supported() { return SUPPORTED; }
 
     /** Obtiene la cadena localizada: archivo del servidor -> en.yml -> jar del idioma -> jar en. */
     public String get(String key) {

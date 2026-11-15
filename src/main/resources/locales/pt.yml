@@ -1,0 +1,137 @@
+LocalesVersion: "2.0.0"
+LanguageName: "Português"
+
+# ==================== General ====================
+prefix: "<dark_red><bold>🌙 Lua de Sangue</bold> <dark_gray>» <reset>"
+no-permission: "<red>Você não tem permissão para isso."
+unknown-world: "<red>Esse mundo não existe ou não está carregado."
+general-error: "<red>Ocorreu um erro ao processar seu pedido."
+plugin-reloaded: "<green>Configuração recarregada com sucesso."
+bed-not-allowed: "<red>Você não pode dormir durante uma Lua de Sangue."
+dying-results-inventory-loss: "<dark_red><bold>Morrer durante uma Lua de Sangue apaga seu inventário."
+dying-results-xp-loss: "<dark_red><bold>Morrer durante uma Lua de Sangue reinicia sua experiência."
+
+# ==================== Event ====================
+event:
+  title: "<dark_red><bold>🌙 LUA DE SANGUE"
+  subtitle: "<red>Sobreviva até o amanhecer <gray>(x{difficulty})"
+  start: "<red>A Lua de Sangue começou! <gray>Dificuldade <red>x{difficulty}<gray> · Duração <white>{minutes} min"
+  end: "<green>A Lua de Sangue terminou. O amanhecer chegou!"
+  stopped: "<yellow>A Lua de Sangue foi interrompida."
+  bar: "<dark_red>🌙 Lua de Sangue <gray>· <white>{time} <gray>· <red>x{difficulty}"
+  summary-header: "<gold>Melhores caçadores da noite:"
+  summary-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{kills} abates"
+  survivors: "<green>Você sobreviveu à Lua de Sangue! Receba sua recompensa."
+  horde-descending: "<dark_red><bold>⚡ Uma horda está descendo sobre <white>{player}<dark_red>! ⚡"
+  player-died: "<dark_red>☠ <white>{player} <dark_red>caiu durante a Lua de Sangue. <gray>(<white>{cause}<gray>)"
+  mob-slain: "<gray>× <white>{player} <gray>derrotou <red>{mob}<gray>."
+  death-cause-unknown: "<gray>a noite o consumiu"
+  wither-blocked: "<red>O Wither é proibido neste servidor. Apenas o chefe da Lua de Sangue pode aparecer."
+  survivors-header: "<gold>Sobreviventes em {world}:"
+  survivors-none: "<gray>Ninguém foi elegível para a recompensa de sobrevivente em {world}."
+  survivor-disqualified-death: "<red>Você morreu e não pode mais receber a recompensa de sobrevivência."
+  survivor-insufficient-participation: "<yellow>Você não participou tempo suficiente para receber a recompensa de sobrevivência."
+  already-active: "<red>Já existe um evento ativo nesse mundo."
+  not-active: "<red>Não há nenhum evento ativo."
+  cannot-stop-world: "<red>Você não pode parar a Lua de Sangue neste mundo."
+  world-permanent: "<red>Este mundo permanece sob uma Lua de Sangue."
+
+# ==================== Schedule ====================
+schedule:
+  warning: "<yellow>A Lua de Sangue começará em <red>{min} minuto(s) <gray>(x{difficulty})<yellow>. Preparem-se!"
+  warning-title: "<dark_red><bold>A Lua de Sangue chegou!"
+  warning-body: "<red>A experiência é multiplicada e as criaturas dão loot extra.\n<red>As criaturas são mais fortes e aplicam efeitos especiais."
+
+# ==================== Boss ====================
+boss:
+  spawn: "<dark_red>☠ {boss} <dark_red>apareceu!"
+  enraged: "<dark_red><bold>{boss} <dark_red><bold>ENLOUQUECEU! <red>Ficou mais rápido e letal."
+  killed: "<green>{boss} <green>caiu! Golpe final de <white>{player}<green>."
+  top-header: "<gold>Maior dano ao chefe:"
+  top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} de dano"
+  top-reward: "<gold>Pelo seu dano ao chefe você recebe uma recompensa extra."
+  disabled: "<yellow>O chefe da Lua de Sangue está desativado neste mundo."
+  spawn-failed: "<red>Não foi possível gerar o chefe configurado."
+  mythic-not-found: "<red>O MythicMob '{name}' não foi encontrado em {world}."
+  mythic-unavailable: "<red>MythicMobs não está disponível ou não é compatível em {world}."
+  mythic-fallback: "<gray>Será usado o chefe vanilla da Lua de Sangue em {world}."
+
+# ==================== Loot ====================
+loot:
+  broadcast: "<yellow>{player} <yellow>obteve {item} <dark_gray>[{rarity}<dark_gray>]<yellow>!"
+
+# ==================== Items ====================
+item:
+  rarity-line: "<gray>Raridade: {rarity}"
+  serial-line: "<dark_red>Exemplar único <white>#{serial}<gray>/{limit}"
+  no-disenchant: "<red>Os itens da Lua de Sangue não perdem encantamentos nem maldições."
+  updated: "<green>Seus itens da Lua foram atualizados com as últimas melhorias."
+
+# ==================== Commands ====================
+cmd:
+  usage: "<yellow>Uso: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
+  reloaded: "<green>Configuração recarregada."
+  usage-refresh: "<yellow>Uso: /luna refresh <jogador|all>"
+  refreshed: "<green>Foram atualizados {count} item(ns) da Lua de {player}."
+  refreshed-all: "<green>Foram atualizados {count} item(ns) da Lua em todos os jogadores conectados."
+  started: "<green>Lua de Sangue iniciada em {world}."
+  stopped: "<yellow>Lua de Sangue interrompida em {world}."
+  stopped-all: "<yellow>Todos os eventos foram interrompidos."
+  status-none: "<gray>Não há nenhuma Lua de Sangue ativa."
+  status-line: "<red>● {world} <gray>· restam <white>{time} <gray>· dificuldade <red>x{difficulty}"
+  next-line: "<gray>Próxima: <white>{when} <gray>(em {in}) · x{difficulty}"
+  next-header: "<gold>Próximas Luas de Sangue:"
+  next-entry: "<dark_gray>- <white>{when} <gray>· em {in} · <red>x{difficulty}"
+  next-none: "<gray>Não há horários configurados."
+  usage-difficulty: "<yellow>Uso: /luna difficulty <x3|x2|triple> [mundo]"
+  difficulty-set: "<green>Dificuldade alterada para x{difficulty}. Afeta os mobs que aparecerem daqui em diante."
+  usage-boss: "<yellow>Uso: /luna boss <id> [jogador]. Chefes: {bosses}"
+  usage-horde: "<yellow>Uso: /luna horde [jogador]"
+  boss-spawned: "<green>Chefe {boss} invocado."
+  boss-spawned-player: "<green>Chefe {boss} invocado sobre {player}."
+  boss-failed-target: "<red>Não foi possível invocar {boss} sobre {player} (morto, em outro mundo ou evento inativo lá?)."
+  boss-failed: "<red>Não foi possível invocar o chefe {boss}: não há jogadores elegíveis no mundo do evento."
+  boss-unknown: "<red>O chefe {boss} não existe. Chefes: {bosses}"
+  horde-spawned: "<green>Horda gerada: {count} mobs."
+  horde-spawned-player: "<green>Horda para {player}: {count} mobs."
+  killed: "<green>Foram removidos {count} mobs da Lua de Sangue."
+  usage-give: "<yellow>Uso: /luna give <jogador> <item> [quantidade]"
+  player-unknown: "<red>Jogador {player} não encontrado."
+  item-unknown: "<red>O item {item} não existe (use /luna items)."
+  item-limit: "<red>O item {item} já alcançou o limite de {limit} exemplares únicos."
+  target-unknown: "<red>Não há nenhum jogador ou mundo chamado {target}."
+  boss-spawned-world: "<green>Chefe {boss} invocado em {world}."
+  boss-usage-no-event: "<red>Sem evento ativo use /luna boss <id> <jogador|mundo>."
+  given: "<green>Entregue {amount}x {item} a {player}."
+  items-header: "<gold>Itens disponíveis:"
+  usage-chances: "<yellow>Uso: /luna chances <tabela>"
+  table-unknown: "<red>A tabela {table} não existe."
+  survivors-header: "<gold>Sobreviventes elegíveis em {world}:"
+  survivors-line: "<gray>- <white>{player} <gray>({seconds} de participação)"
+  survivors-none: "<gray>Não há sobreviventes elegíveis em {world}."
+
+# ==================== Placeholders ====================
+placeholder:
+  active: "Ativa"
+  inactive: "Inativa"
+  none: "Nenhum"
+  eligible: "Elegível"
+  disqualified: "Desclassificado"
+  not-participating: "Não participa"
+  no-boss: "Ainda não apareceu"
+  boss-state-none: "Sem evento ativo"
+  boss-state-not-spawned: "Ainda não apareceu"
+  boss-state-alive: "Vivo"
+  boss-state-defeated: "Derrotado"
+  boss-display-not-spawned: "<gray>Chefe: <dark_gray>Ainda não apareceu"
+  boss-display-name: "<gray>Chefe: <red>{name}"
+  boss-display-defeated: "<gray>Chefe: <green>{name}"
+  boss-display-type: "<gray>Tipo: <white>{type}"
+  boss-display-health: "<gray>Vida: <red>{health}"
+
+# ==================== Eventos especiais ====================
+special:
+  eclipse: "<dark_purple>✦ <bold>Um eclipse desce sobre a Lua de Sangue!</bold> <dark_purple>✦"
+  storm: "<aqua>☂ A tempestade se liberta. A Lua de Sangue se alimenta do caos."
+  fog: "<gray>🌫 Uma névoa espessa envolve os sobreviventes. <dark_gray>Você não vê nada."
+  silence: "<black>🔇 O silêncio toma conta de tudo. <dark_gray>Você só ouve seu coração bater."

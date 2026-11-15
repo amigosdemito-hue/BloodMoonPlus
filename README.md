@@ -460,6 +460,34 @@ Porcentajes del paso 3 en cada tabla (antes del drop-chance individual):
 
 ---
 
+## 🌍 Idiomas
+
+El plugin trae **7 idiomas completos** y se elige en `plugins/BloodMoonPlus/locales/locales.yml`:
+
+| Código | Idioma |
+|--------|--------|
+| `es` | Español |
+| `en` | English |
+| `pt` | Português |
+| `fr` | Français |
+| `de` | Deutsch |
+| `it` | Italiano |
+| `ru` | Русский |
+
+```yaml
+Language: es            # código de la tabla
+UseBundledLocales: true # claves que falten caen al inglés
+```
+
+- Los 7 archivos se copian a `plugins/BloodMoonPlus/locales/` en el primer arranque; puedes editar
+  cualquiera sin que el plugin lo sobrescriba.
+- Si `Language` no existe, el plugin avisa en consola y usa inglés.
+- `/luna reload` aplica el cambio en caliente.
+- Los tests verifican que los 7 idiomas tengan **las mismas claves y los mismos
+  placeholders**: una traducción incompleta rompe la compilación, no el servidor.
+
+---
+
 ## 🛡️ Protección de los objetos de la Luna
 
 Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) están blindados:
