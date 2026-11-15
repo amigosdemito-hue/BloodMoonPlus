@@ -69,8 +69,11 @@ item:
 
 # ==================== Commands ====================
 cmd:
-  usage: "<yellow>Usage: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload>"
+  usage: "<yellow>Usage: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
   reloaded: "<green>Configuration reloaded."
+  usage-refresh: "<yellow>Usage: /luna refresh <player|all>"
+  refreshed: "<green>Updated {count} Blood Moon item(s) for {player}."
+  refreshed-all: "<green>Updated {count} Blood Moon item(s) across all online players."
   started: "<green>Blood Moon started in {world}."
   stopped: "<yellow>Blood Moon stopped in {world}."
   stopped-all: "<yellow>All events were stopped."

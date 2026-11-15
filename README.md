@@ -482,6 +482,8 @@ Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) 
   renombrados) reciben los encantamientos, la maldición de desaparición y las habilidades que se
   hayan añadido a `items.yml` después de conseguirlos. Nunca se quita nada y no se pierde el
   desgaste.
+- **`/luna refresh <jugador|all>`** (o `/luna actualizar`): aplica esa puesta al día al instante,
+  sin esperar a que el jugador reconecte. Requiere `bloodmoon.admin`.
 
 ---
 

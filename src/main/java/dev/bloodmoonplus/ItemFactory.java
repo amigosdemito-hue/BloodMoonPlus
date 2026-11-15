@@ -154,15 +154,23 @@ public final class ItemFactory {
             if (en == null) continue;
             int want = Math.min(maxEnchantLevel, Math.max(1, e.getValue()));
             if (meta.getEnchantLevel(en) >= want) continue;
-            meta.addEnchant(en, want, true);
+            try {
+                meta.addEnchant(en, want, true);
+            } catch (IllegalArgumentException ex) {
+                // Encantamiento incompatible con el material: se ignora en vez de romper la
+                // puesta al día (podría venir de un items.yml editado a mano).
+                continue;
+            }
             changed = true;
         }
         Enchantment vanish = Reg.enchantment("vanishing_curse");
         if (vanish != null && vanishingMinRank >= 0 && isGear(d.material())
                 && plugin.loot().rarityRank(d.rarity()) >= vanishingMinRank
                 && !meta.hasEnchant(vanish)) {
-            meta.addEnchant(vanish, 1, true);
-            changed = true;
+            try {
+                meta.addEnchant(vanish, 1, true);
+                changed = true;
+            } catch (IllegalArgumentException ignored) { }
         }
         changed |= addMissing(pdc, Keys.ITEM_ABILITIES, d.abilities());
         changed |= addMissing(pdc, Keys.ITEM_PASSIVES, d.passives());
@@ -183,6 +191,39 @@ public final class ItemFactory {
             changed = true;
         }
         if (changed) stack.setItemMeta(meta);
+        return changed;
+    }
+
+    /** Pone al día TODOS los objetos de la Luna de un jugador: inventario, armadura, mano
+     *  secundaria y cofre del End. Devuelve cuántos objetos cambiaron. Se usa al entrar y en
+     *  /luna refresh. */
+    public int refreshPlayer(org.bukkit.entity.Player p) {
+        int changed = 0;
+        ItemStack[] contents = p.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            if (!refresh(contents[i])) continue;
+            p.getInventory().setItem(i, contents[i]);
+            changed++;
+        }
+        ItemStack[] armor = p.getInventory().getArmorContents();
+        boolean armorChanged = false;
+        for (ItemStack a : armor) {
+            if (!refresh(a)) continue;
+            armorChanged = true;
+            changed++;
+        }
+        if (armorChanged) p.getInventory().setArmorContents(armor);
+        ItemStack off = p.getInventory().getItemInOffHand();
+        if (refresh(off)) {
+            p.getInventory().setItemInOffHand(off);
+            changed++;
+        }
+        ItemStack[] ender = p.getEnderChest().getContents();
+        for (int i = 0; i < ender.length; i++) {
+            if (!refresh(ender[i])) continue;
+            p.getEnderChest().setItem(i, ender[i]);
+            changed++;
+        }
         return changed;
     }
 

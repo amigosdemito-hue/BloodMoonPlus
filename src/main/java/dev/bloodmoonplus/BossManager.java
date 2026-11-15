@@ -605,7 +605,8 @@ public final class BossManager {
                 return fired > 0;
             }
             case "CHARGE" -> {
-                // Embestida del Devastador: se lanza hacia un jugador y arrolla durante ~1s
+                // Embestida del Devastador: se lanza hacia un jugador y arrolla durante ~2 s
+                // (20 pasos cada 2 ticks); la velocidad lo aleja rápido del mismo punto.
                 double power = arg(a, 0, 1.4);
                 double dmg = arg(a, 1, 9);
                 Player tp = near.get(rnd.nextInt(near.size()));

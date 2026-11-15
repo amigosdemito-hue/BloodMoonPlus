@@ -51,11 +51,19 @@ public final class SurvivorManager {
                 if (policy.disqualifyOnWorldLeave()) continue;
                 continue;
             }
-            if (policy.disqualifyOnDeath() && s.died.contains(id)) continue;
+            if (policy.disqualifyOnDeath() && s.died.contains(id)) {
+                // Estas dos traducciones existían pero no se enviaban nunca: el jugador se
+                // quedaba sin recompensa y sin saber por qué.
+                plugin.messages().send(p, "event.survivor-disqualified-death");
+                continue;
+            }
             // Participación real: desde que el jugador entró al evento hasta que terminó.
             long joined = s.joinedAtMs.getOrDefault(id, endMs);
             long participation = Math.max(0, (endMs - joined) / 1000);
-            if (participation < policy.minParticipationSeconds()) continue;
+            if (participation < policy.minParticipationSeconds()) {
+                plugin.messages().send(p, "event.survivor-insufficient-participation");
+                continue;
+            }
             eligible.add(p);
         }
 

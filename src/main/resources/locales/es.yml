@@ -69,8 +69,11 @@ item:
 
 # ==================== Commands ====================
 cmd:
-  usage: "<yellow>Uso: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload>"
+  usage: "<yellow>Uso: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
   reloaded: "<green>Configuración recargada."
+  usage-refresh: "<yellow>Uso: /luna refresh <jugador|all>"
+  refreshed: "<green>Se actualizaron {count} objeto(s) de la Luna de {player}."
+  refreshed-all: "<green>Se actualizaron {count} objeto(s) de la Luna en todos los jugadores conectados."
   started: "<green>Luna de Sangre iniciada en {world}."
   stopped: "<yellow>Luna de Sangre detenida en {world}."
   stopped-all: "<yellow>Todos los eventos fueron detenidos."

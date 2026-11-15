@@ -11,7 +11,7 @@ commands:
     description: Control de la Luna de Sangre
     aliases: [lunadesangre, bm, bloodmoon]
     permission: bloodmoon.use
-    usage: /luna <next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|reload>
+    usage: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>
 permissions:
   bloodmoon.use:
     description: Ver estado y próximos eventos

@@ -22,9 +22,6 @@ public final class MythicBridge {
     private Object mythicProvider;     // io.lumine.mythic.bukkit.MythicBukkit (singleton)
     private Method getMobManager;
     private Method getMythicMobInstance;
-    private Method spawnMob;
-    private Method getInternalName;
-    private Method isPresent;
 
     public MythicBridge(BloodMoonPlus plugin) {
         this.plugin = plugin;
@@ -39,10 +36,10 @@ public final class MythicBridge {
             this.getMobManager = mythicProvider.getClass().getMethod("getMobManager");
             Class<?> mobManagerClass = Class.forName("io.lumine.mythic.core.mobs.MobManager");
             this.getMythicMobInstance = mobManagerClass.getMethod("getMythicMob", String.class);
-            Class<?> mythicMobClass = Class.forName("io.lumine.mythic.core.mobs.ActiveMob");
-            this.spawnMob = mythicMobClass.getMethod("spawn", org.bukkit.entity.LivingEntity.class, org.bukkit.Location.class, double.class, double.class);
-            this.getInternalName = Class.forName("io.lumine.mythic.core.mobs.MobExecutor").getMethod("getInternalName");
-            this.isPresent = Class.forName("io.lumine.mythic.core.mobs.MobManager").getMethod("getMythicMob", String.class);
+            // Las búsquedas de 'ActiveMob.spawn', 'MobExecutor.getInternalName' y un segundo
+            // 'getMythicMob' sobraban (nunca se usaban) y podían hacer fallar TODO el enlace si
+            // la versión de MythicMobs no tenía esa clase/método. El spawn se resuelve en
+            // caliente contra la API pública, con su propio try/catch.
             this.available = true;
             plugin.getLogger().info("MythicMobs enlazado correctamente.");
         } catch (Exception e) {

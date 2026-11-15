@@ -110,5 +110,4 @@ public final class WorldConfig {
     public BossConfig boss() { return boss; }
     public List<String> commandsOnStart() { return commandsOnStart; }
     public List<String> commandsOnEnd() { return commandsOnEnd; }
-    public YamlConfiguration raw() { return yml; }
 }

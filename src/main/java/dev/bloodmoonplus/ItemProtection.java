@@ -50,6 +50,7 @@ public final class ItemProtection implements Listener {
         if (e.getView().getPlayer() instanceof Player p) {
             long now = System.currentTimeMillis();
             if (now - warned.getOrDefault(p.getUniqueId(), 0L) < 3000L) return;
+            if (warned.size() > 500) warned.values().removeIf(t -> now - t > 60_000L);
             warned.put(p.getUniqueId(), now);
             plugin.messages().send(p, "item.no-disenchant");
         }
@@ -82,36 +83,8 @@ public final class ItemProtection implements Listener {
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
         // Un par de segundos después: el inventario del jugador ya está cargado del todo.
-        Bukkit.getScheduler().runTaskLater(plugin, () -> refresh(p), 40L);
-    }
-
-    private void refresh(Player p) {
-        int changed = 0;
-        ItemStack[] contents = p.getInventory().getContents();
-        for (int i = 0; i < contents.length; i++) {
-            if (!plugin.items().refresh(contents[i])) continue;
-            p.getInventory().setItem(i, contents[i]);
-            changed++;
-        }
-        ItemStack[] armor = p.getInventory().getArmorContents();
-        boolean armorChanged = false;
-        for (int i = 0; i < armor.length; i++) {
-            if (!plugin.items().refresh(armor[i])) continue;
-            armorChanged = true;
-            changed++;
-        }
-        if (armorChanged) p.getInventory().setArmorContents(armor);
-        ItemStack off = p.getInventory().getItemInOffHand();
-        if (plugin.items().refresh(off)) {
-            p.getInventory().setItemInOffHand(off);
-            changed++;
-        }
-        ItemStack[] ender = p.getEnderChest().getContents();
-        for (int i = 0; i < ender.length; i++) {
-            if (!plugin.items().refresh(ender[i])) continue;
-            p.getEnderChest().setItem(i, ender[i]);
-            changed++;
-        }
-        if (changed > 0) plugin.messages().send(p, "item.updated");
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (plugin.items().refreshPlayer(p) > 0) plugin.messages().send(p, "item.updated");
+        }, 40L);
     }
 }

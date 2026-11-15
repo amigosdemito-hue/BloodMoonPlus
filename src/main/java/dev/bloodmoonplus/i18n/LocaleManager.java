@@ -100,5 +100,4 @@ public final class LocaleManager {
         return text;
     }
 
-    public String language() { return language; }
 }

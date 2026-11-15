@@ -12,16 +12,17 @@ public final class BloodMoonCommand implements TabExecutor {
     private static final Map<String, String> ALIASES = new LinkedHashMap<>();
     private static final List<String> USE_SUBS = List.of("next", "status");
     private static final List<String> ADMIN_SUBS = List.of("start", "stop", "difficulty", "boss", "horde",
-            "killmobs", "give", "items", "chances", "reload");
+            "killmobs", "give", "items", "chances", "refresh", "reload");
 
     static {
         for (String s : new String[]{"status", "next", "start", "stop", "difficulty", "boss", "horde", "killmobs",
-                "give", "items", "chances", "reload"}) ALIASES.put(s, s);
+                "give", "items", "chances", "refresh", "reload"}) ALIASES.put(s, s);
         ALIASES.put("estado", "status");
         ALIASES.put("proxima", "next"); ALIASES.put("siguiente", "next");
         ALIASES.put("iniciar", "start"); ALIASES.put("detener", "stop"); ALIASES.put("parar", "stop");
         ALIASES.put("dificultad", "difficulty"); ALIASES.put("jefe", "boss"); ALIASES.put("horda", "horde");
         ALIASES.put("limpiar", "killmobs"); ALIASES.put("dar", "give"); ALIASES.put("probabilidades", "chances");
+        ALIASES.put("actualizar", "refresh"); ALIASES.put("refrescar", "refresh");
         ALIASES.put("recargar", "reload");
     }
 
@@ -63,6 +64,7 @@ public final class BloodMoonCommand implements TabExecutor {
                 if (lines == null) { m().send(s, "cmd.table-unknown", "table", a[0]); return true; }
                 for (String l : lines) s.sendMessage(Util.mini(l));
             }
+            case "refresh" -> refresh(s, a);
             case "reload" -> { plugin.reloadAll(); m().send(s, "cmd.reloaded"); }
             default -> m().send(s, "cmd.usage");
         }
@@ -118,6 +120,12 @@ public final class BloodMoonCommand implements TabExecutor {
                 if (args.length == 2) return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), cur);
                 if (args.length == 3) return filter(new ArrayList<>(plugin.items().ids()), cur);
                 return List.of();
+            }
+            case "refresh" -> {
+                if (args.length != 2) return List.of();
+                List<String> o = new ArrayList<>(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+                o.add("all");
+                return filter(o, cur);
             }
             default -> {
                 return List.of();
@@ -295,6 +303,22 @@ public final class BloodMoonCommand implements TabExecutor {
         int total = 0;
         for (EventManager.Session ses : all) total += plugin.events().spawnWave(ses);
         m().send(s, "cmd.horde-spawned", "count", String.valueOf(total));
+    }
+
+    /** /luna refresh <jugador|all>: aplica al instante la puesta al día de los objetos de la
+     *  Luna (encantamientos, maldición y habilidades nuevas) sin esperar a que reconecten. */
+    private void refresh(CommandSender s, String[] a) {
+        if (a.length < 1) { m().send(s, "cmd.usage-refresh"); return; }
+        if (a[0].equalsIgnoreCase("all")) {
+            int total = 0;
+            for (Player p : Bukkit.getOnlinePlayers()) total += plugin.items().refreshPlayer(p);
+            m().send(s, "cmd.refreshed-all", "count", String.valueOf(total));
+            return;
+        }
+        Player p = Bukkit.getPlayerExact(a[0]);
+        if (p == null) { m().send(s, "cmd.player-unknown", "player", a[0]); return; }
+        int n = plugin.items().refreshPlayer(p);
+        m().send(s, "cmd.refreshed", "player", p.getName(), "count", String.valueOf(n));
     }
 
     private void killmobs(CommandSender s, String[] a) {

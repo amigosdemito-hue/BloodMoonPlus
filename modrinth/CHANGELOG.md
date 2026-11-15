@@ -49,6 +49,8 @@ cannot stall the server.
   renaming are still allowed, as are repairs and upgrades.
 - **Anvil and smithing guarded**: the result never keeps fewer enchantments, lower levels or fewer
   abilities than the original item.
+- **`/luna refresh <player|all>`** (aliases `/luna actualizar`, `/luna refrescar`): forces that
+  upgrade right away for one player or every online player, reporting how many items changed.
 - **Existing gear is upgraded on join**: items players already own — renamed or not — receive the
   enchantments, the vanishing curse and the abilities that were added to `items.yml` after they got
   them. Nothing is ever removed and durability is untouched.
