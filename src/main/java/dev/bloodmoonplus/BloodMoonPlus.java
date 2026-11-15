@@ -70,6 +70,9 @@ public final class BloodMoonPlus extends JavaPlugin {
         }
         Bukkit.getPluginManager().registerEvents(new EventListener(this), this);
         Bukkit.getPluginManager().registerEvents(abilities, this);
+        // Blindaje de los objetos de la Luna (grindstone, yunque, herrería) y puesta al día
+        // de los que ya tienen los jugadores al entrar.
+        Bukkit.getPluginManager().registerEvents(new ItemProtection(this), this);
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new PapiHook(this).register();

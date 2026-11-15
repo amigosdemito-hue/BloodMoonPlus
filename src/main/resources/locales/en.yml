@@ -64,6 +64,8 @@ loot:
 item:
   rarity-line: "<gray>Rarity: {rarity}"
   serial-line: "<dark_red>Unique copy <white>#{serial}<gray>/{limit}"
+  no-disenchant: "<red>Blood Moon items never lose enchantments or curses."
+  updated: "<green>Your Blood Moon items were updated with the latest changes."
 
 # ==================== Commands ====================
 cmd:

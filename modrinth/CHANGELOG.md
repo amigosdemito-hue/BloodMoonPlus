@@ -43,6 +43,16 @@ processes at most **48 entities** and **1400 blocks**, and the minion summon is 
 per boss. Nothing in the kit allocates unbounded work per tick, so a large farm next to the fight
 cannot stall the server.
 
+### Added — Blood Moon gear can no longer be stripped
+- **Grindstone blocked**: Blood Moon items cannot be disenchanted or have their curses removed
+  anymore (the grindstone result is cancelled and the player is told why). Adding enchantments and
+  renaming are still allowed, as are repairs and upgrades.
+- **Anvil and smithing guarded**: the result never keeps fewer enchantments, lower levels or fewer
+  abilities than the original item.
+- **Existing gear is upgraded on join**: items players already own — renamed or not — receive the
+  enchantments, the vanishing curse and the abilities that were added to `items.yml` after they got
+  them. Nothing is ever removed and durability is untouched.
+
 ### Fixed — full code audit
 - **The boss VORTEX lasted twice as long as configured.** The runnable steps every 2 ticks but
 decremented the remaining time by one per step, so `VORTEX:16` absorbed for 32 s.

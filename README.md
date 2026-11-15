@@ -460,6 +460,31 @@ Porcentajes del paso 3 en cada tabla (antes del drop-chance individual):
 
 ---
 
+## 🛡️ Protección de los objetos de la Luna
+
+Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) están blindados:
+
+| Acción | ¿Permitida? |
+|--------|-------------|
+| Añadir encantamientos (mesa, yunques con libros, herrería) | ✅ Sí |
+| Renombrar en el yunque | ✅ Sí |
+| Reparar / mejorar | ✅ Sí |
+| **Quitarlos del grindstone** (desencantar, limpiar maldiciones) | ❌ No |
+| **Perder encantamientos, maldiciones, efectos o habilidades** | ❌ No |
+
+- El **grindstone** es el único método vanilla para *quitar* encantamientos (por eso servía para
+  limpiar la Maldición de desaparición): con un objeto de la Luna dentro, el resultado se anula y
+  el jugador recibe un aviso.
+- En el **yunque** y la **mesa de herrería** el resultado se repara automáticamente: si alguna
+  combinación dejaba el objeto con menos encantamientos, niveles más bajos o sin sus habilidades,
+  se le devuelven los del objeto original. El renombrado y los encantamientos añadidos se quedan.
+- **Puesta al día automática:** al entrar al servidor, los objetos que ya tenías (aunque estén
+  renombrados) reciben los encantamientos, la maldición de desaparición y las habilidades que se
+  hayan añadido a `items.yml` después de conseguirlos. Nunca se quita nada y no se pierde el
+  desgaste.
+
+---
+
 ## 🔧 Ver probabilidades en el servidor
 
 ```

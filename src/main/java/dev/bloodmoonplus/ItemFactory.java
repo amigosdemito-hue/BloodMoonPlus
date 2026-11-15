@@ -92,6 +92,114 @@ public final class ItemFactory {
 
     public ItemDef get(String id) { return id == null ? null : defs.get(id); }
 
+    /** ¿Este stack es un objeto creado por el plugin? (lo marca el PDC con el id del item). */
+    public boolean isMoonItem(ItemStack s) {
+        if (s == null || s.getType().isAir()) return false;
+        ItemMeta m = s.getItemMeta();
+        return m != null && m.getPersistentDataContainer().has(Keys.ITEM_ID, PersistentDataType.STRING);
+    }
+
+    /** Copia el resultado del yunque o de la herrería garantizando que no se pierde nada del
+     *  original: encantamientos (con su nivel más alto), maldiciones, indestructibilidad y las
+     *  claves de habilidad/rareza/ejemplar. Devuelve null si el resultado ya estaba bien. */
+    public ItemStack applyGuarantees(ItemStack original, ItemStack result) {
+        if (original == null || result == null || result.getType().isAir()) return null;
+        ItemMeta om = original.getItemMeta();
+        ItemMeta rm = result.getItemMeta();
+        if (om == null || rm == null) return null;
+        boolean changed = false;
+        for (Map.Entry<Enchantment, Integer> e : om.getEnchants().entrySet()) {
+            if (rm.getEnchantLevel(e.getKey()) >= e.getValue()) continue;
+            rm.addEnchant(e.getKey(), e.getValue(), true);
+            changed = true;
+        }
+        var op = om.getPersistentDataContainer();
+        var rp = rm.getPersistentDataContainer();
+        for (NamespacedKey k : new NamespacedKey[]{Keys.ITEM_ID, Keys.ITEM_ABILITIES, Keys.ITEM_PASSIVES}) {
+            String v = op.get(k, PersistentDataType.STRING);
+            if (v == null || v.equals(rp.get(k, PersistentDataType.STRING))) continue;
+            rp.set(k, PersistentDataType.STRING, v);
+            changed = true;
+        }
+        Integer serial = op.get(Keys.ITEM_SERIAL, PersistentDataType.INTEGER);
+        if (serial != null && !rp.has(Keys.ITEM_SERIAL, PersistentDataType.INTEGER)) {
+            rp.set(Keys.ITEM_SERIAL, PersistentDataType.INTEGER, serial);
+            changed = true;
+        }
+        if (om.isUnbreakable() && !rm.isUnbreakable()) {
+            rm.setUnbreakable(true);
+            changed = true;
+        }
+        if (!changed) return null;
+        ItemStack out = result.clone();
+        out.setItemMeta(rm);
+        return out;
+    }
+
+    /** Pone al día un objeto ya existente con la definición ACTUAL de items.yml: añade los
+     *  encantamientos, la maldición de desaparición y las habilidades que le falten. Nunca
+     *  quita nada, no toca el nombre que le puso el jugador, ni el desgaste, ni el lore.
+     *  Devuelve true si modificó el stack (que se edita in situ). */
+    public boolean refresh(ItemStack stack) {
+        if (!isMoonItem(stack)) return false;
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null) return false;
+        ItemDef d = get(meta.getPersistentDataContainer().get(Keys.ITEM_ID, PersistentDataType.STRING));
+        if (d == null) return false; // item de una config que ya no existe: se deja como está
+        var pdc = meta.getPersistentDataContainer();
+        boolean changed = false;
+
+        for (Map.Entry<String, Integer> e : d.enchants().entrySet()) {
+            Enchantment en = Reg.enchantment(e.getKey());
+            if (en == null) continue;
+            int want = Math.min(maxEnchantLevel, Math.max(1, e.getValue()));
+            if (meta.getEnchantLevel(en) >= want) continue;
+            meta.addEnchant(en, want, true);
+            changed = true;
+        }
+        Enchantment vanish = Reg.enchantment("vanishing_curse");
+        if (vanish != null && vanishingMinRank >= 0 && isGear(d.material())
+                && plugin.loot().rarityRank(d.rarity()) >= vanishingMinRank
+                && !meta.hasEnchant(vanish)) {
+            meta.addEnchant(vanish, 1, true);
+            changed = true;
+        }
+        changed |= addMissing(pdc, Keys.ITEM_ABILITIES, d.abilities());
+        changed |= addMissing(pdc, Keys.ITEM_PASSIVES, d.passives());
+        if (d.unbreakable() && !meta.isUnbreakable()) {
+            meta.setUnbreakable(true);
+            changed = true;
+        }
+        if (d.glow() && meta.getEnchantmentGlintOverride() == null) {
+            meta.setEnchantmentGlintOverride(true);
+            changed = true;
+        }
+        if (pdc.get(Keys.ITEM_RARITY, PersistentDataType.STRING) == null) {
+            pdc.set(Keys.ITEM_RARITY, PersistentDataType.STRING, d.rarity());
+            changed = true;
+        }
+        if (meta.displayName() == null && d.name() != null) {
+            meta.displayName(Util.item(d.name()));
+            changed = true;
+        }
+        if (changed) stack.setItemMeta(meta);
+        return changed;
+    }
+
+    /** Une las habilidades que ya tiene el item con las de la definición (sin quitar ninguna). */
+    private static boolean addMissing(org.bukkit.persistence.PersistentDataContainer pdc,
+                                      NamespacedKey key, List<String> wanted) {
+        if (wanted.isEmpty()) return false;
+        String current = pdc.get(key, PersistentDataType.STRING);
+        Set<String> have = new LinkedHashSet<>();
+        if (current != null && !current.isBlank()) have.addAll(Arrays.asList(current.split(";")));
+        int before = have.size();
+        for (String w : wanted) if (!w.isBlank()) have.add(w);
+        if (have.size() == before) return false;
+        pdc.set(key, PersistentDataType.STRING, String.join(";", have));
+        return true;
+    }
+
     public Set<String> ids() { return defs.keySet(); }
 
     public boolean available(ItemDef d) { return d.limit() <= 0 || plugin.data().created(d.id()) < d.limit(); }
