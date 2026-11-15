@@ -14,6 +14,8 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityTransformEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -38,6 +40,34 @@ public final class EventListener implements Listener {
         if (!(src instanceof LivingEntity le) || !EventManager.isTagged(le)) return;
         Double scale = le.getPersistentDataContainer().get(Keys.SCALE, PersistentDataType.DOUBLE);
         if (scale != null && scale != 1.0) e.setDamage(e.getDamage() * scale);
+    }
+
+    /**
+     * Un mob de la Luna que se transforma por vanilla (el caso típico: un zombi que se ahoga y
+     * pasa a ahogado) genera una entidad NUEVA y pierde el PDC. Sin esto, el ahogado ya no era un
+     * mob del evento: ni entraba en /luna stop ni lo borraba el final de la Luna de Sangre.
+     * Aquí se le devuelve la marca, la vida escalada y el nombre.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onTransform(EntityTransformEvent e) {
+        if (!(e.getEntity() instanceof LivingEntity from) || !EventManager.isTagged(from)) return;
+        for (Entity out : e.getTransformedEntities()) {
+            if (out instanceof LivingEntity to) EventManager.copyHordeData(from, to);
+        }
+    }
+
+    /**
+     * El jefe creeper (cargado) no debe explosionar: moriría él mismo y rompería el terreno del
+     * evento. Se desactiva el encendido y su amenaza viene de sus habilidades.
+     */
+    @EventHandler(ignoreCancelled = true)
+    public void onPrime(ExplosionPrimeEvent e) {
+        if (!(e.getEntity() instanceof org.bukkit.entity.Creeper c)) return;
+        if (!plugin.bosses().isBoss(c)) return;
+        e.setCancelled(true);
+        c.setIgnited(false);
+        c.setFuseTicks(0);
+        c.setExplosionRadius(0);
     }
 
     /**

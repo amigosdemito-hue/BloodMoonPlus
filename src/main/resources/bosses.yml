@@ -7,6 +7,8 @@
 #    AURA:cd:radio:efecto:seg:nivel       efecto de poción a jugadores cercanos (ej. wither)
 #    SONIC_BOOM:cd:radio:daño_base        onda expansiva que lanza lejos a los jugadores (Warden)
 #    PULL:cd:radio:fuerza                 atrae a los jugadores hacia el jefe
+#    VORTEX:cd:radio:seg:fuerza:daño       ABSORCIÓN: arrastra a los jugadores hacia el jefe durante
+#                                          varios segundos y los daña al tocar su cuerpo
 #    SKULL:cd:cantidad                    dispara calaveras de wither a los jugadores (el jefe SÍ rompe bloques)
 #    CHARGE:cd:fuerza:daño_base           embestida: se lanza hacia un jugador y arrolla ~1s (Devastador)
 #    ROAR:cd:radio:efecto:seg:nivel       rugido que aplica un efecto en área (ej. darkness)
@@ -19,6 +21,9 @@
 #  Al activarse: +Velocidad II, +Fuerza II, todas las habilidades se recargan al instante.
 #  El daño base se multiplica por "damage" del jefe y por la dificultad.
 #  La vida máxima se limita a 1024 (límite del juego) tras multiplicar por dificultad.
+#  JEFES CREEPER: 'powered: true' los marca como CARGADOS (eléctricos). Su explosión vanilla
+#  está desactivada (no mueren ni rompen el terreno): el daño lo hacen sus habilidades, VORTEX
+#  incluida.
 # ============================================================
 bosses:
   rey_zombi:
@@ -156,6 +161,27 @@ bosses:
     top-damage-table: boss_top_damage
     exp: 1100
 
+  creeper_cargado:
+    # Creeper CARGADO y del DOBLE de alto que uno normal (scale 2.0). No explosiona: absorbe a
+    # los jugadores con VORTEX y los remata con SLAM/CHARGE.
+    name: "<green><bold>Absorbedor Cargado"
+    type: CREEPER
+    powered: true
+    scale: 2.0
+    health: 180
+    damage: 2.2
+    speed: 1.05
+    knockback-resistance: 0.6
+    bar-color: GREEN
+    bar-overlay: NOTCHED_10
+    abilities: ["VORTEX:16:18:4:1.6:2.5", "SLAM:12:6:4", "CHARGE:24:1.2:6"]
+    enrage-at: 0.4
+    enrage-cooldown: 0.6
+    enrage-damage: 1.5
+    loot-table: boss_verdugo
+    top-damage-table: boss_top_damage
+    exp: 650
+
   azote_carmesi:
     name: "<dark_gray><bold>Azote Carmesí"
     type: WITHER
@@ -184,4 +210,5 @@ spawns:
   - { boss: devastador_sangre, delay-seconds: 300, chance: 0.6, min-difficulty: 1.5, count: 1, scale-count: true }
   - { boss: verdugo_noche, delay-seconds: 330, chance: 0.6, min-difficulty: 1.5, count: 1, scale-count: true }
   - { boss: warden_abismal, delay-seconds: 540, chance: 0.8, min-difficulty: 2.0, count: 1, scale-count: true }
+  - { boss: creeper_cargado, delay-seconds: 270, chance: 0.7, min-difficulty: 1.0, count: 1, scale-count: true }
   - { boss: azote_carmesi, delay-seconds: 660, chance: 0.5, min-difficulty: 2.5, count: 1, scale-count: true }

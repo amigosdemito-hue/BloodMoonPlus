@@ -37,7 +37,8 @@ public final class BossManager {
                    double knockbackRes, BossBar.Color color, BossBar.Overlay overlay,
                    Map<EquipmentSlot, Material> equipment, List<Ability> abilities, String lootTable,
                    String topTable, boolean announce, int exp,
-                   double enrageAt, double enrageCooldown, double enrageDamage) {}
+                   double enrageAt, double enrageCooldown, double enrageDamage,
+                   boolean powered) {}
 
     record Spawn(String boss, int delay, double chance, double minDifficulty, int count, boolean scaleCount) {}
 
@@ -139,7 +140,7 @@ public final class BossManager {
                         abilities, s.getString("loot-table"), s.getString("top-damage-table"),
                         s.getBoolean("announce", true), s.getInt("exp", 0),
                         s.getDouble("enrage-at", 0), s.getDouble("enrage-cooldown", 0.6),
-                        s.getDouble("enrage-damage", 1.5)));
+                        s.getDouble("enrage-damage", 1.5), s.getBoolean("powered", false)));
             }
         }
         for (Map<?, ?> m : y.getMapList("spawns")) {
@@ -288,6 +289,12 @@ public final class BossManager {
                 AttributeInstance kb = le.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
                 if (kb != null) kb.setBaseValue(Math.min(1.0, d.knockbackRes()));
             }
+            // Jefes creeper: 'powered: true' los marca como cargados (aspecto eléctrico). Su
+            // explosión se cancela en EventListener, así que no mueren ni rompen el terreno.
+            if (le instanceof org.bukkit.entity.Creeper c) {
+                if (d.powered()) c.setPowered(true);
+                c.setExplosionRadius(0);
+            }
             if (d.announce() && plugin.messages().announce("bosses", true)) {
                 world.strikeLightningEffect(loc);
                 plugin.messages().world(world, "boss.spawn", "boss", d.name());
@@ -301,7 +308,8 @@ public final class BossManager {
         }
 
         // Etiqueta para que el datapack anti-Wither exima a los jefes de la Luna de Sangre.
-        le.addScoreboardTag("bloodmoon_boss");
+        le.addScoreboardTag(EventManager.BOSS_TAG);
+        le.addScoreboardTag(EventManager.HORDE_TAG);
         alive.put(le.getUniqueId(), new Instance(le.getUniqueId(), d, difficulty, world));
         return true;
     }
@@ -470,6 +478,42 @@ public final class BossManager {
                 }
                 w.playSound(boss.getLocation(), Sound.ENTITY_WARDEN_SONIC_CHARGE, 1.5f, 0.7f);
                 w.spawnParticle(Particle.SQUID_INK, boss.getLocation().add(0, 1, 0), 50, radius / 3, 1, radius / 3, 0.05);
+                return true;
+            }
+            case "VORTEX" -> {
+                // ABSORCIÓN: el jefe arrastra a los jugadores hacia él durante varios segundos y
+                // los daña al llegar a su cuerpo (el creeper cargado "absorbe" a su presa).
+                // Args: radio : segundos : fuerza : daño
+                double radius = arg(a, 0, 14);
+                int seconds = Math.max(1, (int) arg(a, 1, 4));
+                double force = arg(a, 2, 1.4);
+                double dmg = arg(a, 3, 2);
+                List<Player> hit = nearbyPlayers(boss, radius);
+                if (hit.isEmpty()) return false;
+                w.playSound(boss.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.4f, 0.5f);
+                final LivingEntity vb = boss;
+                final double vradius = radius, vforce = force, vdmg = dmg * em;
+                new org.bukkit.scheduler.BukkitRunnable() {
+                    int ticks = seconds * 20;
+
+                    @Override
+                    public void run() {
+                        if (ticks-- <= 0 || vb.isDead() || !vb.isValid()) { cancel(); return; }
+                        World vw = vb.getWorld();
+                        Location bl = vb.getLocation();
+                        vw.spawnParticle(Particle.PORTAL, bl.clone().add(0, 1.2, 0), 30, 1.2, 1.2, 1.2, 0.3);
+                        for (Player p : vw.getPlayers()) {
+                            if (p.isDead() || p.getGameMode() == GameMode.SPECTATOR) continue;
+                            if (!p.getWorld().equals(vw)) continue;
+                            double dist = p.getLocation().distance(bl);
+                            if (dist > vradius) continue;
+                            Vector pull = bl.toVector().subtract(p.getLocation().toVector());
+                            if (pull.lengthSquared() < 0.01) continue;
+                            p.setVelocity(pull.normalize().multiply(vforce).setY(0.15));
+                            if (dist <= 2.5) p.damage(vdmg, vb);
+                        }
+                    }
+                }.runTaskTimer(plugin, 0L, 2L);
                 return true;
             }
             case "SKULL" -> {

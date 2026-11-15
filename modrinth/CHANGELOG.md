@@ -151,6 +151,23 @@ found in the code audit are fixed.
 ### Compatibility
 - Paper **26.2** and **26.3**. Built with Java 25.
 
+### Added — Charged Absorber boss (`creeper_cargado`)
+- **New boss: a charged (electric) creeper twice as tall** as a normal one (scale 2.0×), 180 health,
+  green segmented bar and its own phase 2 at 40%. It **does not explode**: the fuse is cancelled, so
+  it never kills itself or breaks the terrain, and its threat comes from its abilities.
+- **New ability `VORTEX`** (`cd:radius:sec:force:damage`): **absorption** — it drags every nearby
+  player toward the boss for several seconds and damages them when they reach its body. The Charged
+  Absorber fires it every 16 s (radius 18 m, 4 s, force 1.6) and finishes with SLAM and CHARGE.
+- `bosses.yml` accepts `powered: true` on any creeper boss to spawn it charged.
+
+### Fixed — horde mobs survived vanilla transformations
+- **A Blood Moon zombie that drowned stopped being a horde mob.** Vanilla builds the Drowned from a
+  **new entity**, so it lost the plugin's data: it no longer counted in `%bloodmoon_horde_count%` and
+  **survived both `/luna stop` and the end of the event**. Transformations (drowned, zombie villager
+  and any other) now copy the Blood Moon mark, the scaled health, the speed and the custom name into
+  the new entity, and horde mobs additionally carry a `bloodmoon_horde` scoreboard tag as a second
+  safety net.
+
 ## [1.0.1] — Global event overhaul: all worlds, fixed night, configurable chat, faster waves
 
 The definitive stability release. The Blood Moon now truly covers the whole server, the

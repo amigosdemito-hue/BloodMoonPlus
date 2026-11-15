@@ -27,10 +27,11 @@ Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **si
 | Verdugo de la Noche | 330 s | 60% | 1.5 |
 | Cazador de las Sombras | 360 s | 50% | 1.0 |
 | Arquera Carmesí | 420 s | 60% | 1.0 |
+| Absorbedor Cargado | 270 s | 70% | 1.0 |
 | Guardián del Abismo | 540 s | 80% | 2.0 |
 | **Azote Carmesí** | 660 s | 50% | 2.5 |
 
-## Resumen de los 9 jefes
+## Resumen de los 10 jefes
 
 | ID | Mob | Vida | Daño | Escala | Fase 2 | EXP |
 |----|-----|------|------|--------|--------|-----|
@@ -42,6 +43,7 @@ Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **si
 | `arquera_carmesi` | SKELETON | 220 | 1.8 | 1.4× | — | 400 |
 | `verdugo_noche` | WITHER_SKELETON | 400 | 2.5 | 1.8× | ✅ 40% | 800 |
 | `warden_abismal` | WARDEN | 750 | 3.6 | 1.2× | ✅ 50% | 1100 |
+| `creeper_cargado` | CREEPER (cargado) | 180 | 2.2 | 2.0× | ✅ 40% | 650 |
 | `azote_carmesi` | WITHER | 900 | 4.0 | 1.0× | ✅ 50% | 1500 |
 
 ## Fichas detalladas
@@ -105,6 +107,15 @@ Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **si
 - **Aparición:** 540 s, 80%, dificultad mínima 2.0. **EXP:** 1100.
 - **Loot:** tabla `boss_verdugo`.
 
+### 🟩 Absorbedor Cargado (`creeper_cargado`) — creeper cargado
+- **Mob:** CREEPER **cargado (eléctrico)** del **doble de alto** que uno normal (escala 2.0×). **180 de vida**, daño 2.2, velocidad 1.05, resistencia al empuje 0.6.
+- **Barra:** verde, segmentada ×10.
+- **Habilidades:** **VORTEX** cada 16 s (radio 18 m, 4 s de absorción, fuerza 1.6, 2.5 de daño al tocar su cuerpo) · SLAM (radio 6, daño 4) · CHARGE (fuerza 1.2, 6 de daño).
+- **Fase 2 (enloquecido) al 40%** de vida: habilidades al 60% de cooldown, daño ×1.5.
+- **Aparición:** 270 s, 70%, dificultad mínima 1.0. **EXP:** 650.
+- **Loot:** tabla `boss_verdugo`.
+- **Nota:** **no explota**. `powered: true` solo le da el aspecto cargado: el fusible está desactivado, así que no se suicida ni rompe el terreno. Su amenaza es VORTEX, que **absorbe** a los jugadores (los arrastra hacia él durante 4 s) y los daña al llegar a su cuerpo.
+
 ### ☠️ Azote Carmesí (`azote_carmesi`) — JEFE FINAL
 - **Mob:** WITHER, resistencia al empuje 0.95 (no se deja mover). **900 de vida** (hasta 1024 tras el multiplicador de dificultad), daño 4.0, velocidad 1.25.
 - **Barra:** púrpura, segmentada ×12.
@@ -116,13 +127,14 @@ Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **si
 
 ## Segunda fase (enloquecido)
 
-4 jefes tienen fase 2 configurable en `bosses.yml`:
+5 jefes tienen fase 2 configurable en `bosses.yml`:
 
 | Jefe | Se activa al... | Cooldown | Daño |
 |------|-----------------|----------|------|
 | `verdugo_noche` | 40% de vida | ×0.65 | ×1.5 |
 | `devastador_sangre` | 45% de vida | ×0.6 | ×1.6 |
 | `warden_abismal` | 50% de vida | ×0.6 | ×1.6 |
+| `creeper_cargado` | 40% de vida | ×0.6 | ×1.5 |
 | `azote_carmesi` | 50% de vida | ×0.55 | ×1.75 |
 
 Al activarse (una sola vez por jefe):
@@ -140,6 +152,7 @@ Al activarse (una sola vez por jefe):
 | `AURA` | `cd:radio:efecto:seg:nivel` | Efecto de poción en área (wither, slowness...) |
 | `SONIC_BOOM` | `cd:radio:daño` | Oda expansiva que lanza lejos (estilo Warden) |
 | `PULL` | `cd:radio:fuerza` | Atrae a los jugadores hacia el jefe |
+| `VORTEX` | `cd:radio:seg:fuerza:daño` | **Absorción**: arrastra a los jugadores hacia el jefe varios segundos y los daña al tocar su cuerpo |
 | `SKULL` | `cd:cantidad` | Calaveras de wither que **rompen bloques** |
 | `CHARGE` | `cd:fuerza:daño` | Embestida: se lanza y arrolla ~1 s |
 | `ROAR` | `cd:radio:efecto:seg:nivel` | Rugido con efecto en área (darkness...) |

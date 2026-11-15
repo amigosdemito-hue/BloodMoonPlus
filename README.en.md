@@ -27,10 +27,11 @@ Everything you need to know about the **9 bosses** of the Blood Moon and the **d
 | Night Executioner | 330 s | 60% | 1.5 |
 | Shadow Hunter | 360 s | 50% | 1.0 |
 | Crimson Archer | 420 s | 60% | 1.0 |
+| Charged Absorber | 270 s | 70% | 1.0 |
 | Abyssal Warden | 540 s | 80% | 2.0 |
 | **Crimson Scourge** | 660 s | 50% | 2.5 |
 
-## Overview of the 9 bosses
+## Overview of the 10 bosses
 
 | ID | Mob | Health | Damage | Scale | Phase 2 | EXP |
 |----|-----|--------|--------|-------|---------|-----|
@@ -42,6 +43,7 @@ Everything you need to know about the **9 bosses** of the Blood Moon and the **d
 | `arquera_carmesi` | SKELETON | 220 | 1.8 | 1.4× | — | 400 |
 | `verdugo_noche` | WITHER_SKELETON | 400 | 2.5 | 1.8× | ✅ 40% | 800 |
 | `warden_abismal` | WARDEN | 750 | 3.6 | 1.2× | ✅ 50% | 1100 |
+| `creeper_cargado` | CREEPER (charged) | 180 | 2.2 | 2.0× | ✅ 40% | 650 |
 | `azote_carmesi` | WITHER | 900 | 4.0 | 1.0× | ✅ 50% | 1500 |
 
 ## Detailed profiles
@@ -105,6 +107,15 @@ Everything you need to know about the **9 bosses** of the Blood Moon and the **d
 - **Spawn:** 540 s, 80%, minimum difficulty 2.0. **EXP:** 1100.
 - **Loot:** table `boss_verdugo`.
 
+### 🟩 Charged Absorber (`creeper_cargado`) — charged creeper
+- **Mob:** a **charged (electric) CREEPER** **twice as tall** as a normal one (scale 2.0×). **180 health**, damage 2.2, speed 1.05, knockback resistance 0.6.
+- **Bar:** green, segmented ×10.
+- **Abilities:** **VORTEX** every 16 s (radius 18 m, 4 s of absorption, force 1.6, 2.5 damage on contact) · SLAM (radius 6, damage 4) · CHARGE (force 1.2, 6 damage).
+- **Phase 2 (enraged) at 40%** health: abilities at 60% cooldown, damage ×1.5.
+- **Spawn:** 270 s, 70%, minimum difficulty 1.0. **EXP:** 650.
+- **Loot:** table `boss_verdugo`.
+- **Note:** it **does not explode**. `powered: true` only gives it the charged look: the fuse is disabled, so it never kills itself or breaks the terrain. Its threat is VORTEX, which **absorbs** players (drags them toward it for 4 s) and damages them on contact.
+
 ### ☠️ Crimson Scourge (`azote_carmesi`) — FINAL BOSS
 - **Mob:** WITHER, knockback resistance 0.95 (won't budge). **900 health** (up to 1024 after the difficulty multiplier), damage 4.0, speed 1.25.
 - **Bar:** purple, segmented ×12.
@@ -116,13 +127,14 @@ Everything you need to know about the **9 bosses** of the Blood Moon and the **d
 
 ## Second phase (enraged)
 
-4 bosses have a configurable phase 2 in `bosses.yml`:
+5 bosses have a configurable phase 2 in `bosses.yml`:
 
 | Boss | Triggers at... | Cooldown | Damage |
 |------|----------------|----------|--------|
 | `verdugo_noche` | 40% health | ×0.65 | ×1.5 |
 | `devastador_sangre` | 45% health | ×0.6 | ×1.6 |
 | `warden_abismal` | 50% health | ×0.6 | ×1.6 |
+| `creeper_cargado` | 40% health | ×0.6 | ×1.5 |
 | `azote_carmesi` | 50% health | ×0.55 | ×1.75 |
 
 When it triggers (once per boss):
@@ -140,6 +152,7 @@ When it triggers (once per boss):
 | `AURA` | `cd:radius:effect:sec:level` | Potion effect in an area (wither, slowness...) |
 | `SONIC_BOOM` | `cd:radius:damage` | Shockwave that throws players far away (Warden style) |
 | `PULL` | `cd:radius:force` | Pulls players toward the boss |
+| `VORTEX` | `cd:radius:sec:force:damage` | **Absorption**: drags players toward the boss for several seconds and damages them on contact |
 | `SKULL` | `cd:amount` | Wither skulls that **break blocks** |
 | `CHARGE` | `cd:force:damage` | Charge: launches forward and tramples ~1 s |
 | `ROAR` | `cd:radius:effect:sec:level` | Roar with an area effect (darkness...) |

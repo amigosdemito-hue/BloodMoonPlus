@@ -1,6 +1,6 @@
 # 🩸 BloodMoonPlus — Blood Moon
 
-A **Blood Moon** event plugin for Paper servers, featuring **fixed schedules (Mexico time)**, **9 bosses**, **45 items** spread across rarities, enchantments up to **level 7**, **progressive waves**, **placeholders**, multi-language support, **full immersion** (red fog, lightning, ambient sounds and constant announcements) and **rare-loot inventory delivery**.
+A **Blood Moon** event plugin for Paper servers, featuring **fixed schedules (Mexico time)**, **10 bosses**, **45 items** spread across rarities, enchantments up to **level 7**, **progressive waves**, **placeholders**, multi-language support, **full immersion** (red fog, lightning, ambient sounds and constant announcements) and **rare-loot inventory delivery**.
 
 Built to run smoothly on **40+ player** servers without changing the gameplay.
 
@@ -10,7 +10,7 @@ Built to run smoothly on **40+ player** servers without changing the gameplay.
 
 - **🗓️ Fixed schedules** — `weekly` mode (per weekday at a real time, configurable timezone, defaults to `America/Mexico_City`) or `interval` mode (every N hours). You can set **multiple runs on the same day**.
 - **🌐 Server-wide event** — one Blood Moon for **every loaded world at the same time** (`event.global: true`): night, hordes, bosses, the boss bar and survivor rewards all run everywhere together. Set it to `false` to go back to a `worlds` list.
-- **👹 9 bosses** with custom health bars, **enrage** phases, minimum difficulty, abilities and their own loot.
+- **👹 10 bosses** with custom health bars, **enrage** phases, minimum difficulty, abilities and their own loot.
 - **🎁 45 items** sorted by rarity: common (always drop), rare, epic, legendary and **mythic** (extremely rare, ~0.1%).
 - **📦 Rare loot delivery**: rare, epic, legendary and mythic drops now go straight to the killer's inventory when there is one.
 - **⚔️ Custom enchantments** up to **level 7**, each with unique abilities (crit, thunder guard, blast wave, levitate, bleeding…).
@@ -100,6 +100,7 @@ schedule:
 | Ancestral Devastator | 1.5 |
 | Night Executioner | 1.5 |
 | Abyssal Warden | 2.0 |
+| Charged Absorber (creeper, 2× tall) | 1.0 |
 | Crimson Scourge (Wither) | 2.5 |
 
 Every boss has a health bar, **enrage** phases and its own loot table. See the project's full **README** for every drop in detail.

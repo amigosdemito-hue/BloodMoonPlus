@@ -772,6 +772,10 @@ public final class EventManager {
 
         var pdc = le.getPersistentDataContainer();
         pdc.set(Keys.MOB, PersistentDataType.BYTE, (byte) 1);
+        // Etiqueta de scoreboard ADEMÁS del PDC: si vanilla convierte el mob (zombi → ahogado)
+        // la entidad nueva puede perder el PDC, pero la etiqueta sobrevive al menos al evento
+        // de transformación, que la vuelve a copiar.
+        le.addScoreboardTag(HORDE_TAG);
         pdc.set(Keys.DIFF, PersistentDataType.DOUBLE, diff);
         pdc.set(Keys.SCALE, PersistentDataType.DOUBLE, dmg * plugin.scaled(diff, "damage"));
         if (table != null) pdc.set(Keys.TABLE, PersistentDataType.STRING, table);
@@ -804,8 +808,55 @@ public final class EventManager {
         return le;
     }
 
+    /** Etiquetas de scoreboard de los mobs y jefes de la Luna. */
+    public static final String HORDE_TAG = "bloodmoon_horde";
+    public static final String BOSS_TAG = "bloodmoon_boss";
+
     public static boolean isTagged(Entity e) {
-        return e.getPersistentDataContainer().has(Keys.MOB, PersistentDataType.BYTE);
+        if (e == null) return false;
+        return e.getPersistentDataContainer().has(Keys.MOB, PersistentDataType.BYTE)
+                || e.getScoreboardTags().contains(HORDE_TAG);
+    }
+
+    /**
+     * Pasa la marca de la Luna de Sangre a una entidad transformada por vanilla (zombi →
+     * ahogado, aldeano → zombi, etc.). Vanilla crea una entidad NUEVA y el PDC se pierde, así
+     * que el mob transformado dejaba de contar como mob del evento: ni se contaba en la horda
+     * ni lo eliminaba /luna stop ni el final de la Luna de Sangre.
+     */
+    public static void copyHordeData(LivingEntity from, LivingEntity to) {
+        if (from == null || to == null || from.equals(to)) return;
+        var src = from.getPersistentDataContainer();
+        var dst = to.getPersistentDataContainer();
+        Byte mob = src.get(Keys.MOB, PersistentDataType.BYTE);
+        if (mob != null) dst.set(Keys.MOB, PersistentDataType.BYTE, mob);
+        Double diff = src.get(Keys.DIFF, PersistentDataType.DOUBLE);
+        if (diff != null) dst.set(Keys.DIFF, PersistentDataType.DOUBLE, diff);
+        Double scale = src.get(Keys.SCALE, PersistentDataType.DOUBLE);
+        if (scale != null) dst.set(Keys.SCALE, PersistentDataType.DOUBLE, scale);
+        String table = src.get(Keys.TABLE, PersistentDataType.STRING);
+        if (table != null) dst.set(Keys.TABLE, PersistentDataType.STRING, table);
+        String boss = src.get(Keys.BOSS, PersistentDataType.STRING);
+        if (boss != null) dst.set(Keys.BOSS, PersistentDataType.STRING, boss);
+
+        to.addScoreboardTag(HORDE_TAG);
+        if (from.getScoreboardTags().contains(BOSS_TAG)) to.addScoreboardTag(BOSS_TAG);
+        if (from.customName() != null) {
+            to.customName(from.customName());
+            to.setCustomNameVisible(true);
+        }
+        to.setRemoveWhenFarAway(false);
+        to.setPersistent(false);
+        // El ahogado nace con 20 de vida: conserva la vida escalada del mob original.
+        AttributeInstance hpFrom = from.getAttribute(Attribute.MAX_HEALTH);
+        AttributeInstance hpTo = to.getAttribute(Attribute.MAX_HEALTH);
+        if (hpFrom != null && hpTo != null) {
+            hpTo.setBaseValue(hpFrom.getBaseValue());
+            to.setHealth(Math.max(1, Math.min(hpTo.getValue(), from.getHealth())));
+        }
+        AttributeInstance spFrom = from.getAttribute(Attribute.MOVEMENT_SPEED);
+        AttributeInstance spTo = to.getAttribute(Attribute.MOVEMENT_SPEED);
+        if (spFrom != null && spTo != null) spTo.setBaseValue(spFrom.getBaseValue());
     }
 
     /** Mobs de la horda VIVOS en un mundo (etiquetados y que no son jefes). Lo usa el
