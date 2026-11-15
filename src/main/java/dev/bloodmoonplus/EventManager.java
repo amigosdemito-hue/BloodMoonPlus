@@ -657,10 +657,16 @@ public final class EventManager {
         return false;
     }
 
-    public int spawnWave(Session s) {
+    public int spawnWave(Session s) { return spawnWave(s, null); }
+
+    /** Oleada dirigida a un solo jugador (/luna horde <jugador>). Con null es la oleada global. */
+    public int spawnWave(Session s, Player only) {
         if (!hordeEnabled || mobs.isEmpty()) return 0;
-        if (!hasEligiblePlayers(s)) return 0;
+        if (only != null) {
+            if (!eligible(only, s)) return 0;
+        } else if (!hasEligiblePlayers(s)) return 0;
         World w = s.world;
+        List<Player> targets = only != null ? List.of(only) : w.getPlayers();
 
         double sizeScale = plugin.scaled(s.difficulty, "horde-size");
         // Oleadas progresivas por número de oleada: 1ª=5, 2ª=10, 3ª=15... hasta wave-max-size (30)
@@ -670,18 +676,18 @@ public final class EventManager {
         // Con muchos jugadores o muchos mobs ya vivos, bajamos el tope de la oleada para evitar
         // que el mundo se sature rápido (llegada de mods + 20 jugadores + muchos mods spawneando).
         int nearGlobal = 0;
-        for (Player p : w.getPlayers()) {
+        for (Player p : targets) {
             if (!eligible(p, s)) continue;
             for (Entity e : p.getNearbyEntities(48, 48, 48)) {
                 if (e instanceof LivingEntity le && isTagged(le)) { nearGlobal++; break; }
             }
         }
-        int playerCount = (int) w.getPlayers().stream().filter(p -> eligible(p, s)).count();
+        int playerCount = (int) targets.stream().filter(p -> eligible(p, s)).count();
         int saturation = Math.min(100, nearGlobal / Math.max(1, playerCount) + (playerCount * 6));
         int cap = Math.max(1, (int) Math.round(maxPerPlayer * sizeScale * (1 + s.waveCount * 0.15)
                 * (100 - Math.min(40, saturation)) / 100.0));
         int spawned = 0;
-        for (Player p : w.getPlayers()) {
+        for (Player p : targets) {
             if (!eligible(p, s)) continue;
             int near = 0;
             // Contamos solo los mobs de la Luna CERCA (48b) usando los chunks vecinos del

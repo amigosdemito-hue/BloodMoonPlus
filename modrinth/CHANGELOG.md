@@ -68,6 +68,13 @@ found in the code audit are fixed.
 - New `items.yml` setting **`settings.vanishing-curse-min-rarity: RARO`**: minimum rarity that
   receives the curse; `OFF` (or `NONE`) disables it.
 
+### Added 🎯
+- **`/luna boss <id> [jugador]`**: with a player name the boss appears next to that player, in the
+  world of the event they are in; without a name it keeps summoning on a random eligible player.
+  The tab-complete offers the boss ids and then the online players.
+- **`/luna horde [jugador]`**: the wave falls only on that player (their own mob cap/saturation),
+  instead of on every eligible player of the world. Without arguments it stays the global wave.
+
 ### Fixed (found on a live Paper 26.2 test server)
 - **`bosses.yml` no longer deletes a boss when one field is wrong.** `bar-color: BLACK` (not a valid
   Adventure colour) removed `cazador_sombras` entirely with a cryptic enum error and only 8 of 9

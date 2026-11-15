@@ -96,10 +96,12 @@ public final class BloodMoonCommand implements TabExecutor {
                 return args.length == 2 ? filter(List.of("x1", "x2", "x3", "x5"), cur) : filter(worlds, cur);
             }
             case "boss" -> {
-                return args.length == 2 ? filter(new ArrayList<>(plugin.bosses().ids()), cur) : filter(worlds, cur);
+                if (args.length == 2) return filter(new ArrayList<>(plugin.bosses().ids()), cur);
+                if (args.length == 3) return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), cur);
+                return List.of();
             }
             case "horde" -> {
-                return filter(worlds, cur);
+                return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), cur);
             }
             case "killmobs" -> {
                 return filter(worlds, cur);
@@ -218,15 +220,45 @@ public final class BloodMoonCommand implements TabExecutor {
             m().send(s, "cmd.boss-unknown", "boss", a[0], "bosses", String.join(", ", plugin.bosses().ids()));
             return;
         }
+        // /luna boss <id> <jugador>: el jefe aparece junto a ESE jugador, en el mundo del evento
+        // en el que esté (antes siempre era un jugador elegible al azar).
+        if (a.length > 1) {
+            Player target = Bukkit.getPlayerExact(a[1]);
+            if (target == null) { m().send(s, "cmd.player-unknown", "player", a[1]); return; }
+            EventManager.Session ses = sessionOf(target.getWorld());
+            if (ses == null) { m().send(s, "event.not-active", "world", target.getWorld().getName()); return; }
+            if (plugin.bosses().spawnAt(ses, a[0], target)) {
+                m().send(s, "cmd.boss-spawned-player", "boss", a[0], "player", target.getName());
+            } else {
+                m().send(s, "cmd.boss-failed-target", "boss", a[0], "player", target.getName());
+            }
+            return;
+        }
         int spawned = 0;
         for (EventManager.Session ses : all) if (plugin.bosses().spawn(ses, a[0])) spawned++;
         if (spawned > 0) m().send(s, "cmd.boss-spawned", "boss", a[0]);
         else m().send(s, "cmd.boss-failed", "boss", a[0]);
     }
 
+    /** Sesión del evento en ese mundo, o null si ese mundo no tiene Luna de Sangre activa. */
+    private EventManager.Session sessionOf(org.bukkit.World w) {
+        for (EventManager.Session ses : plugin.events().sessions()) if (ses.world.equals(w)) return ses;
+        return null;
+    }
+
     private void horde(CommandSender s, String[] a) {
         Collection<EventManager.Session> all = plugin.events().sessions();
         if (all.isEmpty()) { m().send(s, "cmd.status-none"); return; }
+        // /luna horde <jugador>: la oleada cae solo sobre ESE jugador.
+        if (a.length > 0) {
+            Player target = Bukkit.getPlayerExact(a[0]);
+            if (target == null) { m().send(s, "cmd.player-unknown", "player", a[0]); return; }
+            EventManager.Session ses = sessionOf(target.getWorld());
+            if (ses == null) { m().send(s, "event.not-active", "world", target.getWorld().getName()); return; }
+            int n = plugin.events().spawnWave(ses, target);
+            m().send(s, "cmd.horde-spawned-player", "count", String.valueOf(n), "player", target.getName());
+            return;
+        }
         int total = 0;
         for (EventManager.Session ses : all) total += plugin.events().spawnWave(ses);
         m().send(s, "cmd.horde-spawned", "count", String.valueOf(total));

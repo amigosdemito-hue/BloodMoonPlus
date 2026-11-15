@@ -183,15 +183,28 @@ public final class BossManager {
         s.pendingBosses.addAll(retry);
     }
 
+    /** Invoca el jefe sobre un jugador elegible al azar del mundo del evento. */
     public boolean spawn(EventManager.Session s, String bossId) {
         BossDef d = defs.get(bossId);
         if (d == null) return false;
-        dev.bloodmoonplus.config.WorldConfig wc = plugin.worldConfigs().get(s.world.getName());
-        dev.bloodmoonplus.config.WorldConfig.BossConfig bossCfg = wc.boss();
         List<Player> candidates = new ArrayList<>();
         for (Player p : s.world.getPlayers()) if (plugin.events().eligible(p, s)) candidates.add(p);
         if (candidates.isEmpty()) return false;
-        Player target = candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
+        return spawn(s, d, candidates.get(ThreadLocalRandom.current().nextInt(candidates.size())));
+    }
+
+    /** /luna boss <id> <jugador>: invoca el jefe junto a ESE jugador concreto. */
+    public boolean spawnAt(EventManager.Session s, String bossId, Player target) {
+        BossDef d = defs.get(bossId);
+        if (d == null || target == null || !target.isOnline() || target.isDead()) return false;
+        if (!target.getWorld().equals(s.world)) return false;
+        return spawn(s, d, target);
+    }
+
+    /** Cuerpo de la invocación; el jugador objetivo ya viene validado. */
+    private boolean spawn(EventManager.Session s, BossDef d, Player target) {
+        dev.bloodmoonplus.config.WorldConfig wc = plugin.worldConfigs().get(s.world.getName());
+        dev.bloodmoonplus.config.WorldConfig.BossConfig bossCfg = wc.boss();
         Location loc = plugin.events().findSpawn(target.getLocation(), 10, 18);
         if (loc == null) loc = target.getLocation();
 

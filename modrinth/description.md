@@ -45,8 +45,8 @@ Main command: **`/luna`** (aliases: `/bm`, `/lunadesangre`, `/bloodmoon`).
 | `/luna start [difficulty]` | Starts the event manually |
 | `/luna stop` | Stops the event |
 | `/luna difficulty <n>` | Adjusts the difficulty of the current event |
-| `/luna boss <id>` | Summons a specific boss |
-| `/luna horde` | Forces a wave |
+| `/luna boss <id> [player]` | Summons a specific boss (optionally next to a player) |
+| `/luna horde [player]` | Forces a wave (optionally only on a player) |
 | `/luna killmobs` | Removes the event mobs |
 | `/luna give <item> [amount]` | Gives one of the plugin's items |
 | `/luna items` | Lists the available items |
