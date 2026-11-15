@@ -6,7 +6,6 @@ prefix: "<dark_red><bold>🌙 Blood Moon</bold> <dark_gray>» <reset>"
 no-permission: "<red>You don't have permission to do that."
 unknown-world: "<red>That world doesn't exist or is not loaded."
 general-error: "<red>An error occurred while processing your request."
-plugin-reloaded: "<green>Configuration reloaded successfully."
 bed-not-allowed: "<red>You cannot sleep during a Blood Moon."
 dying-results-inventory-loss: "<dark_red><bold>Dying during a Blood Moon removes your inventory."
 dying-results-xp-loss: "<dark_red><bold>Dying during a Blood Moon resets your experience."
@@ -33,14 +32,10 @@ event:
   survivor-insufficient-participation: "<yellow>You did not participate long enough to receive the survivor reward."
   already-active: "<red>A Blood Moon is already active in that world."
   not-active: "<red>There is no active Blood Moon."
-  cannot-stop-world: "<red>You cannot stop the Blood Moon in this world."
-  world-permanent: "<red>This world is permanently under a Blood Moon."
 
 # ==================== Schedule ====================
 schedule:
   warning: "<yellow>The Blood Moon will start in <red>{min} minute(s) <gray>(x{difficulty})<yellow>. Get ready!"
-  warning-title: "<dark_red><bold>The Blood Moon is upon us!"
-  warning-body: "<red>Experience is multiplied and mobs have bonus drops.\n<red>Mobs are stronger and apply special effects."
 
 # ==================== Boss ====================
 boss:
@@ -51,7 +46,6 @@ boss:
   top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} damage"
   top-reward: "<gold>For your damage to the boss you receive an extra reward."
   disabled: "<yellow>The Blood Moon boss is disabled in this world."
-  spawn-failed: "<red>The configured Blood Moon boss could not be spawned."
   mythic-not-found: "<red>Configured MythicMob '{name}' was not found in {world}."
   mythic-unavailable: "<red>MythicMobs is unavailable or incompatible in {world}."
   mythic-fallback: "<gray>Falling back to the vanilla Blood Moon boss in {world}."
@@ -106,9 +100,6 @@ cmd:
   items-header: "<gold>Available items:"
   usage-chances: "<yellow>Usage: /luna chances <table>"
   table-unknown: "<red>Table {table} does not exist."
-  survivors-header: "<gold>Eligible survivors in {world}:"
-  survivors-line: "<gray>- <white>{player} <gray>({seconds} participation)"
-  survivors-none: "<gray>No eligible survivors in {world}."
 
 # ==================== Placeholders ====================
 placeholder:

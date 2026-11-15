@@ -6,7 +6,6 @@ prefix: "<dark_red><bold>🌙 Lune de Sang</bold> <dark_gray>» <reset>"
 no-permission: "<red>Vous n'avez pas la permission pour cela."
 unknown-world: "<red>Ce monde n'existe pas ou n'est pas chargé."
 general-error: "<red>Une erreur est survenue lors du traitement de votre demande."
-plugin-reloaded: "<green>Configuration rechargée avec succès."
 bed-not-allowed: "<red>Vous ne pouvez pas dormir pendant une Lune de Sang."
 dying-results-inventory-loss: "<dark_red><bold>Mourir pendant une Lune de Sang efface votre inventaire."
 dying-results-xp-loss: "<dark_red><bold>Mourir pendant une Lune de Sang réinitialise votre expérience."
@@ -33,14 +32,10 @@ event:
   survivor-insufficient-participation: "<yellow>Vous n'avez pas participé assez longtemps pour recevoir la récompense de survie."
   already-active: "<red>Un événement est déjà actif dans ce monde."
   not-active: "<red>Aucun événement n'est actif."
-  cannot-stop-world: "<red>Vous ne pouvez pas arrêter la Lune de Sang dans ce monde."
-  world-permanent: "<red>Ce monde reste sous une Lune de Sang."
 
 # ==================== Schedule ====================
 schedule:
   warning: "<yellow>La Lune de Sang commencera dans <red>{min} minute(s) <gray>(x{difficulty})<yellow>. Préparez-vous !"
-  warning-title: "<dark_red><bold>La Lune de Sang est arrivée !"
-  warning-body: "<red>L'expérience est multipliée et les créatures donnent un butin supplémentaire.\n<red>Les créatures sont plus fortes et appliquent des effets spéciaux."
 
 # ==================== Boss ====================
 boss:
@@ -51,7 +46,6 @@ boss:
   top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} dégâts"
   top-reward: "<gold>Pour vos dégâts au boss, vous recevez une récompense supplémentaire."
   disabled: "<yellow>Le boss de la Lune de Sang est désactivé dans ce monde."
-  spawn-failed: "<red>Impossible de générer le boss configuré."
   mythic-not-found: "<red>Le MythicMob '{name}' est introuvable dans {world}."
   mythic-unavailable: "<red>MythicMobs n'est pas disponible ou n'est pas compatible dans {world}."
   mythic-fallback: "<gray>Le boss vanilla de la Lune de Sang sera utilisé dans {world}."
@@ -106,9 +100,6 @@ cmd:
   items-header: "<gold>Items disponibles :"
   usage-chances: "<yellow>Usage : /luna chances <table>"
   table-unknown: "<red>La table {table} n'existe pas."
-  survivors-header: "<gold>Survivants éligibles à {world} :"
-  survivors-line: "<gray>- <white>{player} <gray>({seconds} de participation)"
-  survivors-none: "<gray>Aucun survivant éligible à {world}."
 
 # ==================== Placeholders ====================
 placeholder:

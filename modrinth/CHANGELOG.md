@@ -52,6 +52,12 @@ cannot stall the server.
   so translations can no longer silently drift.
 - **Death-rule warnings**: the per-world `DyingLossesInventory` / `DyingLossesExperience` messages were
   translated but never sent; players now get them when the event starts.
+- **Locale cleanup in all 7 languages**: removed 9 keys that no code could ever print
+  (`plugin-reloaded`, `event.cannot-stop-world`, `event.world-permanent`,
+  `schedule.warning-title/body`, `boss.spawn-failed`, `cmd.survivors-*`) and wired 3 that were
+  missing: `general-error` (any unexpected command failure now answers the player instead of
+  going silent), `cmd.usage-horde` (invalid arguments) and `boss.mythic-unavailable` (MythicMobs
+  configured but not installed, which used to fall back to the vanilla boss silently).
 
 ### Added — Blood Moon gear can no longer be stripped
 - **Grindstone blocked**: Blood Moon items cannot be disenchanted or have their curses removed

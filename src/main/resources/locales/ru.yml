@@ -6,7 +6,6 @@ prefix: "<dark_red><bold>🌙 Кровавая Луна</bold> <dark_gray>» <re
 no-permission: "<red>У вас нет прав на это."
 unknown-world: "<red>Такого мира нет или он не загружен."
 general-error: "<red>Произошла ошибка при обработке запроса."
-plugin-reloaded: "<green>Конфигурация успешно перезагружена."
 bed-not-allowed: "<red>Во время Кровавой Луны спать нельзя."
 dying-results-inventory-loss: "<dark_red><bold>Смерть во время Кровавой Луны уничтожает ваш инвентарь."
 dying-results-xp-loss: "<dark_red><bold>Смерть во время Кровавой Луны сбрасывает ваш опыт."
@@ -33,14 +32,10 @@ event:
   survivor-insufficient-participation: "<yellow>Вы участвовали слишком мало, чтобы получить награду за выживание."
   already-active: "<red>В этом мире уже идёт событие."
   not-active: "<red>Нет активного события."
-  cannot-stop-world: "<red>Вы не можете остановить Кровавую Луну в этом мире."
-  world-permanent: "<red>Этот мир остаётся под Кровавой Луной."
 
 # ==================== Schedule ====================
 schedule:
   warning: "<yellow>Кровавая Луна начнётся через <red>{min} мин. <gray>(x{difficulty})<yellow>. Приготовьтесь!"
-  warning-title: "<dark_red><bold>Кровавая Луна пришла!"
-  warning-body: "<red>Опыт умножается, а существа дают дополнительную добычу.\n<red>Существа стали сильнее и накладывают особые эффекты."
 
 # ==================== Boss ====================
 boss:
@@ -51,7 +46,6 @@ boss:
   top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} урона"
   top-reward: "<gold>За урон по боссу вы получаете дополнительную награду."
   disabled: "<yellow>Босс Кровавой Луны отключён в этом мире."
-  spawn-failed: "<red>Не удалось создать настроенного босса."
   mythic-not-found: "<red>MythicMob '{name}' не найден в {world}."
   mythic-unavailable: "<red>MythicMobs недоступен или несовместим в {world}."
   mythic-fallback: "<gray>Будет использован ванильный босс Кровавой Луны в {world}."
@@ -106,9 +100,6 @@ cmd:
   items-header: "<gold>Доступные предметы:"
   usage-chances: "<yellow>Использование: /luna chances <таблица>"
   table-unknown: "<red>Таблицы {table} не существует."
-  survivors-header: "<gold>Подходящие выжившие в {world}:"
-  survivors-line: "<gray>- <white>{player} <gray>({seconds} участия)"
-  survivors-none: "<gray>Нет подходящих выживших в {world}."
 
 # ==================== Placeholders ====================
 placeholder:

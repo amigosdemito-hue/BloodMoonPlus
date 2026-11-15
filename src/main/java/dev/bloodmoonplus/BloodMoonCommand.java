@@ -34,6 +34,19 @@ public final class BloodMoonCommand implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender s, Command cmd, String label, String[] args) {
+        // Red de seguridad: un fallo inesperado en cualquier subcomando deja un mensaje claro
+        // al jugador (y la traza completa en consola) en vez de un comando que no responde.
+        try {
+            return handle(s, args);
+        } catch (Exception ex) {
+            plugin.getLogger().log(java.util.logging.Level.WARNING,
+                    "Error ejecutando /" + label + ": " + ex, ex);
+            m().send(s, "general-error");
+            return true;
+        }
+    }
+
+    private boolean handle(CommandSender s, String[] args) {
         if (args.length == 0) { status(s); return true; }
         String sub = ALIASES.getOrDefault(args[0].toLowerCase(Locale.ROOT), "");
         if (sub.isEmpty()) { m().send(s, "cmd.usage"); return true; }
@@ -288,6 +301,7 @@ public final class BloodMoonCommand implements TabExecutor {
     }
 
     private void horde(CommandSender s, String[] a) {
+        if (a.length > 1) { m().send(s, "cmd.usage-horde"); return; }
         Collection<EventManager.Session> all = plugin.events().sessions();
         if (all.isEmpty()) { m().send(s, "cmd.status-none"); return; }
         // /luna horde <jugador>: la oleada cae solo sobre ESE jugador.

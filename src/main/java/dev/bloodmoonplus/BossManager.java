@@ -240,8 +240,16 @@ public final class BossManager {
 
         LivingEntity le = null;
 
+        boolean mythicWanted = "MYTHICMOBS".equals(bossCfg.mode()) && bossCfg.mythicEnabled();
+        // El mundo pide Mythic pero el plugin no está (o es incompatible): antes se caía
+        // silenciosamente al jefe vanilla sin explicar por qué.
+        if (mythicWanted && !plugin.mythic().isAvailable()) {
+            if (plugin.messages().announce("bosses", true))
+                plugin.messages().world(world, "boss.mythic-unavailable", "world", world.getName());
+        }
+
         // Modo MYTHICMOBS: delega a Mythic si está disponible
-        if ("MYTHICMOBS".equals(bossCfg.mode()) && bossCfg.mythicEnabled() && plugin.mythic().isAvailable()) {
+        if (mythicWanted && plugin.mythic().isAvailable()) {
             String mythicName = bossCfg.mythicInternalName();
             if (plugin.mythic().mobExists(mythicName)) {
                 spawningBoss = true;

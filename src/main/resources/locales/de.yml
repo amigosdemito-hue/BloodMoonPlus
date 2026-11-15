@@ -6,7 +6,6 @@ prefix: "<dark_red><bold>🌙 Blutmond</bold> <dark_gray>» <reset>"
 no-permission: "<red>Dazu hast du keine Berechtigung."
 unknown-world: "<red>Diese Welt existiert nicht oder ist nicht geladen."
 general-error: "<red>Beim Verarbeiten deiner Anfrage ist ein Fehler aufgetreten."
-plugin-reloaded: "<green>Konfiguration erfolgreich neu geladen."
 bed-not-allowed: "<red>Während eines Blutmonds kannst du nicht schlafen."
 dying-results-inventory-loss: "<dark_red><bold>Stirbst du während eines Blutmonds, verlierst du dein Inventar."
 dying-results-xp-loss: "<dark_red><bold>Stirbst du während eines Blutmonds, wird deine Erfahrung zurückgesetzt."
@@ -33,14 +32,10 @@ event:
   survivor-insufficient-participation: "<yellow>Du hast nicht lange genug teilgenommen, um die Überlebenden-Belohnung zu erhalten."
   already-active: "<red>In dieser Welt läuft bereits ein Event."
   not-active: "<red>Es läuft kein Event."
-  cannot-stop-world: "<red>Du kannst den Blutmond in dieser Welt nicht stoppen."
-  world-permanent: "<red>Diese Welt bleibt unter einem Blutmond."
 
 # ==================== Schedule ====================
 schedule:
   warning: "<yellow>Der Blutmond beginnt in <red>{min} Minute(n) <gray>(x{difficulty})<yellow>. Macht euch bereit!"
-  warning-title: "<dark_red><bold>Der Blutmond ist da!"
-  warning-body: "<red>Erfahrung wird vervielfacht und Kreaturen lassen mehr Beute fallen.\n<red>Kreaturen sind stärker und wirken besondere Effekte."
 
 # ==================== Boss ====================
 boss:
@@ -51,7 +46,6 @@ boss:
   top-line: "<gray>{pos}. <white>{player} <dark_gray>— <red>{damage} Schaden"
   top-reward: "<gold>Für deinen Schaden am Boss erhältst du eine Extra-Belohnung."
   disabled: "<yellow>Der Blutmond-Boss ist in dieser Welt deaktiviert."
-  spawn-failed: "<red>Der konfigurierte Boss konnte nicht erzeugt werden."
   mythic-not-found: "<red>Der MythicMob '{name}' wurde in {world} nicht gefunden."
   mythic-unavailable: "<red>MythicMobs ist in {world} nicht verfügbar oder nicht kompatibel."
   mythic-fallback: "<gray>Es wird der Vanilla-Blutmond-Boss in {world} verwendet."
@@ -106,9 +100,6 @@ cmd:
   items-header: "<gold>Verfügbare Gegenstände:"
   usage-chances: "<yellow>Benutzung: /luna chances <tabelle>"
   table-unknown: "<red>Die Tabelle {table} existiert nicht."
-  survivors-header: "<gold>Berechtigte Überlebende in {world}:"
-  survivors-line: "<gray>- <white>{player} <gray>({seconds} Teilnahme)"
-  survivors-none: "<gray>Keine berechtigten Überlebenden in {world}."
 
 # ==================== Placeholders ====================
 placeholder:
