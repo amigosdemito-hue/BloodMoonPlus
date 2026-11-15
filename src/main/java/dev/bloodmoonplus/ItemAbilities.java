@@ -176,6 +176,10 @@ public final class ItemAbilities implements Listener {
                         int ticks = (int) (d(a, 2, 5) * 20);
                         pdc.set(Keys.BLEED, org.bukkit.persistence.PersistentDataType.INTEGER, ticks);
                         pdc.set(Keys.BLEED_DMG, org.bukkit.persistence.PersistentDataType.DOUBLE, d(a, 3, 1.0));
+                        // Guarda el atacante: antes el daño por sangrado no tenía dueño y una
+                        // muerte por sangrado no daba loot, ni kill, ni contaba para el jefe.
+                        pdc.set(Keys.BLEED_SRC, org.bukkit.persistence.PersistentDataType.STRING,
+                                attacker.getUniqueId().toString());
                         bleeding.add(victim.getUniqueId());
                         victim.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, victim.getLocation().add(0, 1, 0), 5, 0.3, 0.5, 0.3, 0.05);
                         // La aplicación del daño real la hace el tickPassives
@@ -313,9 +317,19 @@ public final class ItemAbilities implements Listener {
                 Double configured = pdc.get(Keys.BLEED_DMG, org.bukkit.persistence.PersistentDataType.DOUBLE);
                 double perHit = configured != null ? configured : 1.0;
                 int left = bleedTicks - 40;
+                Player src = null;
+                String srcId = pdc.get(Keys.BLEED_SRC, org.bukkit.persistence.PersistentDataType.STRING);
+                if (srcId != null) {
+                    try { src = Bukkit.getPlayer(UUID.fromString(srcId)); } catch (IllegalArgumentException ignored) { }
+                    if (src != null && (!src.isOnline() || src.isDead())) src = null;
+                }
                 processing = true;
-                try { le.damage(perHit); } finally { processing = false; }
-                if (left <= 0) { pdc.remove(Keys.BLEED); it.remove(); }
+                try {
+                    // Con atacante la muerte por sangrado acredita la kill (y su loot).
+                    if (src != null) le.damage(perHit, src);
+                    else le.damage(perHit);
+                } finally { processing = false; }
+                if (left <= 0) { pdc.remove(Keys.BLEED); pdc.remove(Keys.BLEED_SRC); it.remove(); }
                 else pdc.set(Keys.BLEED, org.bukkit.persistence.PersistentDataType.INTEGER, left);
                 le.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, le.getLocation().add(0, 1, 0), 2, 0.2, 0.3, 0.2, 0.01);
             }

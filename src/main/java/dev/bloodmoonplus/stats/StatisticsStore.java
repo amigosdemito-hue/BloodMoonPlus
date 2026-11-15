@@ -138,17 +138,6 @@ public final class StatisticsStore {
         }
     }
 
-    private static class FileUtils {
-        static void copyDirectory(File src, File dest) throws IOException {
-            if (src == null || !src.exists()) return;
-            if (!dest.exists()) dest.mkdirs();
-            for (File child : src.listFiles()) {
-                if (child.isDirectory()) copyDirectory(child, new File(dest, child.getName()));
-                else Files.copy(child.toPath(), new File(dest, child.getName()).toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            }
-        }
-    }
-
     // ------------ API: incrementar contadores ------------
 
     public void recordEventCompleted(String world, long durationSec, long deaths, long uniqueDeaths,
@@ -169,8 +158,7 @@ public final class StatisticsStore {
         } finally {
             lock.unlock();
         }
-        // Escritura asíncrona para no bloquear el thread principal
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveNow);
+        flushAsync();
     }
 
     public void recordBossSpawned() {
@@ -186,7 +174,7 @@ public final class StatisticsStore {
         } finally {
             lock.unlock();
         }
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveNow);
+        flushAsync();
     }
 
     public void recordBossDefeated() {
@@ -201,6 +189,17 @@ public final class StatisticsStore {
                     data.lastEvent());
         } finally {
             lock.unlock();
+        }
+        flushAsync();
+    }
+
+    /** Escritura asíncrona para no bloquear el hilo principal. Si el plugin ya se está
+     *  desactivando (onDisable/segundo final del servidor) el scheduler rechaza tareas nuevas
+     *  con IllegalPluginAccessException, así que en ese caso se guarda en línea. */
+    private void flushAsync() {
+        if (!plugin.isEnabled()) {
+            saveNow();
+            return;
         }
         Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveNow);
     }

@@ -21,7 +21,8 @@ public final class DataStore {
     private final File file;
     private YamlConfiguration cfg;
     private final ReentrantLock lock = new ReentrantLock();
-    private boolean dirty;
+    // volatile: flushIfDirty() lo lee fuera del lock y el hilo que escribe puede ser otro.
+    private volatile boolean dirty;
 
     DataStore(BloodMoonPlus plugin) {
         this.plugin = plugin;

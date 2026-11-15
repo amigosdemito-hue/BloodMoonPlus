@@ -93,6 +93,7 @@ cmd:
   usage-give: "<yellow>Uso: /luna give <jugador> <item> [cantidad]"
   player-unknown: "<red>Jugador {player} no encontrado."
   item-unknown: "<red>Item {item} no existe (usa /luna items)."
+  item-limit: "<red>El item {item} ya alcanzó su límite de {limit} ejemplares únicos."
   given: "<green>Entregado {amount}x {item} a {player}."
   items-header: "<gold>Items disponibles:"
   usage-chances: "<yellow>Uso: /luna chances <tabla>"

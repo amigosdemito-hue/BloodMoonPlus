@@ -78,7 +78,11 @@ public final class RewardContext {
                 case "player", "player_name" -> target == null ? "" : target.getName();
                 case "player_uuid" -> target == null ? "" : target.getUniqueId().toString();
                 case "world", "world_name" -> worldName;
-                case "world_uuid" -> worldName.isEmpty() ? "" : Bukkit.getWorld(worldName).getUID().toString();
+                case "world_uuid" -> {
+                    // Bukkit.getWorld() puede devolver null (mundo descargado): antes lanzaba NPE.
+                    var w = worldName.isEmpty() ? null : Bukkit.getWorld(worldName);
+                    yield w == null ? "" : w.getUID().toString();
+                }
                 case "session_uuid" -> sessionUuid;
                 case "start_time" -> String.valueOf(startTime);
                 case "end_time" -> String.valueOf(endTime);
@@ -86,10 +90,10 @@ public final class RewardContext {
                 case "participant_count" -> String.valueOf(participantCount);
                 case "survivor_count" -> String.valueOf(survivorCount);
                 case "death_count" -> String.valueOf(deathCount);
-                case "participation_seconds" -> opt;  // se rellena por jugador en runtime
-                case "participation_percent" -> opt;
-                case "died" -> opt;
-                case "survived" -> opt;
+                // Estas cuatro se rellenan por jugador en runtime; sin el sufijo :valor el
+                // grupo opt es null y appendReplacement(null) lanzaba NullPointerException.
+                case "participation_seconds", "participation_percent", "died", "survived" ->
+                        opt == null ? "" : opt;
                 case "boss_name" -> bossName;
                 case "boss_type" -> bossType;
                 case "boss_uuid" -> "";

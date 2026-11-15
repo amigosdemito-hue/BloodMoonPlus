@@ -140,6 +140,7 @@ public final class EventListener implements Listener {
         if (!plugin.events().isActive(e.getPlayer().getWorld())) return;
         if (plugin.worldConfigs().get(e.getPlayer().getWorld().getName()).bedNotAllowed()) {
             e.setCancelled(true);
+            e.getPlayer().sendMessage(plugin.messages().prefixed("bed-not-allowed"));
         }
     }
 
@@ -161,7 +162,7 @@ public final class EventListener implements Listener {
             w.playSound(e.getEntity().getLocation(), org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.7f, 0.5f);
             String cause = e.getDeathMessage() != null ? e.getDeathMessage() : plugin.locales().get("event.death-cause-unknown");
             if (plugin.messages().announce("player-deaths", false))
-                plugin.messages().all("event.player-died", "player", e.getEntity().getName(), "cause", cause);
+                plugin.messages().world(w, "event.player-died", "player", e.getEntity().getName(), "cause", cause);
         }
     }
 
@@ -177,7 +178,7 @@ public final class EventListener implements Listener {
         String mobName = e.getEntity().customName() != null
                 ? net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(e.getEntity().customName())
                 : e.getEntity().getType().name().toLowerCase().replace('_', ' ');
-        plugin.messages().all("event.mob-slain", "player", killer.getName(), "mob", mobName);
+        plugin.messages().world(e.getEntity().getWorld(), "event.mob-slain", "player", killer.getName(), "mob", mobName);
     }
 
     /** Al reaparecer vuelve a ser objetivo de hordas y jefes; sigue descalificado

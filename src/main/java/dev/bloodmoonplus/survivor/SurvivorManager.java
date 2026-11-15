@@ -28,8 +28,10 @@ public final class SurvivorManager {
         WorldConfig wc = plugin.worldConfigs().get(s.world.getName());
         WorldConfig.SurvivorPolicy policy = wc.survivor();
         if (!policy.enabled()) return List.of();
-        // Por ahora solo natural: las manuales son opt-in
-        if (!natural) return List.of();
+        // Las paradas manuales solo recompensan si event.reward-on-stop está activo; antes
+        // esta comprobación ignoraba esa opción y los comandos de superviviente nunca se
+        // ejecutaban al usar /luna stop (solo la tabla de loot legacy).
+        if (!natural && !plugin.getConfig().getBoolean("event.reward-on-stop", false)) return List.of();
 
         long startMs = s.startMs;
         long endMs = s.endMs;
@@ -57,7 +59,7 @@ public final class SurvivorManager {
 
         if (eligible.isEmpty()) {
             if (plugin.messages().announce("survivors", false))
-                plugin.messages().all("event.survivors-none", "world", s.world.getName());
+                plugin.messages().world(s.world, "event.survivors-none", "world", s.world.getName());
             return List.of();
         }
 

@@ -55,6 +55,37 @@ found in the code audit are fixed.
 - **Damage reflection, thorns, thunder guard and blast wave apply their damage through the
   re-entrancy guard**, so they cannot re-trigger weapon abilities in a cascade.
 
+### Fixed — full second audit (live-tested on Paper 26.2)
+- **`%bloodmoon_boss_alive%` stayed true forever after the boss died.** The boss snapshot was only
+  published while a boss was alive and never reset, so `boss_alive`, `boss_name`, `boss_health`
+  and `boss_state` kept the dead boss until a reload. The boss state is now published per world
+  and switches to `DEFEATED` when it dies (also fixes two simultaneous events sharing one boss).
+- **Ambient sounds and fog ran 20 times instead of once.** `now / 1000 % N == 0` is true for a whole
+  second (20 ticks), so the cave sound, the heartbeat and the red fog repeated 20 times in a row.
+  They are now driven by per-session timestamps.
+- **Bleed damage had no attacker.** A mob killed by bleeding gave no loot, no kill credit and did
+  not count towards the boss damage ranking. The attacker's UUID is stored with the bleed mark and
+  used for the damage.
+- **`SurvivorRewards` ignored `event.reward-on-stop`.** Manual stops never ran the granular survivor
+  commands/messages even with that option enabled; only the legacy loot table fired.
+- **`%participation_seconds%`, `%participation_percent%`, `%died%`, `%survived%` crashed the
+  reward command when written without a value**, and `%world_uuid%` threw an NPE when the world had
+  already been unloaded. Both are now empty strings instead of an exception.
+- **Messages leaked to other worlds.** `horde-descending`, `player-died`, `mob-slain` and
+  `survivors-none` were sent server-wide instead of only to the event world.
+- **Orphan horde mobs survived a restart** when the event ran in two worlds: the cleanup only ran
+  when no session was resumed at all. Every world without a resumed session is cleaned now.
+- **`/luna chances` printed `NaN%`** for a table with no valid rarity weights; it now says the
+  table has no valid rarities.
+- **`/luna give` said "item does not exist" for a unique item that had reached its limit**; it now
+  reports the limit reached.
+- Sleeping during the event was blocked silently; the player now gets the `bed-not-allowed`
+  message.
+- Statistics were saved asynchronously even while the plugin shut down, where the scheduler
+  rejects new tasks; that flush now happens inline.
+- `DataStore`'s dirty flag is `volatile` (it is written under the lock and read outside it).
+- Removed dead code (`StatisticsStore.FileUtils`, unused MythicMobs fields).
+
 ### Changed ⭐
 - **Every weapon, tool and armor piece from Rare to Mythic now carries the Curse of Vanishing**
   (`vanishing_curse`): swords, axes, pickaxes, shovels, hoes, bows, crossbows, tridents, maces and

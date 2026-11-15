@@ -26,7 +26,9 @@ public final class PlaceholderSnapshotService {
     /** Mobs de la horda vivos por mundo; se recalcula cada ~2 s, no en cada consulta del placeholder. */
     private final Map<String, Long> hordeCache = new ConcurrentHashMap<>();
     private int publishTick = 0;
-    private final AtomicReference<BossPlaceholderSnapshot> boss = new AtomicReference<>(BossPlaceholderSnapshot.empty());
+    /** Último snapshot de jefe por mundo: permite cerrar el estado en DEFEATED al morir y
+     *  evita que dos eventos simultáneos compartan el mismo jefe. */
+    private final Map<String, BossPlaceholderSnapshot> bossByWorld = new ConcurrentHashMap<>();
 
     public PlaceholderSnapshotService(BloodMoonPlus plugin, StatisticsStore stats) {
         this.plugin = plugin;
@@ -88,15 +90,32 @@ public final class PlaceholderSnapshotService {
         }
         // Evita que el caché crezca con jugadores que ya se desconectaron.
         playerCache.keySet().removeIf(id -> Bukkit.getPlayer(id) == null);
-        // Boss
-        var bosses = plugin.bosses().aliveSnapshot();
-        if (bosses != null) {
-            boss.set(bosses);
+        // Boss por mundo. Antes solo se publicaba el primero y, al morir el jefe, el snapshot
+        // se quedaba en ALIVE para siempre (%bloodmoon_boss_alive% nunca volvía a false).
+        for (EventManager.Session s : plugin.events().sessions()) {
+            String wn = s.world.getName();
+            var aliveBoss = plugin.bosses().aliveSnapshot(s.world);
+            BossPlaceholderSnapshot prev = bossByWorld.get(wn);
+            if (aliveBoss != null) {
+                bossByWorld.put(wn, aliveBoss);
+            } else if (prev != null && prev.state() == BossPlaceholderState.ALIVE) {
+                bossByWorld.put(wn, BossPlaceholderSnapshot.defeated(prev.bossName(), prev.bossType()));
+            }
         }
+        bossByWorld.keySet().removeIf(k -> !live.contains(k));
     }
 
     public HistoricalStatistics history() { return history.get(); }
     public SessionPlaceholderState sessionFor(String world) { return sessionCache.get(world); }
     public PlayerPlaceholderState playerFor(UUID id) { return playerCache.get(id); }
-    public BossPlaceholderSnapshot boss() { return boss.get(); }
+    /** Jefe del mundo indicado (null si no hay evento ni jefe allí). */
+    public BossPlaceholderSnapshot boss(String world) {
+        return world == null ? null : bossByWorld.get(world);
+    }
+
+    /** Jefe de cualquier mundo (compatibilidad). */
+    public BossPlaceholderSnapshot boss() {
+        return bossByWorld.isEmpty() ? BossPlaceholderSnapshot.empty()
+                : bossByWorld.values().iterator().next();
+    }
 }

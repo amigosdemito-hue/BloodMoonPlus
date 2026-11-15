@@ -294,7 +294,10 @@ public final class BloodMoonCommand implements TabExecutor {
             if (serial >= n) break;
         }
         if (created.isEmpty()) {
-            m().send(s, "cmd.item-unknown", "item", a[1]);
+            // El item existe pero ya no quedan ejemplares únicos: antes se avisaba de que el
+            // item no existía, que es falso y despista al administrador.
+            if (d.limit() > 0) m().send(s, "cmd.item-limit", "item", a[1], "limit", String.valueOf(d.limit()));
+            else m().send(s, "cmd.item-unknown", "item", a[1]);
             return;
         }
         for (ItemStack it : created) {

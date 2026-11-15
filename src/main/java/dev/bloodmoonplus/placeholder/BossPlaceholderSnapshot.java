@@ -24,6 +24,18 @@ public record BossPlaceholderSnapshot(
         );
     }
 
+    /** Snapshot de un jefe ya derrotado: conserva nombre y tipo para que los placeholders
+     *  dejen de decir ALIVE cuando el jefe muere. */
+    public static BossPlaceholderSnapshot defeated(String name, String type) {
+        return new BossPlaceholderSnapshot(
+                new UUID(0, 0),
+                name == null ? "" : name,
+                type == null ? "NONE" : type,
+                0, 0, 0,
+                BossPlaceholderState.DEFEATED
+        );
+    }
+
     public static BossPlaceholderSnapshot fromEntity(LivingEntity e, double maxHealth, String name, String type, BossPlaceholderState state) {
         double h = Math.max(0, e.getHealth());
         double m = Math.max(1, maxHealth);

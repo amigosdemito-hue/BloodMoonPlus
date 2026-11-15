@@ -278,6 +278,11 @@ public final class LootManager {
             w.put(rid, v);
             total += v;
         }
+        if (total <= 0) {
+            // Sin pesos válidos (rarities ausentes o con peso 0) la división daba NaN%.
+            lines.add(" <gray>(esta tabla no tiene rarezas válidas en loot.yml)");
+            return lines;
+        }
         for (Map.Entry<String, Double> en : w.entrySet()) {
             double pct = en.getValue() / total * 100;
             lines.add(" " + rarityDisplay(en.getKey()) + " <white>" + String.format(Locale.ROOT, "%.2f%%", pct));

@@ -674,7 +674,15 @@ public final class BossManager {
 
     /** Snapshot del primer boss vivo (para placeholders). */
     public dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot aliveSnapshot() {
+        return aliveSnapshot(null);
+    }
+
+    /** Snapshot del primer boss vivo, opcionalmente restringido a un mundo concreto.
+     *  Antes siempre se devolvía el primero de todos los mundos, así que con dos eventos
+     *  simultáneos los placeholders mostraban el jefe que no era. */
+    public dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot aliveSnapshot(World only) {
         for (Instance bi : alive.values()) {
+            if (only != null && !only.equals(bi.world)) continue;
             Entity ent = Bukkit.getEntity(bi.id);
             if (ent instanceof LivingEntity le && !le.isDead() && le.isValid()) {
                 double maxHp = Util.maxHealth(le);

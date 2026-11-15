@@ -66,6 +66,10 @@ public final class EventManager {
         boolean bossRewardGiven = false;
         /** Última vez que se disparó un evento especial EN ESTE mundo. */
         long lastSpecialEventMs = 0;
+        /** Últimas veces que se reprodujo cada ambiente / se pintó la niebla. Sin esto las
+         *  comprobaciones "now/1000 % N == 0" se cumplían durante todo un segundo (20 ticks),
+         *  así que el sonido y las partículas salían 20 veces seguidas. */
+        long lastAmbientCaveMs = 0, lastHeartbeatMs = 0, lastFogMs = 0;
         /** Último jefe derrotado en este mundo (para el histórico de estadísticas). */
         String lastBossName = "";
         String lastBossType = "NONE";
@@ -444,9 +448,11 @@ public final class EventManager {
                 }
             }
         }
-        for (String wn : plugin.getConfig().getStringList("worlds")) {
-            World w = Bukkit.getWorld(wn);
-            if (w != null && sessions.isEmpty()) removeTagged(w);
+        // Limpieza de mobs huérfanos tras el reinicio: en TODOS los mundos que no tengan una
+        // sesión retomada (antes solo se limpiaba si no había ninguna sesión viva, así que
+        // con un evento global retomado los mobs viejos de los demás mundos quedaban sueltos).
+        for (World world : Bukkit.getWorlds()) {
+            if (!sessions.containsKey(world.getName())) removeTagged(world);
         }
     }
 
@@ -540,20 +546,23 @@ public final class EventManager {
                 rp.playSound(rp.getLocation(), org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.4f, 0.35f);
             }
         }
-        if (now / 1000 % 30 == 0) {
+        if (now - global.lastAmbientCaveMs >= 30_000L) {
+            global.lastAmbientCaveMs = now;
             if (!w.getPlayers().isEmpty()) {
                 Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
                 rp.playSound(rp.getLocation(), org.bukkit.Sound.AMBIENT_CAVE, 0.35f, 0.45f);
             }
         }
-        if (now / 1000 % 40 == 10) {
+        if (now - global.lastHeartbeatMs >= 40_000L) {
+            global.lastHeartbeatMs = now;
             if (!w.getPlayers().isEmpty()) {
                 Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
                 rp.playSound(rp.getLocation(), org.bukkit.Sound.ENTITY_WARDEN_HEARTBEAT, 0.25f, 0.7f);
             }
         }
         // Niebla roja ligera cada 4 segundos en lugar de cada 2, y solo glow puntual.
-        if (now / 1000 % 4 == 0) {
+        if (now - global.lastFogMs >= 4_000L) {
+            global.lastFogMs = now;
             for (Player p : w.getPlayers()) {
                 w.spawnParticle(org.bukkit.Particle.DUST, p.getLocation().add(0, 0.5, 0), 6, 0.7, 0.35, 0.7, 0.02,
                         new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(140, 0, 0), 0.9f));
@@ -707,7 +716,8 @@ public final class EventManager {
                 }
                 s.lastHordeAnnounceMs = System.currentTimeMillis();
                 if (plugin.messages().announce("horde", true))
-                    plugin.messages().all("event.horde-descending", "player", p.getName());
+                    // Solo el mundo del jugador: antes se filtraba a los demás mundos.
+                    plugin.messages().world(p.getWorld(), "event.horde-descending", "player", p.getName());
             }
             for (int i = 0; i < amount; i++) {
                 Location loc = findSpawn(p.getLocation(), minDist, maxDist);
