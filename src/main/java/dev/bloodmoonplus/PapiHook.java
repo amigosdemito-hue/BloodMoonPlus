@@ -164,7 +164,9 @@ public final class PapiHook extends PlaceholderExpansion {
             case "pity" -> {
                 if (!sub.isEmpty()) {
                     var pid = player != null ? player.getUniqueId() : null;
-                    if (pid != null) yield String.valueOf(plugin.data().pity(pid, sub.toUpperCase(Locale.ROOT)));
+                    // Las rarezas se guardan con Util.key (mayúsculas y sin acentos): usar la
+                    // misma normalización evita que %bloodmoon_pity_mítico% devuelva 0.
+                    if (pid != null) yield String.valueOf(plugin.data().pity(pid, Util.key(sub)));
                 }
                 yield null;
             }

@@ -13,6 +13,34 @@ project page.
 First beta of 1.0.2: high-rarity gear now carries the curse its rarity implies, and four bugs
 found in the code audit are fixed.
 
+### Fixed — full code audit
+- **The boss VORTEX lasted twice as long as configured.** The runnable steps every 2 ticks but
+decremented the remaining time by one per step, so `VORTEX:16` absorbed for 32 s.
+- **The storm special event was invisible.** The session tick turned the storm off on the same
+tick the special turned it on. The session now records how long the storm must last and the tick
+only clears the weather afterwards; the dead `setStorm(true)` in the start sequence is gone.
+- **Special events all fired 30 s after minute 5.** The per-tick probability reached 100% within
+30 seconds of the window opening. It now grows linearly with a cumulative value of 1 across the
+5-10 minute window, so eclipses, storms, fog and silence are spread out as documented.
+- **`CommandsOnStart` / `CommandsOnEnd` of each world were read and never executed.** They now run
+when the event starts and ends in that world, with `{world}`, `{difficulty}` and `%world%`
+placeholders, exactly like the global lists in `config.yml`.
+- **Manual stops counted participation up to the planned end.** `SurvivorRewards`
+`MinimumParticipationSeconds` was measured against a future timestamp, so everyone qualified;
+it is now cut at the real stop time. Death counts also use the session counter.
+- **`/luna killmobs` only cleaned worlds with an active event**, so a boss summoned by hand could
+not be removed. It now sweeps every loaded world for tagged mobs and bosses, event or not.
+- **`/luna difficulty <x N> <world>` ignored the world** even though tab-completion offered it,
+and always changed the global difficulty. Passing a world now changes only that world.
+- Minor: the weekly schedule no longer keeps warning keys from past days forever, and
+`/luna boss <id>` tab-completion suggests worlds as well as players.
+
+### Removed
+- Dead code left over from earlier refactors: `EventManager.hasGlobalSession()`,
+`LootManager.hasTable()`, `DataStore.syncReload()`, `BloodMoonPlus.keys()`,
+`Keys.instance()`, `ScheduleManager.zone()`, `ScheduleManager.intervalHours()`, an unused
+`EventManager.start(World, double, int)` overload and a no-op `keepVanilla` line.
+
 ### Fixed ⭐
 - **The historical stats counted mob kills as player deaths.** `total_death_events` and
   `last_event.death_count` were fed with the number of horde mobs killed by players. Player deaths

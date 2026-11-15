@@ -97,7 +97,12 @@ public final class BloodMoonCommand implements TabExecutor {
             }
             case "boss" -> {
                 if (args.length == 2) return filter(new ArrayList<>(plugin.bosses().ids()), cur);
-                if (args.length == 3) return filter(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(), cur);
+                if (args.length == 3) {
+                    // El segundo argumento acepta jugador O mundo: se sugieren los dos.
+                    List<String> o = new ArrayList<>(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+                    o.addAll(worlds);
+                    return filter(o, cur);
+                }
                 return List.of();
             }
             case "horde" -> {
@@ -204,10 +209,21 @@ public final class BloodMoonCommand implements TabExecutor {
         if (a.length < 1) { m().send(s, "cmd.usage-difficulty"); return; }
         Double d = parseMult(a[0]);
         if (d == null) { m().send(s, "cmd.usage-difficulty"); return; }
+        double v = Math.max(0.1, Math.min(plugin.getConfig().getDouble("difficulty.max", 10), d));
+        // /luna difficulty <xN> [mundo]: con mundo solo cambia ese mundo (el tabulador ya lo
+        // sugería, pero el argumento se ignoraba y siempre se cambiaba la dificultad global).
+        if (a.length > 1) {
+            org.bukkit.World w = Bukkit.getWorld(a[1]);
+            if (w == null) { m().send(s, "unknown-world"); return; }
+            EventManager.Session ses = sessionOf(w);
+            if (ses == null) { m().send(s, "event.not-active", "world", w.getName()); return; }
+            ses.difficulty = v;
+            m().send(s, "cmd.difficulty-set", "difficulty", Util.fmt(v));
+            return;
+        }
         Collection<EventManager.Session> all = plugin.events().sessions();
         if (all.isEmpty()) { m().send(s, "cmd.status-none"); return; }
         // Cambio global: afecta a TODOS los mundos del evento en curso
-        double v = Math.max(0.1, Math.min(plugin.getConfig().getDouble("difficulty.max", 10), d));
         for (EventManager.Session ses : all) ses.difficulty = v;
         m().send(s, "cmd.difficulty-set", "difficulty", Util.fmt(v));
     }
@@ -282,12 +298,12 @@ public final class BloodMoonCommand implements TabExecutor {
     }
 
     private void killmobs(CommandSender s, String[] a) {
-        Collection<EventManager.Session> all = plugin.events().sessions();
-        if (all.isEmpty()) { m().send(s, "cmd.killed", "count", "0"); return; }
+        // Limpia TODO lo de la Luna en todos los mundos, haya evento o no: antes solo miraba
+        // los mundos con sesión, así que un jefe invocado a mano no se podía quitar.
         int removed = 0;
-        for (EventManager.Session ses : all) {
-            plugin.bosses().removeAll(ses.world);
-            removed += plugin.events().removeTagged(ses.world);
+        for (org.bukkit.World w : Bukkit.getWorlds()) {
+            removed += plugin.bosses().removeAll(w);
+            removed += plugin.events().removeTagged(w);
         }
         m().send(s, "cmd.killed", "count", String.valueOf(removed));
     }

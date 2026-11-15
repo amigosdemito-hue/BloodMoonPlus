@@ -31,15 +31,6 @@ public final class DataStore {
         this.cfg = YamlConfiguration.loadConfiguration(file);
     }
 
-    private void syncReload() {
-        lock.lock();
-        try {
-            cfg = YamlConfiguration.loadConfiguration(file);
-        } finally {
-            lock.unlock();
-        }
-    }
-
     void saveNow() {
         lock.lock();
         try {

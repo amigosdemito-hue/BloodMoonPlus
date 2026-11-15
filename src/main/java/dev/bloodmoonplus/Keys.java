@@ -7,17 +7,9 @@ final class Keys {
     static NamespacedKey MOB, BOSS, SCALE, DIFF, TABLE, ITEM_ID, ITEM_ABILITIES, ITEM_PASSIVES,
             ITEM_RARITY, ITEM_SERIAL, BLEED, BLEED_DMG, BLEED_SRC, HEAL_AURA;
 
-    private static Keys instance;
-
     private Keys() {}
 
-    static Keys instance() {
-        return instance;
-    }
-
     static void init(Plugin p) {
-        instance = new Keys();
-
         MOB = new NamespacedKey(p, "mob");
         BOSS = new NamespacedKey(p, "boss");
         SCALE = new NamespacedKey(p, "dmg_scale");

@@ -34,7 +34,9 @@ public final class SurvivorManager {
         if (!natural && !plugin.getConfig().getBoolean("event.reward-on-stop", false)) return List.of();
 
         long startMs = s.startMs;
-        long endMs = s.endMs;
+        // En una parada manual s.endMs aún está en el futuro: la participación no puede contar
+        // hasta el final previsto, tiene que cortarse en el momento real de la parada.
+        long endMs = Math.min(s.endMs, System.currentTimeMillis());
         UUID sessionUuid = UUID.randomUUID();
 
         List<Player> eligible = new ArrayList<>();
@@ -70,7 +72,7 @@ public final class SurvivorManager {
         // Construir contexto base
         RewardContext base = new RewardContext(
                 s.world, sessionUuid.toString(), startMs, endMs,
-                s.participants.size(), s.died.size(), eligible.size(),
+                s.participants.size(), s.deathCount, eligible.size(),
                 "", "NONE", null, null, s.world.getName(),
                 0, 0, 0, 0, 0);
 

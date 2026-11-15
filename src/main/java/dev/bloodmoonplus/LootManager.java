@@ -123,8 +123,6 @@ public final class LootManager {
 
     public Set<String> tableIds() { return tables.keySet(); }
 
-    public boolean hasTable(String id) { return tables.containsKey(id); }
-
     /** Todas las tablas cargadas (para placeholders). */
     public Collection<Table> allTables() { return tables.values(); }
 

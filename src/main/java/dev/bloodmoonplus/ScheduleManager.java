@@ -138,7 +138,6 @@ public final class ScheduleManager {
         try { return List.of(DayOfWeek.valueOf(k)); } catch (IllegalArgumentException e) { return List.of(); }
     }
 
-    public ZoneId zone() { return zone; }
     public Mode mode() { return mode; }
 
     // ------------------------------------------------------------------ tick
@@ -153,6 +152,8 @@ public final class ScheduleManager {
     private void tickWeekly() {
         if (slots.isEmpty()) return;
         ZonedDateTime now = ZonedDateTime.now(zone);
+        // Sin esta limpieza el mapa de avisos crecía para siempre en modo weekly.
+        warned.entrySet().removeIf(e -> now.toInstant().toEpochMilli() - e.getValue() > 172_800_000L);
         for (int off = -1; off <= 1; off++) {
             LocalDate date = now.toLocalDate().plusDays(off);
             for (Slot slot : slots) {
@@ -166,7 +167,7 @@ public final class ScheduleManager {
                         plugin.data().markFired(key);
                         fire(slot);
                     }
-                } else if (past < 0) {
+                } else if (past >= -172_800L) { // solo avisos de las próximas 48 h: no acumular
                     long until = -past;
                     for (int m : warnMin) {
                         String wkey = key + "/" + m;
@@ -339,5 +340,4 @@ public final class ScheduleManager {
         return day + " " + u.at().format(DateTimeFormatter.ofPattern("HH:mm")) + " (" + zone.getId() + ")";
     }
 
-    public int intervalHours() { return intervalHours; }
 }

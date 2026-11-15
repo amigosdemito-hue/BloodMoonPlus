@@ -57,6 +57,9 @@ public final class EventManager {
         long lastHordeAnnounceMs = 0;
         /** Última vez que se reprodujo un trueno ambiental aleatorio. */
         long lastAmbientThunderMs = 0;
+        /** Hasta cuándo dura la tormenta del evento especial (0 = ninguna). Sin esto el
+         *  tick apagaba la tormenta en el mismo tick en que se encendía. */
+        long stormUntilMs = 0;
         /** Muertes de JUGADORES durante el evento (eventos de muerte, no jugadores únicos).
          *  Ojo: s.kills son los MOBS matados por jugadores, que es otra cosa. */
         public int deathCount = 0;
@@ -154,7 +157,6 @@ public final class EventManager {
         skipEmpty = c.getBoolean("schedule.skip-if-no-players", true);
         globalMode = c.getBoolean("event.global", true);
         keepVanilla = c.getBoolean("loot.keep-vanilla-drops", false);
-        if (!c.contains("loot.keep-vanilla-drops")) keepVanilla = false;
 
         mobs.clear();
         for (Map<?, ?> m : c.getMapList("horde.mobs")) {
@@ -209,8 +211,6 @@ public final class EventManager {
     /** Sesión "principal" para placeholders/estado: todas comparten inicio, fin y dificultad. */
     public Session globalSession() { return sessions.isEmpty() ? null : sessions.values().iterator().next(); }
 
-    public boolean hasGlobalSession() { return !sessions.isEmpty(); }
-
     public Collection<Session> sessions() { return sessions.values(); }
 
     public int activeWorlds() { return sessions.size(); }
@@ -259,11 +259,6 @@ public final class EventManager {
 
     // ------------------------------------------------------------------ inicio / fin
 
-    public boolean start(World w, double diff, int minutes) {
-        long now = System.currentTimeMillis();
-        return startInternal(w, diff, now, now + Math.max(1, minutes) * 60_000L, false, true);
-    }
-
     /** Arranca el evento en una lista de mundos a la vez (evento global). El anuncio
      *  global se emite UNA sola vez, aunque arranquen varios mundos. */
     public boolean startIn(Collection<World> worlds, double diff, int minutes) {
@@ -309,8 +304,7 @@ public final class EventManager {
         if (!resumed) {
             long minutes = Math.max(1, (endMs - startMs) / 60_000L);
             String d = Util.fmt(diff);
-            // Niebla roja cinematográfica: tormenta + trueno + rayo en cada jugador
-            w.setStorm(true);
+            // Trueno ambiental (sin lluvia: clear-weather manda y tickSession la apaga)
             w.setThundering(true);
             Component title = plugin.messages().get("event.title", "difficulty", d);
             Component sub = plugin.messages().get("event.subtitle", "difficulty", d);
@@ -326,6 +320,9 @@ public final class EventManager {
             }
             if (announce && plugin.messages().announce("event", false)) plugin.messages().all("event.start", "difficulty", d, "minutes", String.valueOf(minutes));
             runCommands(cmdStart, w, null, diff);
+            // Comandos por mundo (CommandsOnStart de <mundo>/config.yml). Eran leídos por
+            // WorldConfig pero nunca ejecutados: la opción documentada no hacía nada.
+            runCommands(plugin.worldConfigs().get(w.getName()).commandsOnStart(), w, null, diff);
         }
         plugin.bosses().plan(s, resumed);
         return true;
@@ -410,6 +407,8 @@ public final class EventManager {
             }
         }
         runCommands(cmdEnd, s.world, null, s.difficulty);
+        // Comandos por mundo (CommandsOnEnd), igual que los de inicio.
+        runCommands(plugin.worldConfigs().get(s.world.getName()).commandsOnEnd(), s.world, null, s.difficulty);
     }
 
     private void giveSurvivorRewards(Session s, List<Player> survivors) {
@@ -537,7 +536,9 @@ public final class EventManager {
         if (lockNight) setWorldTime(w, nightTime);
         // Ambiente cinematográfico reducido para servidores con mods y muchos jugadores:
         // se mantiene el ambiente pero se van los truenos/sonidos muy frecuentes y la niebla constante.
-        if (w.hasStorm()) w.setStorm(false);
+        // La tormenta del evento especial dura lo que marca stormUntilMs; el resto del
+        // tiempo se mantiene el cielo despejado (clear-weather).
+        if (w.hasStorm() && now > global.stormUntilMs) w.setStorm(false);
         if (!w.isThundering()) w.setThundering(true);
         if (now - global.lastAmbientThunderMs > 40_000L + ThreadLocalRandom.current().nextInt(30_000)) {
             global.lastAmbientThunderMs = now;
@@ -590,7 +591,13 @@ public final class EventManager {
         long since = now - s.lastSpecialEventMs;
         // Próximo evento entre 5 y 10 minutos desde el último
         if (since < 5 * 60_000L) return;
-        if (ThreadLocalRandom.current().nextDouble() < (since - 5 * 60_000L) / (5 * 60_000L * 0.1)) {
+        // Ventana de 5 a 10 minutos: probabilidad por segundo que crece con el tiempo
+        // transcurrido. Antes era (since - 5 min) / 30 s, que llegaba a 1 (100%) a los
+        // 30 segundos y disparaba los eventos especiales todos seguidos.
+        // La integral de esta probabilidad lineal a lo largo de los 5 minutos vale 1:
+        // el evento cae repartido de forma uniforme entre el minuto 5 y el 10.
+        double p = Math.min(0.2, (since - 5 * 60_000L) / (5 * 60_000L) / 150.0);
+        if (ThreadLocalRandom.current().nextDouble() < p) {
             s.lastSpecialEventMs = now;
             triggerRandomSpecial(s);
         }
@@ -606,15 +613,10 @@ public final class EventManager {
                 w.playSound(net.kyori.adventure.sound.Sound.sound(org.bukkit.Sound.ENTITY_ENDER_DRAGON_GROWL, net.kyori.adventure.sound.Sound.Source.MASTER, 1f, 0.6f));
                 if (sp) plugin.messages().world(w, "special.eclipse");
             }
-            case 1 -> { // Tormenta breve: 60s
+            case 1 -> { // Tormenta breve: 60 s (el tick la apaga cuando expira)
+                s.stormUntilMs = System.currentTimeMillis() + 60_000L;
                 w.setStorm(true);
                 w.setThundering(true);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    if (Bukkit.getWorld(w.getName()) != null) {
-                        w.setStorm(false);
-                        w.setThundering(false);
-                    }
-                }, 20L * 60L);
                 if (sp) plugin.messages().world(w, "special.storm");
             }
             case 2 -> { // Niebla densa

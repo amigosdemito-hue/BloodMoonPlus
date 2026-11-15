@@ -109,8 +109,6 @@ public final class BloodMoonPlus extends JavaPlugin {
         schedule.reload();
     }
 
-    public Keys keys() { return Keys.instance(); }
-
     /** Escala una estadística con la dificultad: 1 + (dif - 1) * factor configurado en difficulty.scaling.<clave>. */
     public double scaled(double diff, String key) {
         return Math.max(0.05, 1 + (diff - 1) * getConfig().getDouble("difficulty.scaling." + key, 0));

@@ -494,7 +494,8 @@ public final class BossManager {
                 final LivingEntity vb = boss;
                 final double vradius = radius, vforce = force, vdmg = dmg * em;
                 new org.bukkit.scheduler.BukkitRunnable() {
-                    int ticks = seconds * 20;
+                    // Se ejecuta cada 2 ticks: 10 pasos por segundo (antes duraba el doble).
+                    int ticks = seconds * 10;
 
                     @Override
                     public void run() {
