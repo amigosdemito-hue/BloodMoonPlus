@@ -46,6 +46,11 @@ public final class BossManager {
      *  Su explosión nunca rompe bloques, ni siquiera fuera de un evento. */
     static final String MINION_TAG = "bloodmoon_minion";
 
+    /** Tope de mini-jefes vivos por jefe (rendimiento y dificultad contenida). */
+    private static final int MAX_MINIONS = 6;
+    /** Tope de bloques que una detonación puede destruir. */
+    private static final int MAX_BLAST_BLOCKS = 1400;
+
     public record Pending(String bossId, long atMs) {}
 
     static final class Instance {
@@ -340,10 +345,14 @@ public final class BossManager {
             if (!bi.enraged && bi.def.enrageAt() > 0 && frac <= bi.def.enrageAt()) {
                 enrage(bi, le);
             }
+            // Una sola búsqueda de jugadores por jefe y tick: antes cada habilidad pedida
+            // recorría y asignaba su propia lista (5 listas por jefe cada 10 ticks).
+            List<Player> near = null;
             for (int i = 0; i < bi.def.abilities().size(); i++) {
                 if (now < bi.nextUse[i]) continue;
+                if (near == null) near = nearbyPlayers(le, 40);
                 Ability a = bi.def.abilities().get(i);
-                if (use(bi, le, a)) {
+                if (use(bi, le, a, near)) {
                     double cd = a.cooldown() * (bi.enraged ? bi.def.enrageCooldown() : 1.0);
                     bi.nextUse[i] = now + (long) (cd * 1000);
                 }
@@ -384,6 +393,35 @@ public final class BossManager {
         return out;
     }
 
+    private int minionsAlive(LivingEntity boss) {
+        int n = 0;
+        for (Entity e : boss.getWorld().getNearbyEntities(boss.getLocation(), 64, 48, 64)) {
+            if (e.getScoreboardTags().contains(MINION_TAG)) n++;
+        }
+        return n;
+    }
+
+    /** Fase enloquecida: abre un cráter esférico. Barrido acotado y con tope de bloques, una
+     *  sola vez por detonación, para que romper terreno no cueste más que la propia pelea. */
+    private int blastTerrain(World w, Location center, int radius) {
+        int broken = 0;
+        int r2 = radius * radius;
+        for (int x = -radius; x <= radius && broken < MAX_BLAST_BLOCKS; x++) {
+            for (int y = -radius; y <= radius && broken < MAX_BLAST_BLOCKS; y++) {
+                for (int z = -radius; z <= radius && broken < MAX_BLAST_BLOCKS; z++) {
+                    if (x * x + y * y + z * z > r2) continue;
+                    org.bukkit.block.Block b = w.getBlockAt(center.getBlockX() + x, center.getBlockY() + y,
+                            center.getBlockZ() + z);
+                    if (b.isEmpty() || b.isLiquid()) continue;
+                    if (b.getType().getHardness() < 0) continue; // bedrock, barrera, portal...
+                    b.setType(Material.AIR, false);
+                    broken++;
+                }
+            }
+        }
+        return broken;
+    }
+
     /** Mini-jefe creeper: mediano, cargado y con la mecha encendida. Explota y muere en la
      *  explosión; su daño no toca al jefe que lo invocó (el jefe es inmune a explosiones). */
     private boolean spawnMini(Location loc, int fuseSec, double power) {
@@ -410,8 +448,7 @@ public final class BossManager {
         try { return Double.parseDouble(a.args()[i].trim()); } catch (NumberFormatException e) { return def; }
     }
 
-    private boolean use(Instance bi, LivingEntity boss, Ability a) {
-        List<Player> near = nearbyPlayers(boss, 40);
+    private boolean use(Instance bi, LivingEntity boss, Ability a, List<Player> near) {
         if (near.isEmpty()) return false;
         World w = boss.getWorld();
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
@@ -602,18 +639,30 @@ public final class BossManager {
                 // Args: radio : daño
                 double radius = arg(a, 0, 15);
                 double dmg = arg(a, 1, 12);
-                if (nearbyPlayers(boss, radius).isEmpty()) return false;
                 Location loc = boss.getLocation().clone().add(0, 0.6, 0);
+                boolean anyone = false;
+                for (Player p : near) {
+                    if (p.getLocation().distanceSquared(loc) <= radius * radius) { anyone = true; break; }
+                }
+                if (!anyone) return false;
                 w.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 3f, 0.5f);
                 w.playSound(loc, Sound.ENTITY_DRAGON_FIREBALL_EXPLODE, 2f, 0.6f);
-                w.spawnParticle(Particle.EXPLOSION_EMITTER, loc, 3, radius / 3, 0.4, radius / 3, 0.1);
-                w.spawnParticle(Particle.FLAME, loc, 180, radius / 2, 0.8, radius / 2, 0.09);
-                w.spawnParticle(Particle.SMOKE, loc, 120, radius / 2, 0.6, radius / 2, 0.05);
+                // Partículas contenidas: una detonación no debe costar cientos de paquetes.
+                w.spawnParticle(Particle.EXPLOSION_EMITTER, loc, 1);
+                w.spawnParticle(Particle.FLAME, loc, 60, radius / 2.5, 0.6, radius / 2.5, 0.06);
+                w.spawnParticle(Particle.SMOKE, loc, 35, radius / 3, 0.5, radius / 3, 0.04);
+                // Fase enloquecida: la explosión revienta el terreno (cráter de ~6 bloques).
+                // En fase normal solo empuja, para no destruir el mapa cada 50 s.
+                if (bi.enraged) blastTerrain(w, loc, 6);
+                int processed = 0;
                 for (Entity ent : w.getNearbyEntities(loc, radius, radius, radius)) {
+                    // Tope duro: una granja con cientos de mobs apilados no puede colgar el tick.
+                    if (processed >= 48) break;
                     if (ent.equals(boss) || !(ent instanceof LivingEntity le)) continue;
                     if (le.isDead()) continue;
                     if (le instanceof Player p && (p.isDead() || p.getGameMode() == GameMode.SPECTATOR)) continue;
                     if (le.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) continue;
+                    processed++;
                     double dist = le.getLocation().distance(loc);
                     // 100 % en el centro, 25 % en el borde del radio
                     double falloff = Math.max(0.25, 1 - dist / radius);
@@ -628,9 +677,14 @@ public final class BossManager {
                 // Mini-jefes: creepers cargados que van a por los jugadores y EXPLOTAN (ahí mueren).
                 // Su explosión no daña al jefe original y no rompe bloques.
                 // Args: cantidad : segundos de mecha : radio de explosión
-                int count = Math.max(1, (int) arg(a, 0, 3));
+                int count = Math.max(1, Math.min(6, (int) arg(a, 0, 3)));
                 int fuse = Math.max(1, (int) arg(a, 1, 3));
-                double power = arg(a, 2, 3);
+                double power = Math.max(1, Math.min(4, arg(a, 2, 3)));
+                // Tope de mini-jefes vivos por jefe: sin esto una pelea larga podía acumular
+                // decenas de creepers cargados y cada uno explota con su propio barrido.
+                int room = MAX_MINIONS - minionsAlive(boss);
+                if (room <= 0) return true; // ya está a tope: se reinicia la recarga sin spamear
+                count = Math.min(count, room);
                 int spawned = 0;
                 for (int i = 0; i < count; i++) {
                     Location loc = plugin.events().findSpawn(boss.getLocation(), 2, 5);

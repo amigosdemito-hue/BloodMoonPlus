@@ -37,7 +37,12 @@ public final class StatisticsStore {
     private final BloodMoonPlus plugin;
     private final File file;
     private final ReentrantLock lock = new ReentrantLock();
-    private HistoricalStatistics data = HistoricalStatistics.empty();
+    /** volatile y de solo lectura para los lectores: cada cambio publica un objeto nuevo
+     *  (HistoricalStatistics es inmutable), así que get() NO necesita el lock. Antes get()
+     *  lo pedía y el hilo principal se quedaba esperando mientras la tarea asíncrona
+     *  escribía statistics.yml en disco: eso tumbaba el TPS (visto en el volcado del
+     *  watchdog: PlaceholderSnapshotService.publish -> StatisticsStore.get bloqueado). */
+    private volatile HistoricalStatistics data = HistoricalStatistics.empty();
 
     public StatisticsStore(BloodMoonPlus plugin) {
         this.plugin = plugin;
@@ -204,12 +209,8 @@ public final class StatisticsStore {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, this::saveNow);
     }
 
+    /** Lectura sin lock: siempre devuelve una instantánea completa e inmutable. */
     public HistoricalStatistics get() {
-        lock.lock();
-        try {
-            return data;
-        } finally {
-            lock.unlock();
-        }
+        return data;
     }
 }

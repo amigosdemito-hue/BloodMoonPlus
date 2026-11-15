@@ -15,15 +15,30 @@ found in the code audit are fixed.
 
 ### Changed — the Absorbedor Cargado now explodes (and survives it)
 - **320 HP** instead of 180, so it can afford a long fight with its own detonations.
-- **New `EXPLODE` ability**: every **45 s** the boss detonates with a **15-block radius**, up to
-12 damage at the center falling to 25% at the edge, plus knockback. It does **not** break blocks
-and it **cannot kill the boss**: bosses are now immune to all explosion damage (their own, their
+- **New `EXPLODE` ability**: every **50 s** the boss detonates with a **15-block radius**, up to
+12 damage at the center falling to 25% at the edge, plus knockback. It never breaks blocks in the
+normal phase; **only in its enraged phase** (below 40% health) it also opens a ~6-block crater.
+It **cannot kill the boss**: bosses are now immune to all explosion damage (their own, their
 minions', TNT, beds, grenades), so the explosion is a threat, never a suicide.
-- **New `SWARM` ability**: every **30 s** it summons **3 mini-bosses** (charged creepers with 30 HP,
+- **New `SWARM` ability**: every **35 s** it summons **3 mini-bosses** (charged creepers with 30 HP,
 a 3 s fuse and a 3-block blast) that chase players, explode and die in the process. Their blast
 does **no damage to the original boss** and never breaks blocks, even outside an event.
+- Coherent rotation: cooldowns 12 / 16 / 24 / 35 / 50 s are staggered so the kit never fires in
+one burst, and at most **6 mini-bosses** can be alive per boss.
 - Net effect: a boss that keeps pressure on with pulls, slams and charges while periodically
 detonating in the middle of a farming spot, so afk mob farms inside the event world pay for it.
+
+### Performance
+- **The main thread no longer waits on the statistics lock.** `PlaceholderSnapshotService.publish()`
+ran every 10 ticks and called `StatisticsStore.get()`, which took the same lock the asynchronous
+`statistics.yml` writer held while doing disk I/O. On a slow disk that blocked the server thread
+long enough for the Paper watchdog to dump it. Statistics are immutable, so `get()` is now a
+lock-free read of a `volatile` snapshot.
+- The boss tick now resolves nearby players **once per boss per tick** instead of once per
+ability, explosion particles were trimmed (1 emitter + 95 particles instead of 303), a detonation
+processes at most **48 entities** and **1400 blocks**, and the minion summon is capped at 6 alive
+per boss. Nothing in the kit allocates unbounded work per tick, so a large farm next to the fight
+cannot stall the server.
 
 ### Fixed — full code audit
 - **The boss VORTEX lasted twice as long as configured.** The runnable steps every 2 ticks but

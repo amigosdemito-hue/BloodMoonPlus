@@ -162,10 +162,11 @@ bosses:
     exp: 1100
 
   creeper_cargado:
-    # Creeper CARGADO y del DOBLE de alto que uno normal (scale 2.0). Absorbe a los jugadores con
-    # VORTEX, los remata con SLAM/CHARGE y detona con su explosión característica (EXPLODE).
-    # La explosión NO lo mata: es inmune a todo daño por explosión, y tampoco rompe bloques.
-    # SWARM invoca mini-jefes creeper que sí mueren al explotar y no dañan al original.
+    # Creeper CARGADO y del DOBLE de alto que uno normal (scale 2.0). Kit escalonado para que
+    # nunca le toque todo a la vez (recargas 12/16/24/35/50): te atrae (VORTEX), te castiga de
+    # cerca (SLAM), te persigue (CHARGE), llena el campo de mini-jefes (SWARM) y detona (EXPLODE).
+    # La explosión NO lo mata (es inmune a todo daño por explosión). En fase normal solo empuja y
+    # daña; al 40 % de vida, en su fase enloquecida, además abre un cráter de ~6 bloques.
     name: "<green><bold>Absorbedor Cargado"
     type: CREEPER
     powered: true
@@ -176,7 +177,7 @@ bosses:
     knockback-resistance: 0.6
     bar-color: GREEN
     bar-overlay: NOTCHED_10
-    abilities: ["VORTEX:16:18:4:1.6:2.5", "SLAM:12:6:4", "CHARGE:24:1.2:6", "EXPLODE:45:15:12", "SWARM:30:3:3:3"]
+    abilities: ["SLAM:12:6:4", "VORTEX:16:18:4:1.6:2.5", "CHARGE:24:1.2:6", "SWARM:35:3:3:3", "EXPLODE:50:15:12"]
     enrage-at: 0.4
     enrage-cooldown: 0.6
     enrage-damage: 1.5
