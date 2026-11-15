@@ -56,6 +56,12 @@ found in the code audit are fixed.
   re-entrancy guard**, so they cannot re-trigger weapon abilities in a cascade.
 
 ### Fixed — full second audit (live-tested on Paper 26.2)
+- **A manually spawned boss stayed invisible in `%bloodmoon_boss_*%` when no event was running.** Boss
+  snapshots were only published for worlds with a session, and `/luna boss` refused to run without
+  one. Boss state is now published per world whether or not there is an event, `/luna boss <id>`
+  works outside an event (spawning next to the executing player), and `<id> <jugador|mundo>` accepts
+  a loaded world as well as a player. The spawn announcement and the dragon growl are now sent only
+  to the boss's own world instead of the whole server.
 - **`%bloodmoon_boss_alive%` stayed true forever after the boss died.** The boss snapshot was only
   published while a boss was alive and never reset, so `boss_alive`, `boss_name`, `boss_health`
   and `boss_state` kept the dead boss until a reload. The boss state is now published per world

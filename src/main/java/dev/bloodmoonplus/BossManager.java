@@ -201,12 +201,32 @@ public final class BossManager {
         return spawn(s, d, target);
     }
 
-    /** Cuerpo de la invocación; el jugador objetivo ya viene validado. */
+    /** Invocación manual con un evento activo: usa la dificultad de la sesión. */
     private boolean spawn(EventManager.Session s, BossDef d, Player target) {
-        dev.bloodmoonplus.config.WorldConfig wc = plugin.worldConfigs().get(s.world.getName());
+        return spawn(s.world, s.difficulty, d, target);
+    }
+
+    /** Invocación manual SIN evento, junto al jugador indicado (mundo y dificultad 1.0). */
+    public boolean spawnNear(String bossId, Player target) {
+        BossDef d = defs.get(bossId);
+        if (d == null || target == null || !target.isOnline() || target.isDead()) return false;
+        return spawn(target.getWorld(), 1.0, d, target);
+    }
+
+    /** Invocación manual SIN evento, en el spawn del mundo indicado. */
+    public boolean spawnInWorld(String bossId, World world) {
+        BossDef d = defs.get(bossId);
+        if (d == null || world == null) return false;
+        return spawn(world, 1.0, d, null);
+    }
+
+    /** Cuerpo de la invocación. 'target' puede ser null (jefe en el spawn del mundo). */
+    private boolean spawn(World world, double difficulty, BossDef d, Player target) {
+        dev.bloodmoonplus.config.WorldConfig wc = plugin.worldConfigs().get(world.getName());
         dev.bloodmoonplus.config.WorldConfig.BossConfig bossCfg = wc.boss();
-        Location loc = plugin.events().findSpawn(target.getLocation(), 10, 18);
-        if (loc == null) loc = target.getLocation();
+        Location base = target != null ? target.getLocation() : world.getSpawnLocation();
+        Location loc = plugin.events().findSpawn(base, 10, 18);
+        if (loc == null) loc = base;
 
         LivingEntity le = null;
 
@@ -216,27 +236,27 @@ public final class BossManager {
             if (plugin.mythic().mobExists(mythicName)) {
                 spawningBoss = true;
                 try {
-                    le = plugin.mythic().spawn(mythicName, loc, s.difficulty);
+                    le = plugin.mythic().spawn(mythicName, loc, difficulty);
                 } finally {
                     spawningBoss = false;
                 }
                 if (le != null) {
                     String display = plugin.mythic().getDisplayName(mythicName);
                     le.customName(Util.mini(display));
-                    s.world.strikeLightningEffect(loc);
+                    world.strikeLightningEffect(loc);
                     if (plugin.messages().announce("bosses", true))
-                        plugin.messages().all("boss.spawn", "boss", display);
-                    for (Player p : s.world.getPlayers()) p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 0.7f);
+                        plugin.messages().world(world, "boss.spawn", "boss", display);
+                    for (Player p : world.getPlayers()) p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 0.7f);
                     plugin.stats().recordBossSpawned();
                 }
             } else {
                 if (plugin.messages().announce("bosses", true))
-                    plugin.messages().world(s.world, "boss.mythic-not-found", "name", mythicName, "world", s.world.getName());
+                    plugin.messages().world(world, "boss.mythic-not-found", "name", mythicName, "world", world.getName());
             }
             // Si Mythic falla y hay fallback, crear vanilla
             if (le == null && bossCfg.mythicFallback()) {
                 if (plugin.messages().announce("bosses", true))
-                    plugin.messages().world(s.world, "boss.mythic-fallback", "world", s.world.getName());
+                    plugin.messages().world(world, "boss.mythic-fallback", "world", world.getName());
             } else if (le == null) {
                 return false;
             }
@@ -244,7 +264,7 @@ public final class BossManager {
 
         // Modo NONE: no crear nada
         if ("NONE".equals(bossCfg.mode()) && le == null) {
-            if (plugin.messages().announce("bosses", true)) plugin.messages().world(s.world, "boss.disabled");
+            if (plugin.messages().announce("bosses", true)) plugin.messages().world(world, "boss.disabled");
             return false;
         }
 
@@ -253,7 +273,7 @@ public final class BossManager {
             spawningBoss = true;
             try {
                 le = plugin.events().spawn(loc, d.type(), d.health(), d.damage(), d.speed(), d.name(),
-                        d.equipment(), 1.0, s.difficulty, null, target);
+                        d.equipment(), 1.0, difficulty, null, target);
             } finally {
                 spawningBoss = false;
             }
@@ -269,9 +289,9 @@ public final class BossManager {
                 if (kb != null) kb.setBaseValue(Math.min(1.0, d.knockbackRes()));
             }
             if (d.announce() && plugin.messages().announce("bosses", true)) {
-                s.world.strikeLightningEffect(loc);
-                plugin.messages().all("boss.spawn", "boss", d.name());
-                for (Player p : s.world.getPlayers()) p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 0.7f);
+                world.strikeLightningEffect(loc);
+                plugin.messages().world(world, "boss.spawn", "boss", d.name());
+                for (Player p : world.getPlayers()) p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 0.7f);
                 plugin.stats().recordBossSpawned();
             }
         } else {
@@ -282,7 +302,7 @@ public final class BossManager {
 
         // Etiqueta para que el datapack anti-Wither exima a los jefes de la Luna de Sangre.
         le.addScoreboardTag("bloodmoon_boss");
-        alive.put(le.getUniqueId(), new Instance(le.getUniqueId(), d, s.difficulty, s.world));
+        alive.put(le.getUniqueId(), new Instance(le.getUniqueId(), d, difficulty, world));
         return true;
     }
 
@@ -683,17 +703,34 @@ public final class BossManager {
     public dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot aliveSnapshot(World only) {
         for (Instance bi : alive.values()) {
             if (only != null && !only.equals(bi.world)) continue;
-            Entity ent = Bukkit.getEntity(bi.id);
-            if (ent instanceof LivingEntity le && !le.isDead() && le.isValid()) {
-                double maxHp = Util.maxHealth(le);
-                String name = le.customName() != null
-                        ? net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(le.customName())
-                        : bi.def.name();
-                return dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot.fromEntity(
-                        le, maxHp, name, "VANILLA",
-                        dev.bloodmoonplus.placeholder.BossPlaceholderState.ALIVE);
-            }
+            var snap = snapshot(bi);
+            if (snap != null) return snap;
         }
         return null;
+    }
+
+    /** Snapshot del primer jefe vivo de CADA mundo, haya o no un evento en curso. Un jefe
+     *  invocado a mano con /luna boss también debe aparecer en los placeholders. */
+    public java.util.Map<String, dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot> aliveSnapshots() {
+        java.util.Map<String, dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot> out = new java.util.LinkedHashMap<>();
+        for (Instance bi : alive.values()) {
+            String wn = bi.world.getName();
+            if (out.containsKey(wn)) continue;
+            var snap = snapshot(bi);
+            if (snap != null) out.put(wn, snap);
+        }
+        return out;
+    }
+
+    private dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot snapshot(Instance bi) {
+        Entity ent = Bukkit.getEntity(bi.id);
+        if (!(ent instanceof LivingEntity le) || le.isDead() || !le.isValid()) return null;
+        double maxHp = Util.maxHealth(le);
+        String name = le.customName() != null
+                ? net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(le.customName())
+                : bi.def.name();
+        return dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot.fromEntity(
+                le, maxHp, name, "VANILLA",
+                dev.bloodmoonplus.placeholder.BossPlaceholderState.ALIVE);
     }
 }

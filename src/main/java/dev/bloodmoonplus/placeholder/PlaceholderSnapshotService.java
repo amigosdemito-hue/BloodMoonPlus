@@ -90,19 +90,21 @@ public final class PlaceholderSnapshotService {
         }
         // Evita que el caché crezca con jugadores que ya se desconectaron.
         playerCache.keySet().removeIf(id -> Bukkit.getPlayer(id) == null);
-        // Boss por mundo. Antes solo se publicaba el primero y, al morir el jefe, el snapshot
-        // se quedaba en ALIVE para siempre (%bloodmoon_boss_alive% nunca volvía a false).
-        for (EventManager.Session s : plugin.events().sessions()) {
-            String wn = s.world.getName();
-            var aliveBoss = plugin.bosses().aliveSnapshot(s.world);
-            BossPlaceholderSnapshot prev = bossByWorld.get(wn);
-            if (aliveBoss != null) {
-                bossByWorld.put(wn, aliveBoss);
-            } else if (prev != null && prev.state() == BossPlaceholderState.ALIVE) {
-                bossByWorld.put(wn, BossPlaceholderSnapshot.defeated(prev.bossName(), prev.bossType()));
-            }
+        // Boss por mundo, haya o no evento activo: un jefe invocado a mano con /luna boss
+        // antes solo se publicaba si su mundo tenía sesión, así que los placeholders
+        // %bloodmoon_boss_*% se quedaban en NONE. Al morir se cierra en DEFEATED.
+        Map<String, BossPlaceholderSnapshot> aliveBosses = plugin.bosses().aliveSnapshots();
+        bossByWorld.putAll(aliveBosses);
+        List<String> defeated = new ArrayList<>();
+        for (Map.Entry<String, BossPlaceholderSnapshot> e : bossByWorld.entrySet()) {
+            if (!aliveBosses.containsKey(e.getKey()) && e.getValue().state() == BossPlaceholderState.ALIVE)
+                defeated.add(e.getKey());
         }
-        bossByWorld.keySet().removeIf(k -> !live.contains(k));
+        for (String wn : defeated) {
+            BossPlaceholderSnapshot prev = bossByWorld.get(wn);
+            if (prev != null) bossByWorld.put(wn, BossPlaceholderSnapshot.defeated(prev.bossName(), prev.bossType()));
+        }
+        bossByWorld.keySet().removeIf(k -> !live.contains(k) && !aliveBosses.containsKey(k));
     }
 
     public HistoricalStatistics history() { return history.get(); }

@@ -214,30 +214,47 @@ public final class BloodMoonCommand implements TabExecutor {
 
     private void boss(CommandSender s, String[] a) {
         if (a.length < 1) { m().send(s, "cmd.usage-boss", "bosses", String.join(", ", plugin.bosses().ids())); return; }
-        Collection<EventManager.Session> all = plugin.events().sessions();
-        if (all.isEmpty()) { m().send(s, "cmd.status-none"); return; }
         if (!plugin.bosses().ids().contains(a[0])) {
             m().send(s, "cmd.boss-unknown", "boss", a[0], "bosses", String.join(", ", plugin.bosses().ids()));
             return;
         }
-        // /luna boss <id> <jugador>: el jefe aparece junto a ESE jugador, en el mundo del evento
-        // en el que esté (antes siempre era un jugador elegible al azar).
+        // /luna boss <id> <jugador|mundo>: el jefe aparece junto a ESE jugador (haya o no
+        // evento activo) o en el spawn de ESE mundo. Antes exigía un evento y solo aceptaba
+        // jugadores, así que no se podía invocar un jefe fuera de la Luna de Sangre.
         if (a.length > 1) {
             Player target = Bukkit.getPlayerExact(a[1]);
-            if (target == null) { m().send(s, "cmd.player-unknown", "player", a[1]); return; }
-            EventManager.Session ses = sessionOf(target.getWorld());
-            if (ses == null) { m().send(s, "event.not-active", "world", target.getWorld().getName()); return; }
-            if (plugin.bosses().spawnAt(ses, a[0], target)) {
-                m().send(s, "cmd.boss-spawned-player", "boss", a[0], "player", target.getName());
-            } else {
-                m().send(s, "cmd.boss-failed-target", "boss", a[0], "player", target.getName());
+            if (target != null) {
+                EventManager.Session ses = sessionOf(target.getWorld());
+                boolean ok = ses != null
+                        ? plugin.bosses().spawnAt(ses, a[0], target)
+                        : plugin.bosses().spawnNear(a[0], target);
+                if (ok) m().send(s, "cmd.boss-spawned-player", "boss", a[0], "player", target.getName());
+                else m().send(s, "cmd.boss-failed-target", "boss", a[0], "player", target.getName());
+                return;
             }
+            org.bukkit.World w = Bukkit.getWorld(a[1]);
+            if (w == null) { m().send(s, "cmd.target-unknown", "target", a[1]); return; }
+            if (plugin.bosses().spawnInWorld(a[0], w))
+                m().send(s, "cmd.boss-spawned-world", "boss", a[0], "world", w.getName());
+            else m().send(s, "cmd.boss-failed", "boss", a[0]);
             return;
         }
-        int spawned = 0;
-        for (EventManager.Session ses : all) if (plugin.bosses().spawn(ses, a[0])) spawned++;
-        if (spawned > 0) m().send(s, "cmd.boss-spawned", "boss", a[0]);
-        else m().send(s, "cmd.boss-failed", "boss", a[0]);
+        Collection<EventManager.Session> all = plugin.events().sessions();
+        if (!all.isEmpty()) {
+            int spawned = 0;
+            for (EventManager.Session ses : all) if (plugin.bosses().spawn(ses, a[0])) spawned++;
+            if (spawned > 0) m().send(s, "cmd.boss-spawned", "boss", a[0]);
+            else m().send(s, "cmd.boss-failed", "boss", a[0]);
+            return;
+        }
+        // Sin evento activo: se invoca junto al jugador que ejecuta el comando.
+        if (s instanceof Player p) {
+            if (plugin.bosses().spawnNear(a[0], p))
+                m().send(s, "cmd.boss-spawned-player", "boss", a[0], "player", p.getName());
+            else m().send(s, "cmd.boss-failed", "boss", a[0]);
+        } else {
+            m().send(s, "cmd.boss-usage-no-event");
+        }
     }
 
     /** Sesión del evento en ese mundo, o null si ese mundo no tiene Luna de Sangre activa. */

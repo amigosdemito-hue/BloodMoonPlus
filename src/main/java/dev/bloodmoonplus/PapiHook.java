@@ -66,8 +66,10 @@ public final class PapiHook extends PlaceholderExpansion {
         PlayerPlaceholderState playerState = (player != null && player.isOnline())
                 ? plugin.snapshots().playerFor(player.getUniqueId())
                 : null;
-        // Jefe del mismo mundo que la sesión del jugador (antes podía mostrar el de otro mundo).
-        BossPlaceholderSnapshot bossSnap = session != null ? plugin.snapshots().boss(session.worldName()) : null;
+        // Jefe del mundo del jugador (aunque no haya evento: un jefe invocado a mano también
+        // debe verse) y, si no hay, el de la sesión y luego el de cualquier mundo.
+        BossPlaceholderSnapshot bossSnap = worldName != null ? plugin.snapshots().boss(worldName) : null;
+        if (bossSnap == null && session != null) bossSnap = plugin.snapshots().boss(session.worldName());
         if (bossSnap == null) bossSnap = plugin.snapshots().boss();
         if (bossSnap == null) bossSnap = BossPlaceholderSnapshot.empty();
         HistoricalStatistics hist = plugin.snapshots().history();
