@@ -12,6 +12,7 @@ param(
     [Parameter(Mandatory = $false)][string[]]$Loaders = @("fabric","forge","java_edition","modrinth","paper","quilt"),
     [Parameter(Mandatory = $false)][switch]   $SyncProject = $false,
     [Parameter(Mandatory = $false)][string]   $PatchVersion = "",
+    [Parameter(Mandatory = $false)][switch]   $SyncOnly = $false,
     [Parameter(Mandatory = $false)][switch]   $DryRun = $false
 )
 $ErrorActionPreference = "Stop"
@@ -31,6 +32,44 @@ if (-not $env:MODRINTH_TOKEN) {
     }
 }
 if (-not $env:MODRINTH_TOKEN) { throw "Falta token de Modrinth." }
+
+# ---------------------------------------------------------------- ficha del proyecto
+# Sincroniza el resumen y la descripcion publicados con modrinth/summary.txt y
+# modrinth/description.md (la ficha vive en el proyecto, no en la version).
+# Ojo: $pid es automatica y de solo lectura en PowerShell; no se puede reutilizar.
+function Sync-ProjectFicha([string]$targetProjectId) {
+    $sf = Join-Path $PSScriptRoot "summary.txt"
+    $bf = Join-Path $PSScriptRoot "description.md"
+    $patch = @{}
+    if (Test-Path $sf) { $patch.description = [System.IO.File]::ReadAllText($sf, [System.Text.Encoding]::UTF8).Trim() }
+    if (Test-Path $bf) { $patch.body        = [System.IO.File]::ReadAllText($bf, [System.Text.Encoding]::UTF8) }
+    if ($patch.Count -eq 0) { Write-Host "Nada que sincronizar."; return }
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes(($patch | ConvertTo-Json -Depth 6 -Compress))
+    try {
+        Invoke-RestMethod -Method Patch -Uri "https://api.modrinth.com/v2/project/$targetProjectId" `
+            -Headers @{ Authorization = $env:MODRINTH_TOKEN } `
+            -ContentType "application/json; charset=utf-8" `
+            -Body $bytes -TimeoutSec 60 | Out-Null
+        Write-Host "Ficha actualizada (resumen $($patch.description.Length) chars, descripcion $($patch.body.Length) chars)." -ForegroundColor Green
+    } catch {
+        Write-Host "FALLO al actualizar la ficha:" -ForegroundColor Red
+        if ($_.Exception.Response) {
+            $sr = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+            Write-Host "CUERPO: $($sr.ReadToEnd())" -ForegroundColor Red
+        } else {
+            Write-Host $_.Exception.Message -ForegroundColor Red
+        }
+        throw
+    }
+}
+
+if ($SyncOnly) {
+    $id = (Invoke-RestMethod -Uri "https://api.modrinth.com/v2/project/$ProjectSlug" `
+            -Headers @{ Authorization = $env:MODRINTH_TOKEN } -TimeoutSec 30).id
+    Write-Host "Project id=$id"
+    Sync-ProjectFicha $id
+    return
+}
 
 # ---------------------------------------------------------------- changelog
 # Se toma SOLO la seccion de esta version desde modrinth/CHANGELOG.md.
@@ -145,26 +184,4 @@ try {
     throw
 }
 
-if ($SyncProject) {
-    $sf = Join-Path (Split-Path -Parent $PSScriptRoot) "modrinth\summary.txt"
-    $bf = Join-Path (Split-Path -Parent $PSScriptRoot) "modrinth\description.md"
-    $patch = @{}
-    if (Test-Path $sf) { $patch.description = [System.IO.File]::ReadAllText($sf, [System.Text.Encoding]::UTF8).Trim() }
-    if (Test-Path $bf) { $patch.body = [System.IO.File]::ReadAllText($bf, [System.Text.Encoding]::UTF8) }
-    if ($patch.Count -gt 0) {
-        $bytes = [System.Text.Encoding]::UTF8.GetBytes(($patch | ConvertTo-Json -Depth 6 -Compress))
-        try {
-            Invoke-RestMethod -Method Patch -Uri "https://api.modrinth.com/v2/project/$projectId" `
-                -Headers @{ Authorization = $env:MODRINTH_TOKEN } `
-                -ContentType "application/json; charset=utf-8" `
-                -Body $bytes -TimeoutSec 60 | Out-Null
-            Write-Host "Ficha actualizada." -ForegroundColor Green
-        } catch {
-            Write-Host "Fichas fallida:" -ForegroundColor Red
-            if ($_.Exception.Response) {
-                $sr = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-                Write-Host "CUERPO: $($sr.ReadToEnd())" -ForegroundColor Red
-            }
-        }
-    }
-}
+if ($SyncProject) { Sync-ProjectFicha $projectId }
