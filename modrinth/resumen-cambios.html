@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>BloodMoonPlus — Cambios de la versión 1.0.1 a la 1.0.2-beta</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 9.7pt;
+    line-height: 1.45;
+    color: #1c1a1d;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2, h3, h4 { font-weight: 700; margin: 0; }
+  p { margin: 0 0 8px; }
+  ul { margin: 0 0 10px; padding-left: 18px; }
+  li { margin-bottom: 4px; }
+  code, .mono {
+    font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+    font-size: 0.92em;
+    background: #f2ecef;
+    border: 1px solid #e4dade;
+    border-radius: 3px;
+    padding: 0.5px 4px;
+    color: #6d1230;
+  }
+  .page {
+    padding: 18mm 18mm 15mm;
+    page-break-after: always;
+    position: relative;
+  }
+  .page:last-child { page-break-after: auto; }
+
+  /* ---------- Portada ---------- */
+  .cover {
+    background: #14090f;
+    color: #f7eef2;
+    padding: 0;
+    height: 297mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .cover-top { padding: 26mm 20mm 0; }
+  .moon {
+    width: 42mm; height: 42mm; border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #ff5f6d 0%, #b3122f 46%, #5c0716 100%);
+    box-shadow: 0 0 40mm 8mm rgba(190, 20, 50, 0.35);
+    margin-bottom: 14mm;
+  }
+  .eyebrow {
+    font-size: 9.5pt; letter-spacing: 0.32em; text-transform: uppercase;
+    color: #e2839b; font-weight: 600; margin-bottom: 6mm;
+  }
+  .cover h1 { font-size: 40pt; line-height: 1.02; letter-spacing: -0.02em; }
+  .cover h1 span { color: #ff4d67; display: block; }
+  .cover .sub {
+    font-size: 13pt; color: #d8bcc7; margin-top: 8mm; max-width: 130mm; line-height: 1.45;
+  }
+  .cover-mid { padding: 0 20mm; }
+  .version-row { display: flex; align-items: stretch; gap: 0; margin-top: 4mm; }
+  .vbox {
+    flex: 1; border-top: 2px solid #3a1524; padding-top: 5mm;
+  }
+  .vbox .lbl { font-size: 8.5pt; letter-spacing: 0.2em; text-transform: uppercase; color: #9d7183; }
+  .vbox .val { font-size: 17pt; font-weight: 700; margin-top: 2mm; }
+  .vbox .val small { font-size: 10pt; font-weight: 400; color: #c9a8b4; }
+  .arrow { padding: 0 10mm; color: #ff4d67; font-size: 18pt; align-self: center; }
+  .cover-bottom {
+    background: #1f0c15; padding: 9mm 20mm; border-top: 1px solid #33111f;
+    display: flex; justify-content: space-between; font-size: 9.5pt; color: #b99aa6;
+  }
+  .cover-bottom b { color: #f7eef2; font-weight: 600; }
+
+  /* ---------- Cabeceras ---------- */
+  .section-head { border-bottom: 3px solid #b3122f; padding-bottom: 3.5mm; margin-bottom: 5mm; }
+  .section-head .num {
+    font-size: 9pt; font-weight: 700; letter-spacing: 0.24em; color: #b3122f; text-transform: uppercase;
+  }
+  .section-head h2 { font-size: 20pt; letter-spacing: -0.01em; margin-top: 2mm; line-height: 1.15; }
+  .section-head .lede { font-size: 11pt; color: #5d4b53; margin-top: 3mm; margin-bottom: 0; }
+
+  h3 { font-size: 12pt; margin: 5.5mm 0 2.5mm; color: #2b1219; }
+  h3:first-of-type { margin-top: 0; }
+  h4 { font-size: 10.5pt; margin: 4mm 0 2mm; color: #6d1230; }
+
+  table { width: 100%; border-collapse: collapse; margin: 2.5mm 0 4mm; font-size: 9pt; }
+  th {
+    background: #f7eef1; text-align: left; padding: 2mm 3mm;
+    font-size: 8.6pt; letter-spacing: 0.08em; text-transform: uppercase; color: #7d1431;
+    border-bottom: 1.6px solid #d8bcc7;
+  }
+  td { padding: 2mm 3mm; border-bottom: 1px solid #ece2e6; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  .card {
+    background: #faf6f8; border: 1px solid #ecdfe4; border-left: 3.5px solid #b3122f;
+    border-radius: 2px; padding: 3.5mm 4.5mm; margin: 3.5mm 0;
+  }
+  .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+  .card .tag {
+    display: inline-block; font-size: 8pt; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #b3122f; margin-bottom: 2mm;
+  }
+  .note {
+    background: #fffaf0; border: 1px solid #f0dfbc; border-left: 3.5px solid #d68b18;
+    padding: 3.5mm 5mm; font-size: 9.6pt; margin: 4mm 0;
+  }
+  .note b { color: #8a5600; }
+
+  .grid2 { display: flex; gap: 6mm; }
+  .grid2 > div { flex: 1; }
+
+  .kpi-row { display: flex; gap: 4mm; margin: 5mm 0 6mm; }
+  .kpi {
+    flex: 1; background: #14090f; color: #fff; border-radius: 3px;
+    padding: 5mm 5mm 4.5mm;
+  }
+  .kpi .n { font-size: 22pt; font-weight: 700; color: #ff4d67; line-height: 1; }
+  .kpi .t { font-size: 8.6pt; color: #cbaab6; margin-top: 2mm; line-height: 1.3; }
+
+  .status { font-size: 8.6pt; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .st-new { color: #0a7a45; }
+  .st-fix { color: #b3122f; }
+  .st-chg { color: #9a5c00; }
+
+  .footer {
+    position: absolute; bottom: 6mm; left: 18mm; right: 18mm;
+    font-size: 8pt; color: #9d8791; border-top: 1px solid #ece2e6; padding-top: 2.5mm;
+    display: flex; justify-content: space-between;
+  }
+  .bullet-none { list-style: none; padding-left: 0; }
+  .bullet-none li { padding-left: 6mm; position: relative; }
+  .bullet-none li:before {
+    content: ""; position: absolute; left: 0; top: 2.1mm;
+    width: 2.2mm; height: 2.2mm; background: #b3122f; border-radius: 1px;
+  }
+  .tight li { margin-bottom: 3px; }
+  .muted { color: #6b5960; }
+  .avoid { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- ============ PORTADA ============ -->
+<div class="page cover">
+  <div class="cover-top">
+    <div class="moon"></div>
+    <div class="eyebrow">Informe de versión</div>
+    <h1>BloodMoon<span>Plus</span></h1>
+    <p class="sub">Todo lo que cambió entre la versión <b>1.0.1</b> y la versión actual
+      <b>1.0.2-beta</b>, explicado para el jugador y para el administrador del servidor.</p>
+  </div>
+
+  <div class="cover-mid">
+    <div class="version-row">
+      <div class="vbox">
+        <div class="lbl">Versión de partida</div>
+        <div class="val">1.0.1</div>
+      </div>
+      <div class="arrow">&#8594;</div>
+      <div class="vbox">
+        <div class="lbl">Versión actual</div>
+        <div class="val">1.0.2-beta</div>
+      </div>
+      <div class="vbox">
+        <div class="lbl">Plataforma</div>
+        <div class="val">Paper <small>26.2 / 26.3</small></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cover-bottom">
+    <div><b>BloodMoonPlus</b> &#183; Resumen de cambios</div>
+    <div>16 de noviembre de 2026</div>
+  </div>
+</div>
+
+<!-- ============ 1. RESUMEN ============ -->
+<div class="page">
+  <div class="section-head">
+    <div class="num">01 &#183; Resumen ejecutivo</div>
+    <h2>Qué cambia, en una página</h2>
+    <p class="lede">Esta versión no añade un sistema nuevo: hace que lo que ya existía funcione como se
+      prometió. Cinco grandes bloques de trabajo.</p>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="n">7</div><div class="t">idiomas completos<br>en el plugin</div></div>
+    <div class="kpi"><div class="n">30+</div><div class="t">fallos corregidos<br>en dos auditorías</div></div>
+    <div class="kpi"><div class="n">4</div><div class="t">comandos nuevos<br>o reparados</div></div>
+    <div class="kpi"><div class="n">109</div><div class="t">pruebas automáticas<br>en verde</div></div>
+  </div>
+
+  <h3>Los cinco bloques de esta actualización</h3>
+  <table>
+    <tr>
+      <th style="width:31%">Bloque</th>
+      <th style="width:14%">Tipo</th>
+      <th>Qué significa para ti</th>
+    </tr>
+    <tr>
+      <td><b>Jefe nuevo y combate</b></td>
+      <td><span class="status st-new">Nuevo</span></td>
+      <td>Un jefe nuevo, las <i>Fauces del Cataclismo</i>, con absorción, detonación y crías. Los
+        jefes ya no pueden morir por su propia explosión.</td>
+    </tr>
+    <tr>
+      <td><b>Objetos de la Luna protegidos</b></td>
+      <td><span class="status st-new">Nuevo</span></td>
+      <td>El equipo de la Luna ya no se puede desencantar en la piedra de afilar, y el que los
+        jugadores ya tienen se actualiza solo al entrar.</td>
+    </tr>
+    <tr>
+      <td><b>Evento y estadísticas correctas</b></td>
+      <td><span class="status st-fix">Corregido</span></td>
+      <td>Muertes, supervivientes, participación, recompensas y placeholders ahora reflejan lo que
+        de verdad pasó en el evento, en cada mundo.</td>
+    </tr>
+    <tr>
+      <td><b>Rendimiento</b></td>
+      <td><span class="status st-fix">Corregido</span></td>
+      <td>Eliminado el bloqueo del hilo principal que provocaba avisos del watchdog (caídas de TPS)
+        con el evento en marcha.</td>
+    </tr>
+    <tr>
+      <td><b>Siete idiomas</b></td>
+      <td><span class="status st-new">Nuevo</span></td>
+      <td>Español, inglés, portugués, francés, alemán, italiano y ruso, intercambiables sin
+        reiniciar, con pruebas que impiden que una traducción se rompa.</td>
+    </tr>
+  </table>
+
+  <div class="card">
+    <span class="tag">Lo más visible para el jugador</span>
+    <ul class="tight" style="margin-bottom:0">
+      <li>Los objetos raros y superiores desaparecen al morir (maldición de desaparición) y el
+        equipo de la Luna no se puede «limpiar» en la piedra de afilar.</li>
+      <li>Un jefe nuevo que absorbe jugadores hacia su cuerpo y luego detona: ya no es una pelea
+        de quedarse quieto.</li>
+      <li>El chat deja de mentir: la participación y los supervivientes cuentan de verdad.</li>
+      <li>El servidor aguanta el evento sin tirones.</li>
+    </ul>
+  </div>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>2</div></div>
+</div>
+
+<!-- ============ 2. JUGABILIDAD ============ -->
+<div class="page">
+  <div class="section-head">
+    <div class="num">02 &#183; Cambios en el juego</div>
+    <h2>Lo que nota el jugador</h2>
+    <p class="lede">Cambios de reglas y de contenido que afectan directamente a la partida.</p>
+  </div>
+
+  <h3>2.1 &#183; Maldición de desaparición para el equipo raro y superior</h3>
+  <p>Antes solo cuatro armas legendarias desaparecían al morir. Ahora <b>todo el equipo de raridad
+    Raro, Épico, Legendario y Mítico</b> lleva la maldición de desaparición: espadas, hachas, picos,
+    palas, azadas, arcos, ballestas, tridentes, mazas, cascos, petos, grebas, botas y élitros. Los
+    escudos nunca la llevan.</p>
+  <table>
+    <tr><th style="width:26%">Raridad</th><th style="width:22%">¿Desaparece al morir?</th><th>Ejemplos</th></tr>
+    <tr><td>Común</td><td>No</td><td>Equipo básico de la horda</td></tr>
+    <tr><td>Poco común</td><td>No</td><td>Mejoras intermedias</td></tr>
+    <tr><td>Raro</td><td><b>Sí</b> (nuevo)</td><td>Espada de Sangre, Arco Carmesí, Daga de Sombras</td></tr>
+    <tr><td>Épico</td><td><b>Sí</b> (nuevo)</td><td>Arco de Tormenta, Pico Umbrío, Hacha del Verdugo</td></tr>
+    <tr><td>Legendario</td><td><b>Sí</b> (nuevo, ya era así en 4 armas)</td><td>Espada de la Ruina, Ballesta Abisal</td></tr>
+    <tr><td>Mítico</td><td><b>Sí</b> (nuevo)</td><td>Filo del Eclipse, Guadaña del Segador</td></tr>
+  </table>
+  <p class="muted" style="font-size:9.4pt">Se aplica al construir el objeto, así que también cubre
+    servidores que ya tienen un <code>items.yml</code> antiguo y cualquier objeto que se añada en el
+    futuro. Se desactiva con <code>settings.vanishing-curse-min-rarity: OFF</code> en
+    <code>items.yml</code>; se puede subir el umbral (por ejemplo a <code>EPICO</code>) sin tocar código.</p>
+
+  <h3>2.2 &#183; El equipo de la Luna ya no se puede «limpiar»</h3>
+  <div class="grid2">
+    <div>
+      <h4>Piedra de afilar: bloqueada</h4>
+      <p>Los objetos de la Luna no se pueden desencantar ni perder sus maldiciones. El resultado se
+        cancela y se avisa al jugador del motivo. <b>Sí</b> se permite añadir encantamientos,
+        renombrar, reparar y mejorar.</p>
+    </div>
+    <div>
+      <h4>Yunque y herrería: vigilados</h4>
+      <p>El resultado nunca puede conservar menos encantamientos, niveles más bajos ni menos
+        habilidades que el objeto original. No se puede «blanquear» un objeto para conservarlo al morir.</p>
+    </div>
+  </div>
+  <h4>El equipo antiguo se actualiza solo</h4>
+  <p>Al entrar al servidor, cada jugador recibe la puesta al día de los objetos que ya tiene —
+    <b>aunque los haya renombrado</b> — con los encantamientos, la maldición y las habilidades que se
+    hayan añadido a <code>items.yml</code> después de conseguirlos. Nunca se quita nada y el desgaste
+    no se toca. Para forzarlo sin esperar a que el jugador entre:
+    <code>/luna refresh &lt;jugador|all&gt;</code>.</p>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>3</div></div>
+</div>
+
+<!-- ============ 3. JEFE ============ -->
+<div class="page">
+  <div class="section-head">
+    <div class="num">03 &#183; Jefe nuevo</div>
+    <h2>Fauces del Cataclismo</h2>
+    <p class="lede">Un creeper cargado del doble de altura que no se inmola: te absorbe, te golpea y
+      detona. Su nombre anuncia sus dos amenazas.</p>
+  </div>
+
+  <div class="grid2 avoid" style="margin-bottom:6mm">
+    <div class="card" style="margin:0">
+      <span class="tag">Ficha</span>
+      <table style="margin:0;font-size:9.4pt">
+        <tr><td style="width:42%;border:none;padding:1.4mm 0"><b>ID</b></td><td style="border:none;padding:1.4mm 0"><code>creeper_cargado</code></td></tr>
+        <tr><td style="border:none;padding:1.4mm 0"><b>Vida</b></td><td style="border:none;padding:1.4mm 0">320 (antes 180)</td></tr>
+        <tr><td style="border:none;padding:1.4mm 0"><b>Aspecto</b></td><td style="border:none;padding:1.4mm 0">Escala 2,0&#215;, cargado</td></tr>
+        <tr><td style="border:none;padding:1.4mm 0"><b>Barra</b></td><td style="border:none;padding:1.4mm 0">Verde segmentada</td></tr>
+        <tr><td style="border:none;padding:1.4mm 0"><b>Fase 2</b></td><td style="border:none;padding:1.4mm 0">Al 40% de vida</td></tr>
+        <tr><td style="border:none;padding:1.4mm 0"><b>Explosivos</b></td><td style="border:none;padding:1.4mm 0">Inmune a todo daño por explosión</td></tr>
+      </table>
+    </div>
+    <div>
+      <p style="margin-bottom:2mm"><b>Qué lo hace distinto:</b> la mecha está cancelada, así que
+        nunca se mata a sí mismo ni destruye el terreno al aparecer. La presión viene de sus
+        habilidades y de sus crías, no de un boom final.</p>
+      <p style="margin-bottom:0">Al ser <b>inmune a explosiones</b>, tampoco muere por su propia
+        detonación, por la de sus crías, por TNT, por camas ni por granadas: la explosión es una
+        amenaza, nunca un suicidio.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:3mm">Sus cinco habilidades</h3>
+  <table>
+    <tr><th style="width:16%">Habilidad</th><th style="width:15%">Cada</th><th>Efecto</th></tr>
+    <tr><td><b>SLAM</b></td><td>12 s</td><td>Golpe de área cuerpo a cuerpo alrededor del jefe.</td></tr>
+    <tr><td><b>VORTEX</b></td><td>16 s</td><td><b>Absorción:</b> arrastra a todos los jugadores cercanos hacia su cuerpo durante varios segundos (18 m de radio, fuerza 1,6) y les hace daño al llegar.</td></tr>
+    <tr><td><b>CHARGE</b></td><td>24 s</td><td>Embestida contra un jugador.</td></tr>
+    <tr><td><b>SWARM</b></td><td>35 s</td><td>Invoca <b>3 Crías del Cataclismo</b>: mini-jefes creeper de 30 PV con mecha de 3 s y explosión de 3 bloques que persiguen, estallan y mueren al hacerlo.</td></tr>
+    <tr><td><b>EXPLODE</b></td><td>50 s</td><td>Detona con <b>radio de 15 bloques</b>, hasta 12 de daño en el centro que baja al 25% en el borde, más empuje. En la fase normal no rompe bloques; <b>solo enloquecido</b> (por debajo del 40%) abre un cráter de unos 6 bloques.</td></tr>
+  </table>
+
+  <div class="note">
+    <b>Cadencia pensada:</b> las recargas 12 / 16 / 24 / 35 / 50 s están escalonadas para que el kit
+    nunca se dispare de golpe, y como máximo pueden estar vivas <b>6 crías</b> por jefe. El resultado
+    es un jefe que mantiene la presión con tirones, golpes y embestidas mientras detona
+    periódicamente en mitad de la zona de farmeo: las granjas de mobs AFK dentro del mundo del
+    evento ahora tienen un precio.
+  </div>
+  <p class="muted" style="font-size:9.4pt">El <code>bosses.yml</code> acepta <code>powered: true</code>
+    en cualquier jefe creeper para que aparezca cargado. Las explosiones de las crías nunca rompen
+    bloques, ni siquiera fuera de un evento.</p>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>4</div></div>
+</div>
+
+<!-- ============ 4. COMANDOS ============ -->
+<div class="page">
+  <div class="section-head">
+    <div class="num">04 &#183; Comandos</div>
+    <h2>Nuevos y reparados</h2>
+    <p class="lede">Todo lo que el administrador puede escribir por consola o en el chat.</p>
+  </div>
+
+  <table>
+    <tr><th style="width:38%">Comando</th><th style="width:15%">Estado</th><th>Qué hace</th></tr>
+    <tr>
+      <td><code>/luna boss &lt;id&gt; [jugador]</code></td>
+      <td><span class="status st-new">Nuevo</span></td>
+      <td>Con nombre, el jefe aparece <b>junto a ese jugador</b>, en el mundo del evento en el que
+        esté. Sin nombre sigue invocando sobre un jugador elegible al azar. El autocompletado
+        ofrece los identificadores de jefe y después los jugadores en línea.</td>
+    </tr>
+    <tr>
+      <td><code>/luna horde [jugador]</code></td>
+      <td><span class="status st-new">Nuevo</span></td>
+      <td>La oleada cae <b>solo sobre ese jugador</b>, con su propio tope y saturación. Sin
+        argumentos se mantiene la oleada global de siempre.</td>
+    </tr>
+    <tr>
+      <td><code>/luna refresh &lt;jugador|all&gt;</code><br><span class="muted mono" style="font-size:8.6pt">alias: actualizar, refrescar</span></td>
+      <td><span class="status st-new">Nuevo</span></td>
+      <td>Fuerza la puesta al día de los objetos de la Luna de un jugador o de todos los conectados,
+        e informa de cuántos objetos se modificaron.</td>
+    </tr>
+    <tr>
+      <td><code>/luna status</code><br><span class="muted mono" style="font-size:8.6pt">alias: estado</span></td>
+      <td><span class="status st-fix">Reparado</span></td>
+      <td>Antes solo existía como <code>/luna</code> sin argumentos; escribir <code>status</code>
+        mostraba el mensaje de uso. Ahora responde con la cuenta atrás a la próxima Luna.</td>
+    </tr>
+    <tr>
+      <td><code>/luna difficulty &lt;x N&gt; [mundo]</code></td>
+      <td><span class="status st-fix">Reparado</span></td>
+      <td>Ignoraba el mundo aunque el autocompletado lo ofrecía. Ahora, si se indica un mundo, solo
+        cambia ese mundo.</td>
+    </tr>
+    <tr>
+      <td><code>/luna killmobs</code></td>
+      <td><span class="status st-fix">Reparado</span></td>
+      <td>Antes solo limpiaba mundos con evento activo, así que un jefe invocado a mano no se podía
+        borrar. Ahora barre todos los mundos cargados buscando mobs y jefes marcados, haya evento o no.</td>
+    </tr>
+    <tr>
+      <td><code>/luna boss &lt;id&gt; [jugador|mundo]</code><br><span class="muted" style="font-size:8.8pt">sin evento activo</span></td>
+      <td><span class="status st-fix">Reparado</span></td>
+      <td>Ya no exige una Luna de Sangre en marcha, acepta también un mundo cargado y anuncia el
+        spawn solo en el mundo del jefe (antes lo veía todo el servidor).</td>
+    </tr>
+  </table>
+
+  <h3>Mensajes que antes existían pero nunca se enviaban</h3>
+  <ul class="bullet-none tight">
+    <li><b>Avisos de reglas de muerte:</b> los mensajes <code>DyingLossesInventory</code> y
+      <code>DyingLossesExperience</code> estaban traducidos pero nunca se enviaban; ahora el jugador
+      los recibe cuando empieza el evento.</li>
+    <li><b>Cama bloqueada:</b> dormir durante el evento se impedía en silencio; ahora se avisa con
+      el mensaje <code>bed-not-allowed</code>.</li>
+    <li><b>Errores de comando:</b> si un subcomando de <code>/luna</code> falla de forma inesperada,
+      el jugador recibe un mensaje de error en lugar de quedarse sin respuesta.</li>
+    <li><b>Uso correcto:</b> <code>/luna horde</code> con argumentos de más ahora explica la sintaxis
+      en vez de ignorarlos.</li>
+    <li><b>MythicMobs:</b> si un mundo está configurado para usar MythicMobs y no está instalado,
+      antes caía al jefe vanilla sin decir nada; ahora se avisa al mundo.</li>
+  </ul>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>5</div></div>
+</div>
+
+<!-- ============ 5. CORRECCIONES ============ -->
+<div class="page">
+  <div class="section-head">
+    <div class="num">05 &#183; Correcciones</div>
+    <h2>Los fallos que se arreglaron</h2>
+    <p class="lede">Encontrados en dos auditorías del código y en pruebas sobre un servidor Paper 26.2
+      real. Agrupados por área, no por commit.</p>
+  </div>
+
+  <h3>Evento y mundos</h3>
+  <table>
+    <tr><th style="width:48%">Síntoma que se veía</th><th>Causa y arreglo</th></tr>
+    <tr>
+      <td>La <b>tormenta especial era invisible</b>: se activaba y se apagaba en el mismo instante.</td>
+      <td>El tick de la sesión apagaba el clima en el mismo tick en que el evento especial lo
+        encendía. Ahora la sesión guarda cuánto debe durar la tormenta y el tick solo la retira al
+        terminar.</td>
+    </tr>
+    <tr>
+      <td>Todos los <b>eventos especiales caían 30 s después del minuto 5</b>.</td>
+      <td>La probabilidad por tick llegaba al 100% en 30 segundos. Ahora crece de forma lineal y se
+        reparte de verdad por la ventana de 5 a 10 minutos.</td>
+    </tr>
+    <tr>
+      <td>Los <b>eventos especiales solo ocurrían en un mundo</b>.</td>
+      <td>El temporizador era un único campo compartido. Ahora vive en la sesión de cada mundo.</td>
+    </tr>
+    <tr>
+      <td><code>CommandsOnStart</code> / <code>CommandsOnEnd</code> de cada mundo <b>nunca se ejecutaban</b>.</td>
+      <td>Se leían y se descartaban. Ahora se lanzan al empezar y terminar el evento en ese mundo,
+        con los placeholders <code>{world}</code>, <code>{difficulty}</code> y <code>%world%</code>.</td>
+    </tr>
+    <tr>
+      <td>Los mobs de la horda <b>sobrevivían al reinicio</b> con el evento en dos mundos.</td>
+      <td>La limpieza solo se ejecutaba si no se reanudaba ninguna sesión. Ahora se limpia todo mundo
+        sin sesión reanudada.</td>
+    </tr>
+    <tr>
+      <td>Un zombi que se ahogaba <b>dejaba de ser mob de la Luna</b> y sobrevivía a la parada.</td>
+      <td>Minecraft crea el ahogado como entidad <b>nueva</b> y perdía la marca. Ahora las
+        transformaciones copian marca, vida escalada, velocidad y nombre, y además los mobs llevan
+        una etiqueta de scoreboard como segunda red de seguridad.</td>
+    </tr>
+    <tr>
+      <td>Una parada manual <b>contaba la participación hasta el final previsto</b>.</td>
+      <td>Se medía contra una marca futura, así que todos los jugadores calificaban. Ahora se corta
+        en la hora real de parada.</td>
+    </tr>
+    <tr>
+      <td><code>SurvivorRewards</code> <b>ignoraba <code>event.reward-on-stop</code></b>.</td>
+      <td>Las paradas manuales nunca ejecutaban las recompensas por superviviente. Corregido.</td>
+    </tr>
+  </table>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>6</div></div>
+</div>
+
+<div class="page">
+  <div class="section-head">
+    <div class="num">05 &#183; Correcciones (continuaci&#243;n)</div>
+    <h2>Jefes y combate</h2>
+  </div>
+
+  <table>
+    <tr><th style="width:48%">Síntoma que se veía</th><th>Causa y arreglo</th></tr>
+    <tr>
+      <td><b>VORTEX duraba el doble</b> de lo configurado (16 s absorbía 32 s).</td>
+      <td>El runnable avanzaba cada 2 ticks pero descontaba 1 por paso.</td>
+    </tr>
+    <tr>
+      <td><b>El sangrado no daba botín</b> ni contaba para el ranking de daño.</td>
+      <td>El daño no tenía atacante asociado. Ahora se guarda el UUID del atacante con la marca y se
+        usa al aplicar el daño.</td>
+    </tr>
+    <tr>
+      <td><code>%bloodmoon_boss_alive%</code> <b>seguía en «vivo»</b> después de matar al jefe.</td>
+      <td>El snapshot solo se publicaba mientras había jefe y nunca se reiniciaba. Ahora pasa a
+        <code>DEFEATED</code> al morir, y dos eventos simultáneos ya no comparten jefe.</td>
+    </tr>
+    <tr>
+      <td>Un jefe invocado a mano <b>no aparecía en los placeholders</b>.</td>
+      <td>Solo se publicaba en mundos con sesión. Ahora se publica por mundo siempre.</td>
+    </tr>
+    <tr>
+      <td><code>bosses.yml</code> <b>borraba un jefe entero</b> por un solo campo mal escrito.</td>
+      <td><code>bar-color: BLACK</code> no es un color válido y eliminaba <code>cazador_sombras</code>
+        con un error críptico (cargaban 8 de 9 jefes). Ahora cada campo se valida por separado, el
+        aviso indica campo, valor y opciones válidas, y el archivo incluido usa <code>PURPLE</code>.</td>
+    </tr>
+    <tr>
+      <td>Reflejo de daño, espinas, rayo vengador y onda expansiva podían <b>encadenarse</b> entre sí.</td>
+      <td>Aplican el daño a través de la guarda de reentrada.</td>
+    </tr>
+  </table>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>7</div></div>
+</div>
+
+<!-- ============ 5b. CORRECCIONES 2 ============ -->
+<div class="page">
+  <div class="section-head">
+    <div class="num">05 &#183; Correcciones (continuación)</div>
+    <h2>Estadísticas y recompensas</h2>
+    <p class="lede">Los números del evento, y las recompensas que dependían de ellos.</p>
+  </div>
+  <table>
+    <tr><th style="width:48%">Síntoma que se veía</th><th>Causa y arreglo</th></tr>
+    <tr>
+      <td>El histórico <b>contaba kills de mobs como muertes de jugadores</b>.</td>
+      <td><code>total_death_events</code> y <code>last_event.death_count</code> se alimentaban con
+        los mobs que mataban los jugadores. Ahora las muertes se cuentan aparte y
+        <code>death_count</code> y <code>unique_deaths</code> describen lo mismo.</td>
+    </tr>
+    <tr>
+      <td>Los <b>supervivientes podían ser negativos</b>.</td>
+      <td>Se calculaban como participantes menos muertes, y un jugador que moría sin estar
+        registrado (otro mundo, creativo) los hundía. Ahora se cuentan exactamente como participantes
+        que nunca murieron.</td>
+    </tr>
+    <tr>
+      <td><b>Participación falsa</b>: todo el mundo aparecía con la duración completa del evento.</td>
+      <td>Ahora se usa la hora real de entrada de cada jugador, registrada cuando participa por
+        primera vez.</td>
+    </tr>
+    <tr>
+      <td>Algunos <b>placeholders por mundo mostraban datos de otro mundo</b>.</td>
+      <td>El servicio solo publicaba la sesión del primer mundo. Ahora cada mundo tiene su snapshot y
+        cada jugador se lee desde el suyo.</td>
+    </tr>
+    <tr>
+      <td><code>Boss.Rewards</code> <b>no ejecutaba sus comandos</b>; varias claves de configuración
+        por mundo no hacían nada.</td>
+      <td>Implementados los comandos de recompensa (modos <code>KILLER</code>, <code>TOP_DAMAGE</code>,
+        <code>ALL</code>, con <code>RequirePlayerKiller</code>, <code>RewardOnce</code> y sufijos
+        <code>;s / ;f / ;p</code>) y las claves <code>BedNotAllowed</code>,
+        <code>DyingLossesInventory</code>, <code>DyingLossesExperience</code> y
+        <code>WorldPermanent</code>.</td>
+    </tr>
+    <tr>
+      <td>Las estadísticas se guardaban <b>de forma asíncrona durante el apagado</b>.</td>
+      <td>El planificador rechaza tareas nuevas al apagar; ahora el volcado se hace en línea.</td>
+    </tr>
+  </table>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>8</div></div>
+</div>
+
+<div class="page">
+  <div class="section-head">
+    <div class="num">05 &#183; Correcciones (continuaci&#243;n)</div>
+    <h2>Placeholders y mensajes</h2>
+  </div>
+
+  <table>
+    <tr><th style="width:48%">Síntoma que se veía</th><th>Causa y arreglo</th></tr>
+    <tr>
+      <td>Los <b>placeholders de varias palabras no se resolvían</b> (<code>%bloodmoon_death_count%</code>,
+        <code>last_event_world</code>, <code>total_bosses_spawned</code>, <code>boss_health_percent</code>…).</td>
+      <td>PlaceholderAPI parte el nombre en trozos y el caso antiguo nunca coincidía. Ahora se compara
+        el sufijo completo; verificado con <code>papi parse</code> en más de 40 placeholders con y sin evento.</td>
+    </tr>
+    <tr>
+      <td><code>%bloodmoon_horde_count%</code> devolvía una <b>estimación inventada</b> (participantes &#215; 8).</td>
+      <td>Ahora cuenta los mobs de la horda realmente vivos, con caché de 2 segundos.</td>
+    </tr>
+    <tr>
+      <td><code>%bloodmoon_event_elapsed%</code> <b>asumía 20 minutos fijos</b>.</td>
+      <td>Ahora usa el tiempo real de la sesión (los eventos de 25 y 30 minutos mostraban mal el dato).</td>
+    </tr>
+    <tr>
+      <td><code>%bloodmoon_bosses_defeated_session%</code> <b>no devolvía nada</b>.</td>
+      <td>Nunca coincidía con el nombre que entrega PAPI. Ahora cuenta los jefes derrotados en esa sesión.</td>
+    </tr>
+    <tr>
+      <td>Los <b>mensajes se filtraban entre mundos</b> (horda, muerte de jugador, mob abatido).</td>
+      <td>Se enviaban a todo el servidor; ahora solo al mundo del evento.</td>
+    </tr>
+    <tr>
+      <td>Sonidos y niebla roja <b>se repetían 20 veces seguidas</b>.</td>
+      <td>La comprobación de tiempo era cierta durante todo un segundo (20 ticks). Ahora usan marcas
+        de tiempo por sesión.</td>
+    </tr>
+    <tr>
+      <td><code>/luna chances</code> imprimía <b>NaN%</b> y <code>/luna give</code> decía «el objeto no existe».</td>
+      <td>Ahora informa de que no hay raridades válidas y de que se alcanzó el límite del objeto único.</td>
+    </tr>
+    <tr>
+      <td>Al añadir mensajes nuevos, servidores con <code>locales/*.yml</code> antiguos veían
+        <code>[i18n missing: ...]</code> y un <code>{world}</code> literal.</td>
+      <td>Los textos caen ahora al archivo dentro del jar (archivo del servidor &#8594; <code>en.yml</code> &#8594; jar)
+        y los mensajes de comando reciben el mundo.</td>
+    </tr>
+    <tr>
+      <td>Arranque ruidoso: «Idioma activo» salía tres veces y «recargado» en el primer inicio.</td>
+      <td>El idioma se anuncia una sola vez y solo cuando cambia.</td>
+    </tr>
+  </table>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>9</div></div>
+</div>
+
+<!-- ============ 6. RENDIMIENTO ============ -->
+<div class="page">
+  <div class="section-head">
+    <div class="num">06 &#183; Rendimiento</div>
+    <h2>El servidor deja de atascarse con el evento</h2>
+    <p class="lede">El hallazgo más grave de la auditoría fue un bloqueo del hilo principal que Paper
+      detectó con su propio watchdog.</p>
+  </div>
+
+  <div class="card">
+    <span class="tag">La causa raíz</span>
+    <p><code>PlaceholderSnapshotService.publish()</code> (cada 10 ticks) llamaba a
+      <code>StatisticsStore.get()</code>, que tomaba <b>el mismo lock</b> que el escritor asíncrono de
+      <code>statistics.yml</code> retenía durante la entrada/salida a disco. En un disco lento eso
+      bloqueaba el hilo principal hasta que el watchdog de Paper volcaba la pila y el servidor daba
+      un tirón.</p>
+    <p style="margin-bottom:0"><b>Arreglo:</b> las estadísticas son inmutables, así que <code>get()</code>
+      es ahora una lectura sin lock de un snapshot <code>volatile</code>.</p>
+  </div>
+
+  <h3>Trabajo acotado por tick</h3>
+  <table>
+    <tr><th style="width:42%">Antes</th><th>Ahora</th></tr>
+    <tr>
+      <td>El tick del jefe buscaba jugadores cercanos <b>una vez por habilidad</b>.</td>
+      <td><b>Una sola vez por jefe y tick.</b></td>
+    </tr>
+    <tr>
+      <td>Explosiones con <b>303 partículas</b> repartidas en varios emisores.</td>
+      <td><b>1 emisor y 95 partículas.</b></td>
+    </tr>
+    <tr>
+      <td>Una detonación podía procesar cualquier cantidad de entidades y bloques.</td>
+      <td>Máximo <b>48 entidades</b> y <b>1400 bloques</b> por explosión.</td>
+    </tr>
+    <tr>
+      <td>Sin tope de mini-jefes vivos.</td>
+      <td>Máximo <b>6 crías</b> por jefe.</td>
+    </tr>
+    <tr>
+      <td>El cráter de terreno se abría en cualquier fase.</td>
+      <td>Solo en la <b>fase enloquecida</b> (por debajo del 40%).</td>
+    </tr>
+    <tr>
+      <td>Recargas de habilidades que podían solaparse en el mismo instante.</td>
+      <td>Cadencia escalonada <b>12 / 16 / 24 / 35 / 50 s</b>.</td>
+    </tr>
+  </table>
+
+  <p>Nada del kit asigna trabajo sin límite por tick, así que <b>una granja grande junto a la pelea
+    ya no puede congelar el servidor</b>. En las pruebas sobre el servidor real el TPS se mantuvo en
+    20 / 19,7 / 19,7 durante el evento, sin volcados del watchdog.</p>
+
+  <h3>Limpieza de código muerto</h3>
+  <p style="margin-bottom:0">Se eliminaron restos de refactorizaciones anteriores que se seguían cargando
+    sin uso (<code>DataStore.syncReload()</code>, <code>Keys.instance()</code>,
+    <code>ScheduleManager.zone()</code>, entre otros), tres campos de <code>MythicBridge</code> que
+    además podían romper el enlace y una línea <code>keepVanilla</code> que no hacía nada.</p>
+
+  <div class="note" style="margin-bottom:0;font-size:9pt">
+    <b>También se retiraron</b> el archivo <code>messages.yml</code> (se empaquetaba pero ningún código
+    lo leía), los recursos <code>distribution/*</code> que no existían en el jar y las claves de
+    configuración sin efecto (<code>Boss.VanillaBossBar.*</code>,
+    <code>SurvivorRewards.IncludeLateJoiners</code> y similares). El
+    <code>worlds-template/config.yml</code> ahora solo documenta lo que el plugin respeta.
+  </div>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>10</div></div>
+</div>
+
+<!-- ============ 7. IDIOMAS ============ -->
+<div class="page">
+  <div class="section-head">
+    <div class="num">07 &#183; Idiomas</div>
+    <h2>Siete idiomas, sin traducciones a medias</h2>
+    <p class="lede">Antes había dos idiomas. Ahora hay siete completos, y una prueba automática impide
+      que se desincronicen.</p>
+  </div>
+
+  <table>
+    <tr><th style="width:22%">Idioma</th><th style="width:20%">Código</th><th style="width:24%">Archivo</th><th>Estado</th></tr>
+    <tr><td>Español</td><td><code>es</code></td><td><code>es.yml</code></td><td>Completo (referencia)</td></tr>
+    <tr><td>Inglés</td><td><code>en</code></td><td><code>en.yml</code></td><td>Completo &#183; idioma de respaldo</td></tr>
+    <tr><td>Portugués</td><td><code>pt</code></td><td><code>pt.yml</code></td><td>Completo (nuevo)</td></tr>
+    <tr><td>Francés</td><td><code>fr</code></td><td><code>fr.yml</code></td><td>Completo (nuevo)</td></tr>
+    <tr><td>Alemán</td><td><code>de</code></td><td><code>de.yml</code></td><td>Completo (nuevo)</td></tr>
+    <tr><td>Italiano</td><td><code>it</code></td><td><code>it.yml</code></td><td>Completo (nuevo)</td></tr>
+    <tr><td>Ruso</td><td><code>ru</code></td><td><code>ru.yml</code></td><td>Completo (nuevo)</td></tr>
+  </table>
+
+  <h3>Cómo se cambia</h3>
+  <p>En <code>plugins/BloodMoonPlus/locales/locales.yml</code>:</p>
+  <div class="card" style="margin-top:2mm"><code>Language: pt</code></div>
+  <p>Se aplica con <code>/luna reload</code>, <b>sin reiniciar el servidor</b>. Los siete archivos se
+    copian en el primer arranque.</p>
+
+  <h3>Comportamiento ante errores</h3>
+  <ul class="bullet-none tight">
+    <li><b>Idioma desconocido:</b> se registra un aviso en consola y se cae a inglés en lugar de
+      cargar un archivo vacío.</li>
+    <li><b>Clave ausente</b> (servidor con un <code>locales/*.yml</code> de una versión vieja): el
+      texto se toma del archivo dentro del jar, así que nunca aparece <code>[i18n missing]</code>.</li>
+    <li><b>Nombres de día localizados</b> también en la programación del evento, no solo los mensajes.</li>
+  </ul>
+
+  <h3>Pruebas que protegen las traducciones</h3>
+  <p>Se añadieron pruebas automáticas que <b>rompen la compilación</b> si alguno de los siete archivos
+    pierde una clave, si los <code>{placeholders}</code> no coinciden con el español o si la lista de
+    idiomas soportados no coincide con la realidad. Una traducción ya no puede quedarse a medias en
+    silencio.</p>
+
+  <div class="note">
+    <b>Nota para quien actualice:</b> el plugin nunca sobrescribe los <code>locales/*.yml</code> del
+    servidor, para no borrar personalizaciones. Si quieres recibir los textos nuevos y la limpieza
+    de esta versión, borra la carpeta <code>plugins/BloodMoonPlus/locales/</code> (guarda antes tus
+    cambios) y reinicia: se regenerará completa y actualizada.
+  </div>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta</div><div>11</div></div>
+</div>
+
+<!-- ============ 8. CIERRE ============ -->
+<div class="page">
+  <div class="section-head">
+    <div class="num">08 &#183; Compatibilidad y puesta en marcha</div>
+    <h2>Qué hacer al actualizar</h2>
+  </div>
+
+  <div class="grid2 avoid">
+    <div>
+      <h3 style="margin-top:0">Requisitos</h3>
+      <table style="margin-bottom:4mm">
+        <tr><td style="width:45%;border:none;padding:1.6mm 0"><b>Servidor</b></td><td style="border:none;padding:1.6mm 0">Paper 26.2 o 26.3</td></tr>
+        <tr><td style="border:none;padding:1.6mm 0"><b>Java</b></td><td style="border:none;padding:1.6mm 0">25</td></tr>
+        <tr><td style="border:none;padding:1.6mm 0"><b>Opcional</b></td><td style="border:none;padding:1.6mm 0">PlaceholderAPI, MythicMobs</td></tr>
+        <tr><td style="border:none;padding:1.6mm 0"><b>Archivo</b></td><td style="border:none;padding:1.6mm 0"><code>BloodMoonPlus-1.0.2-beta.jar</code></td></tr>
+      </table>
+    </div>
+    <div>
+      <h3 style="margin-top:0">Pruebas realizadas</h3>
+      <table style="margin-bottom:4mm">
+        <tr><td style="width:45%;border:none;padding:1.6mm 0"><b>Compilación</b></td><td style="border:none;padding:1.6mm 0">Correcta</td></tr>
+        <tr><td style="border:none;padding:1.6mm 0"><b>Pruebas automáticas</b></td><td style="border:none;padding:1.6mm 0">109 de 109 en verde</td></tr>
+        <tr><td style="border:none;padding:1.6mm 0"><b>Servidor real</b></td><td style="border:none;padding:1.6mm 0">Paper 26.2, sin errores</td></tr>
+        <tr><td style="border:none;padding:1.6mm 0"><b>Arranque</b></td><td style="border:none;padding:1.6mm 0">Sin excepciones en consola</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>Lista de comprobación tras actualizar</h3>
+  <table>
+    <tr><th style="width:6%">&#10003;</th><th style="width:36%">Paso</th><th>Por qué</th></tr>
+    <tr><td>&#9744;</td><td>Parar el servidor y reemplazar el jar</td><td>El plugin no se recarga en caliente.</td></tr>
+    <tr><td>&#9744;</td><td>Renombrar (no borrar) <code>plugins/BloodMoonPlus/</code></td><td>Para conservar estadísticas y poder volver atrás.</td></tr>
+    <tr><td>&#9744;</td><td>Arrancar una vez y revisar la consola</td><td>Se generan los siete idiomas y <code>items.yml</code> actualizado.</td></tr>
+    <tr><td>&#9744;</td><td>Elegir idioma en <code>locales.yml</code></td><td><code>Language: es</code>, <code>pt</code>, <code>ru</code>…</td></tr>
+    <tr><td>&#9744;</td><td>Revisar <code>settings.vanishing-curse-min-rarity</code></td><td>Define desde qué raridad desaparece el equipo (por defecto <code>RARO</code>).</td></tr>
+    <tr><td>&#9744;</td><td>Confirmar que cargan los 9 jefes</td><td>Un <code>bosses.yml</code> viejo puede tener <code>bar-color: BLACK</code>.</td></tr>
+    <tr><td>&#9744;</td><td>Probar <code>/luna status</code> y <code>/luna refresh all</code></td><td>Verifican de inmediato los dos arreglos más visibles.</td></tr>
+  </table>
+
+  <div class="card" style="margin-top:6mm">
+    <span class="tag">En una frase</span>
+    <p style="margin-bottom:0;font-size:11pt">La 1.0.2-beta convierte el evento en algo que
+      <b>se puede creer</b>: los números cuadran, los objetos no se pierden por un fallo de diseño,
+      el servidor no se atasca y hay un jefe nuevo que castiga quedarse quieto.</p>
+  </div>
+
+  <div class="footer"><div>BloodMoonPlus &#183; 1.0.1 &#8594; 1.0.2-beta &#183; 16 de noviembre de 2026</div><div>12</div></div>
+</div>
+
+</body>
+</html>

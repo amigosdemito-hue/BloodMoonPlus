@@ -2,7 +2,7 @@
 
 🌐 **Español** · [English](README.en.md)
 
-Todo lo que necesitas saber sobre los **9 jefes** de la Luna de Sangre y el **sistema de drops** (45 items).
+Todo lo que necesitas saber sobre los **10 jefes** de la Luna de Sangre y el **sistema de drops** (45 items).
 
 ---
 
@@ -523,6 +523,54 @@ Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) 
 ```
 
 Muestra los porcentajes reales de rareza y de cada item de la tabla.
+
+---
+
+## 🔄 Actualizar desde la 1.0.1
+
+**Solo hay que reemplazar el `.jar`.** No se migra nada y no se borra ningún dato.
+
+1. Si hay un evento en marcha, ejecuta `/luna stop` y **detén el servidor**.
+2. **Borra el jar anterior** de `plugins/` (`BloodMoonPlus-1.0.1.jar`). Es lo único que sí debes
+   eliminar: los dos jars declaran `name: BloodMoonPlus` y Bukkit rechaza el segundo con
+   *«plugin name is already in use»* (o acaba cargando el que no quieres).
+3. Copia `BloodMoonPlus-1.0.2-beta.jar` en `plugins/` y arranca.
+4. Comprueba la consola: `Idioma activo: es`, `Items cargados: 45`, `Jefes cargados: 10`.
+
+Los cinco idiomas nuevos (`pt`, `fr`, `de`, `it`, `ru`) se copian solos en el primer arranque.
+
+### Qué NO se debe borrar
+
+| Archivo | Qué se pierde si lo borras |
+|---|---|
+| `data.yml` | El evento en curso, los números de serie de los objetos únicos y el *pity*. **Los míticos limitados volverían a estar disponibles.** |
+| `statistics.yml` | El histórico de eventos, muertes y jefes. |
+| `config.yml` | Toda tu configuración. No cambió entre 1.0.1 y 1.0.2, así que no hay nada que migrar. |
+| `locales/*.yml` | Tus traducciones personalizadas: el plugin nunca las sobrescribe. |
+| `worlds/<mundo>/config.yml` | La configuración por mundo. Las claves retiradas (`IncludeLateJoiners`, `VanillaBossBar`, `UseMythicMobsRewards`…) se ignoran sin dar error. |
+
+### Qué pasa con `bosses.yml` si no lo actualizas
+
+El `bosses.yml` de tu servidor **nunca se sobrescribe**. Si conservas el tuyo:
+
+- Sigues teniendo tus jefes y tus ajustes, pero **no existirá el jefe nuevo `creeper_cargado`**
+  (Fauces del Cataclismo, con absorción `VORTEX`, crías `SWARM` y detonación `EXPLODE`).
+- El `bar-color: BLACK` de `cazador_sombras` **ya no borra el jefe**: cada campo se valida por
+  separado y cae a `RED` con un aviso que indica campo, valor y opciones válidas. Antes ese valor
+  eliminaba al cazador y solo cargaban 8 de 9 jefes.
+- El archivo incluido en el jar cambia ese color a `PURPLE`, así que al actualizarlo el cazador
+  pasará a tener la barra morada.
+
+Para tener el jefe nuevo **sin perder tus ajustes**: haz copia de tu `bosses.yml`, borra o renombra
+el original, arranca una vez para que se genere el archivo nuevo y vuelve a aplicar tus cambios
+(alternativa: copia a mano solo el bloque `creeper_cargado:` desde el jar).
+
+### `items.yml` y `messages.yml`
+
+- **`items.yml` no hace falta tocarlo.** Solo se añadieron comentarios y la clave
+  `settings.vanishing-curse-min-rarity`; el valor por defecto (`RARO`) está en el código, así que la
+  maldición de desaparición ya se aplica. Añade la clave solo si quieres ponerla en `OFF` o subirla.
+- **`messages.yml`** ya no lo lee ningún código desde la 1.0.2: puedes borrarlo sin miedo.
 
 ---
 

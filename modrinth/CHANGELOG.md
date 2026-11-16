@@ -8,10 +8,27 @@ Modrinth. Lines marked with ⭐ are the most eye-catching features for the
 project page.
 -->
 
-## [1.0.2-beta] — Curse of Vanishing for all rare-or-higher gear + audit fixes
+## [1.0.2-beta] — 7 languages, protected gear, the Cataclysm Maw and a full audit
 
-First beta of 1.0.2: high-rarity gear now carries the curse its rarity implies, and four bugs
-found in the code audit are fixed.
+The biggest update since 1.0.1. The plugin now speaks **seven languages**, Moon gear can no longer
+be stripped away, a new boss punishes standing still, and two full code audits plus live testing on
+a Paper 26.2 server closed every bug they found — including the main-thread stall behind the TPS
+drops.
+
+**Highlights**
+- **Seven complete languages** (Spanish, English, Portuguese, French, German, Italian, Russian) with
+  build-time tests that fail if a translation loses a key or a `{placeholder}`.
+- **Moon gear is protected**: no grindstone, no lost enchantments, and items players already own are
+  upgraded automatically when they join.
+- **New boss — Fauces del Cataclismo**: 320 HP, `VORTEX` absorption, `SWARM` minions and an `EXPLODE`
+  detonation it survives.
+- **Curse of Vanishing** for every Rare-to-Mythic weapon, tool and armour piece.
+- **The main thread no longer waits on the statistics lock**, so the watchdog stall is gone.
+- **30+ fixes**: participation, survivors, boss placeholders, per-world config keys, commands and
+  messages that were translated but never sent.
+- **Updating is just the jar** — nothing to migrate, no data to delete (see the new README section).
+
+The detail of every change is below.
 
 ### Changed — the Cataclysm Maw now explodes (and survives it)
 - **320 HP** instead of 180, so it can afford a long fight with its own detonations.
@@ -94,6 +111,11 @@ and always changed the global difficulty. Passing a world now changes only that 
 `/luna boss <id>` tab-completion suggests worlds as well as players.
 
 ### Fixed — third audit, live-tested on Paper 26.2
+- **The `SWARM` ability of the Cataclysm Maw crashed the boss tick.** Its creeper minions were given
+  a **3-second fuse (60 ticks)**, but Paper rejects any fuse above `maxFuseTicks` (30 by default)
+  with `IllegalArgumentException: ticks > maxFuseTicks`. `spawnMini()` now raises the entity's limit
+  before setting the fuse and clamps it anyway, and a failing ability no longer aborts the rest of
+  the boss kit or retries twice per second: it warns once and its cooldown is restarted.
 - **`/luna killmobs <world>` now honours the world.** Tab-completion offered every loaded world,
   but the argument was ignored and the whole server was swept. With a world only that world is
   cleaned, and an unknown world is reported instead of silently cleaning everything.

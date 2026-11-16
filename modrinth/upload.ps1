@@ -11,6 +11,7 @@ param(
     [Parameter(Mandatory = $false)][string]   $Channel = "release",
     [Parameter(Mandatory = $false)][string[]]$Loaders = @("fabric","forge","java_edition","modrinth","paper","quilt"),
     [Parameter(Mandatory = $false)][switch]   $SyncProject = $false,
+    [Parameter(Mandatory = $false)][string]   $PatchVersion = "",
     [Parameter(Mandatory = $false)][switch]   $DryRun = $false
 )
 $ErrorActionPreference = "Stop"
@@ -30,6 +31,45 @@ if (-not $env:MODRINTH_TOKEN) {
     }
 }
 if (-not $env:MODRINTH_TOKEN) { throw "Falta token de Modrinth." }
+
+# ---------------------------------------------------------------- changelog
+# Se toma SOLO la seccion de esta version desde modrinth/CHANGELOG.md.
+# Antes se usaba $m.Groups[1] con un regex SIN grupo de captura: siempre venia vacio y
+# todas las versiones subian el changelog de relleno "BloodMoonPlus <version>".
+function Get-VersionChangelog([string]$version) {
+    $changelogFile = Join-Path $PSScriptRoot "CHANGELOG.md"
+    if (-not (Test-Path $changelogFile)) { return "" }
+    $md      = [System.IO.File]::ReadAllText($changelogFile, [System.Text.Encoding]::UTF8)
+    $escaped = [regex]::Escape($version)
+    $m       = [regex]::Match($md, "(?ms)^## \[$escaped\][^\r\n]*\r?\n(?<body>.*?)(?=^## \[|\z)")
+    if ($m.Success) { return $m.Groups["body"].Value.Trim() }
+    return ""
+}
+
+$cl = Get-VersionChangelog $VersionNumber
+if (-not $cl) { $cl = "BloodMoonPlus $VersionNumber" }
+Write-Host "Changelog=$($cl.Length) chars"
+
+if ($PatchVersion) {
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes((@{ changelog = $cl } | ConvertTo-Json -Depth 4 -Compress))
+    try {
+        Invoke-RestMethod -Method Patch -Uri "https://api.modrinth.com/v2/version/$PatchVersion" `
+            -Headers @{ Authorization = $env:MODRINTH_TOKEN } `
+            -ContentType "application/json; charset=utf-8" `
+            -Body $bytes -TimeoutSec 60 | Out-Null
+        Write-Host "Changelog actualizado en la version $PatchVersion" -ForegroundColor Green
+    } catch {
+        Write-Host "FALLO al actualizar el changelog:" -ForegroundColor Red
+        if ($_.Exception.Response) {
+            $sr = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+            Write-Host "CUERPO: $($sr.ReadToEnd())" -ForegroundColor Red
+        } else {
+            Write-Host $_.Exception.Message -ForegroundColor Red
+        }
+        throw
+    }
+    return
+}
 
 if (-not $JarPath) {
     $root = Split-Path -Parent $PSScriptRoot
@@ -60,18 +100,6 @@ try {
 $boundary = [System.Guid]::NewGuid().ToString()
 $LF = "`r`n"
 function Field($n,$v) { "--$boundary$LF" + "Content-Disposition: form-data; name=`"$n`"$LF$LF" + "$v$LF" }
-
-# Changelog: se toma SOLO la seccion de esta version desde modrinth/CHANGELOG.md
-# (antes leia "nada.md", que no existe, y mandaba texto de otro proyecto).
-$cl = ""
-$changelogFile = Join-Path $PSScriptRoot "CHANGELOG.md"
-if (Test-Path $changelogFile) {
-    $md      = [System.IO.File]::ReadAllText($changelogFile, [System.Text.Encoding]::UTF8)
-    $escaped = [regex]::Escape($VersionNumber)
-    $m       = [regex]::Match($md, "(?ms)^## \[$escaped\][^\r\n]*\r?\n.*?(?=^## \[|\z)")
-    if ($m.Success) { $cl = $m.Groups[1].Value.Trim() }
-}
-if (-not $cl) { $cl = "BloodMoonPlus $VersionNumber" }
 
 $dataJson = @{
     name          = $VersionNumber
@@ -105,7 +133,7 @@ try {
         -ContentType "multipart/form-data; boundary=$boundary" `
         -Body $body -TimeoutSec 300
     Write-Host "OK version=$($resp.id)"
-    Write-Host "URL=https://modrinth.com/game/eventopvp/version/$VersionNumber"
+    Write-Host "URL=https://modrinth.com/plugin/$ProjectSlug/version/$VersionNumber"
 } catch {
     Write-Host "FALLO:" -ForegroundColor Red
     if ($_.Exception.Response) {

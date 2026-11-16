@@ -470,6 +470,54 @@ Shows the real rarity percentages and of each item in the table.
 
 ---
 
+## 🔄 Updating from 1.0.1
+
+**Only the `.jar` needs to be replaced.** Nothing is migrated and no data is deleted.
+
+1. If an event is running, run `/luna stop` and **stop the server**.
+2. **Delete the old jar** from `plugins/` (`BloodMoonPlus-1.0.1.jar`). That is the one thing you
+   must remove: both jars declare `name: BloodMoonPlus` and Bukkit rejects the second with
+   *“plugin name is already in use”* (or loads the one you did not want).
+3. Copy `BloodMoonPlus-1.0.2-beta.jar` into `plugins/` and start the server.
+4. Check the console: `Items cargados: 45`, `Jefes cargados: 10`.
+
+The five new languages (`pt`, `fr`, `de`, `it`, `ru`) are copied automatically on first start.
+
+### What you must NOT delete
+
+| File | What you lose by deleting it |
+|---|---|
+| `data.yml` | The running event, the serial numbers of unique items and pity. **Limited mythics would become available again.** |
+| `statistics.yml` | The event, death and boss history. |
+| `config.yml` | All your settings. It did not change between 1.0.1 and 1.0.2, so there is nothing to migrate. |
+| `locales/*.yml` | Your custom translations: the plugin never overwrites them. |
+| `worlds/<world>/config.yml` | Per-world settings. Retired keys (`IncludeLateJoiners`, `VanillaBossBar`, `UseMythicMobsRewards`…) are ignored without errors. |
+
+### What happens to `bosses.yml` if you don't update it
+
+Your server's `bosses.yml` is **never overwritten**. If you keep yours:
+
+- You keep your bosses and your tuning, but the new boss **`creeper_cargado`** (Cataclysm Maw, with
+  `VORTEX` absorption, `SWARM` minions and its `EXPLODE` detonation) **will not exist**.
+- `bar-color: BLACK` on `cazador_sombras` **no longer deletes the boss**: each field is validated
+  separately and falls back to `RED` with a warning naming the field, the value and the valid
+  options. Before, that value removed the hunter and only 8 of 9 bosses loaded.
+- The file shipped in the jar changes that colour to `PURPLE`, so updating it turns the hunter's
+  bar purple.
+
+To get the new boss **without losing your tuning**: back up your `bosses.yml`, delete or rename the
+original, start once so the new file is generated, then re-apply your changes (or copy just the
+`creeper_cargado:` block by hand from the jar).
+
+### `items.yml` and `messages.yml`
+
+- **`items.yml` needs no changes.** Only comments and the `settings.vanishing-curse-min-rarity` key
+  were added; the default (`RARO`) lives in the code, so the Curse of Vanishing already applies.
+  Add the key only if you want `OFF` or a higher threshold.
+- **`messages.yml`** is no longer read by any code since 1.0.2: you can safely delete it.
+
+---
+
 ## 📜 License
 
 **All rights reserved.**
