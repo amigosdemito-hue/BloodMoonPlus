@@ -82,6 +82,8 @@ public final class BossManager {
     private final Map<String, BossDef> defs = new LinkedHashMap<>();
     private final List<Spawn> spawns = new ArrayList<>();
     private final Map<UUID, Instance> alive = new HashMap<>();
+    /** Avisos de habilidades que fallaron, ya emitidos (clave idJefe/tipoHabilidad). */
+    private final Set<String> abilityWarnings = new HashSet<>();
 
     /**
      * Verdadero mientras el plugin está invocando a un jefe de la Luna.
@@ -97,6 +99,7 @@ public final class BossManager {
     void reload() {
         defs.clear();
         spawns.clear();
+        abilityWarnings.clear();
         YamlConfiguration y = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "bosses.yml"));
         ConfigurationSection bs = y.getConfigurationSection("bosses");
         if (bs != null) {
@@ -360,7 +363,21 @@ public final class BossManager {
                 if (now < bi.nextUse[i]) continue;
                 if (near == null) near = nearbyPlayers(le, 40);
                 Ability a = bi.def.abilities().get(i);
-                if (use(bi, le, a, near)) {
+                boolean used;
+                try {
+                    used = use(bi, le, a, near);
+                } catch (Exception ex) {
+                    // Una habilidad que falla no puede cortar el tick del resto del kit ni
+                    // reintentarse dos veces por segundo: se avisa una vez por jefe y tipo
+                    // y se reinicia su recarga como si se hubiera usado.
+                    String key = bi.def.id() + "/" + a.type();
+                    if (abilityWarnings.add(key)) {
+                        plugin.getLogger().warning("La habilidad " + a.type() + " de '" + bi.def.id()
+                                + "' falló y se omite: " + ex);
+                    }
+                    used = true;
+                }
+                if (used) {
                     double cd = a.cooldown() * (bi.enraged ? bi.def.enrageCooldown() : 1.0);
                     bi.nextUse[i] = now + (long) (cd * 1000);
                 }
@@ -444,11 +461,23 @@ public final class BossManager {
         if (sc != null) sc.setBaseValue(1.3);
         c.setPowered(true);
         c.setExplosionRadius((int) Math.max(1, Math.round(power)));
-        c.setFuseTicks(Math.max(20, fuseSec * 20));
+        // Paper rechaza una mecha mayor que maxFuseTicks (30 por defecto) con
+        // "IllegalArgumentException: ticks > maxFuseTicks": con las crías de 3 s (60 ticks)
+        // la habilidad SWARM fallaba y, al no devolver nada, se reintentaba dos veces por
+        // segundo. Se amplía el máximo y, aun así, se recorta al límite de la entidad.
+        int wantedFuse = Math.max(20, fuseSec * 20);
+        c.setMaxFuseTicks(wantedFuse);
+        c.setFuseTicks(fuseWithinLimits(wantedFuse, c.getMaxFuseTicks()));
         c.setIgnited(true);
         c.addScoreboardTag(EventManager.HORDE_TAG);
         c.addScoreboardTag(MINION_TAG);
         return true;
+    }
+
+    /** Ticks de mecha válidos para un creeper: nunca por encima de maxFuseTicks (Paper lanza
+     *  IllegalArgumentException) ni por debajo de 1. */
+    static int fuseWithinLimits(int fuseTicks, int maxFuseTicks) {
+        return Math.max(1, Math.min(fuseTicks, Math.max(1, maxFuseTicks)));
     }
 
     private static double arg(Ability a, int i, double def) {
