@@ -42,15 +42,11 @@ public final class SurvivorManager {
         List<Player> eligible = new ArrayList<>();
         for (UUID id : s.participants) {
             Player p = Bukkit.getPlayer(id);
-            if (p == null || !p.isOnline()) {
-                if (policy.requireOnlineAtEnd()) continue;
-                // No podemos entregar comandos a offline players sin engine async
-                continue;
-            }
-            if (!p.getWorld().equals(s.world)) {
-                if (policy.disqualifyOnWorldLeave()) continue;
-                continue;
-            }
+            // Ni los desconectados ni los que están en otro mundo pueden recibir la recompensa
+            // (no hay motor async para pagarles), así que se omiten siempre. Las dos ramas
+            // consultaban una opción y hacían lo mismo: eran código muerto.
+            if (p == null || !p.isOnline()) continue;
+            if (!p.getWorld().equals(s.world)) continue;
             if (policy.disqualifyOnDeath() && s.died.contains(id)) {
                 // Estas dos traducciones existían pero no se enviaban nunca: el jugador se
                 // quedaba sin recompensa y sin saber por qué.
@@ -78,11 +74,14 @@ public final class SurvivorManager {
             plugin.messages().world(s.world, "event.survivors-header", "world", s.world.getName());
 
         // Construir contexto base
+        // Con la hora de entrada y las muertes de la sesión, los mensajes pueden usar
+        // %participation_seconds%, %participation_percent%, %died% y %survived%.
         RewardContext base = new RewardContext(
                 s.world, sessionUuid.toString(), startMs, endMs,
                 s.participants.size(), s.deathCount, eligible.size(),
                 "", "NONE", null, null, s.world.getName(),
-                0, 0, 0, 0, 0);
+                0, 0, 0, 0, 0,
+                s.joinedAtMs, s.died);
 
         // Mensajes individuales
         for (Player p : eligible) {

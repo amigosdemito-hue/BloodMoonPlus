@@ -4,6 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,6 +42,11 @@ public final class RewardContext {
     private final String bossWorld;
     private final double bossX, bossY, bossZ;
     private final double bossHealth, bossMaxHealth, bossHealthPercent;
+    /** Participación real por jugador (hora de entrada) y quién murió, para resolver
+     *  %participation_seconds%, %participation_percent%, %died% y %survived% con datos
+     *  de verdad en lugar de dejarlos vacíos. Pueden ser null (contextos sin sesión). */
+    private final Map<UUID, Long> joinedAtMs;
+    private final Set<UUID> died;
 
     public RewardContext(World world, String sessionUuid, long startMs, long endMs,
                          long participants, long deaths, long survivors,
@@ -47,6 +54,21 @@ public final class RewardContext {
                          String bossKiller, UUID bossKillerUuid, String bossWorld,
                          double bossX, double bossY, double bossZ,
                          double bossHealth, double bossMaxHealth) {
+        this(world, sessionUuid, startMs, endMs, participants, deaths, survivors, bossName, bossType,
+                bossKiller, bossKillerUuid, bossWorld, bossX, bossY, bossZ, bossHealth, bossMaxHealth,
+                null, null);
+    }
+
+    /** Variante con los datos por jugador (participación real y muertes) del evento. */
+    public RewardContext(World world, String sessionUuid, long startMs, long endMs,
+                         long participants, long deaths, long survivors,
+                         String bossName, String bossType,
+                         String bossKiller, UUID bossKillerUuid, String bossWorld,
+                         double bossX, double bossY, double bossZ,
+                         double bossHealth, double bossMaxHealth,
+                         Map<UUID, Long> joinedAtMs, Set<UUID> died) {
+        this.joinedAtMs = joinedAtMs;
+        this.died = died;
         this.worldName = world == null ? "" : world.getName();
         this.sessionUuid = sessionUuid;
         this.startTime = startMs;
@@ -90,10 +112,16 @@ public final class RewardContext {
                 case "participant_count" -> String.valueOf(participantCount);
                 case "survivor_count" -> String.valueOf(survivorCount);
                 case "death_count" -> String.valueOf(deathCount);
-                // Estas cuatro se rellenan por jugador en runtime; sin el sufijo :valor el
-                // grupo opt es null y appendReplacement(null) lanzaba NullPointerException.
-                case "participation_seconds", "participation_percent", "died", "survived" ->
-                        opt == null ? "" : opt;
+                // Estas cuatro se resuelven con el jugador destinatario. Antes se quedaban
+                // vacías para siempre: ningún sitio las rellenaba, así que un mensaje de
+                // recompensa con %participation_seconds% imprimía una cadena vacía.
+                // El sufijo explícito :valor sigue teniendo prioridad.
+                case "participation_seconds" -> opt != null ? opt
+                        : (target == null ? "" : String.valueOf(participationSeconds(target)));
+                case "participation_percent" -> opt != null ? opt
+                        : (target == null ? "" : String.valueOf(participationPercent(target)));
+                case "died" -> opt != null ? opt : Boolean.toString(target != null && hasDied(target));
+                case "survived" -> opt != null ? opt : Boolean.toString(target != null && !hasDied(target));
                 case "boss_name" -> bossName;
                 case "boss_type" -> bossType;
                 case "boss_uuid" -> "";
@@ -117,6 +145,22 @@ public final class RewardContext {
                 .replace("$b", bossName);
         if (target != null) result = result.replace("$p", target.getName());
         return result;
+    }
+
+    private boolean hasDied(Player p) {
+        return died != null && died.contains(p.getUniqueId());
+    }
+
+    private long participationSeconds(Player p) {
+        if (joinedAtMs == null) return 0;
+        Long joined = joinedAtMs.get(p.getUniqueId());
+        if (joined == null) return 0;
+        return Math.max(0, (endTime - joined) / 1000);
+    }
+
+    private long participationPercent(Player p) {
+        if (durationSeconds <= 0) return 0;
+        return Math.min(100, participationSeconds(p) * 100 / Math.max(1, durationSeconds));
     }
 
     /** Parsea un comando con su sufijo de audiencia. */

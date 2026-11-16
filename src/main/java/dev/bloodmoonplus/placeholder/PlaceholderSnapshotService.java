@@ -54,7 +54,6 @@ public final class PlaceholderSnapshotService {
             live.add(wn);
             if (recount) hordeCache.put(wn, (long) plugin.events().countHordeAlive(s.world));
             sessionCache.put(wn, new SessionPlaceholderState(
-                    UUID.randomUUID(),  // por simplicidad
                     wn,
                     Math.max(0, (s.endMs - now) / 1000),
                     // Muertes de JUGADORES (antes se colaba s.kills.size(): jugadores que mataron mobs).

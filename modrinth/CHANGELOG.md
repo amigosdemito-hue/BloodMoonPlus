@@ -93,7 +93,23 @@ and always changed the global difficulty. Passing a world now changes only that 
 - Minor: the weekly schedule no longer keeps warning keys from past days forever, and
 `/luna boss <id>` tab-completion suggests worlds as well as players.
 
+### Fixed — third audit, live-tested on Paper 26.2
+- **`/luna killmobs <world>` now honours the world.** Tab-completion offered every loaded world,
+  but the argument was ignored and the whole server was swept. With a world only that world is
+  cleaned, and an unknown world is reported instead of silently cleaning everything.
+- **Named horde mobs finally show their name.** `horde.mobs[].name` was applied with
+  `customName()` but never `setCustomNameVisible(true)`, so the configured name was invisible.
+- **Survivor reward messages can use the per-player placeholders.** `%participation_seconds%`,
+  `%participation_percent%`, `%died%` and `%survived%` were documented as filled at runtime but
+  no code ever filled them, so they always printed nothing; they now resolve from the session's
+  real join time and death list (an explicit `:value` suffix still wins).
+
 ### Removed
+- Dead code found in the third audit: the unused `survivors` list in `EventManager.stopOne()`,
+  the never-read `sessionUuid` field of `SessionPlaceholderState` (a random UUID was generated
+  every 0.5 s for nothing), the unused `BossManager.aliveSnapshot()`, two `if` branches in
+  `SurvivorManager` that checked a policy and then did exactly the same `continue`, and the
+  `firstLoad` check in `LocaleManager.reload()` that could never be true.
 - Dead code left over from earlier refactors: `EventManager.hasGlobalSession()`,
 `LootManager.hasTable()`, `DataStore.syncReload()`, `BloodMoonPlus.keys()`,
 `Keys.instance()`, `ScheduleManager.zone()`, `ScheduleManager.intervalHours()`, an unused

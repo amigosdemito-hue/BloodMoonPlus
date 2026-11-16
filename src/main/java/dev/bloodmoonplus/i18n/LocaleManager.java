@@ -54,7 +54,9 @@ public final class LocaleManager {
             plugin.saveResource("locales/locales.yml", false);
         }
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(cfgFile);
-        boolean firstLoad = active == null;
+        // 'active' se inicializa en el constructor, así que nunca es null: la antigua
+        // comprobación "primera carga" no podía ser cierta y sobraba (en el arranque ya se
+        // anuncia porque 'language' empieza vacío).
         String previous = language;
         language = cfg.getString("Language", "en").toLowerCase(Locale.ROOT).trim();
         useBundled = cfg.getBoolean("UseBundledLocales", true);
@@ -71,7 +73,7 @@ public final class LocaleManager {
         bundledEn = loadBundled("en");
         // Solo se anuncia cuando cambia de verdad: reloadAll carga el locale varias veces entre
         // managers y antes el arranque escupía "Idioma activo" tres veces seguidas.
-        if (firstLoad || !language.equals(previous)) {
+        if (!language.equals(previous)) {
             plugin.getLogger().info("Idioma activo: " + language);
         }
     }

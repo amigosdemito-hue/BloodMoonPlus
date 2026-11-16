@@ -390,11 +390,6 @@ public final class EventManager {
         if (lockNight) setWorldTime(s.world, endTime);
         restoreDifficulty(s.world, s);
 
-        List<Player> survivors = new ArrayList<>();
-        for (UUID id : s.participants) {
-            Player p = Bukkit.getPlayer(id);
-            if (p != null && p.isOnline() && p.getWorld().equals(s.world) && !s.died.contains(id)) survivors.add(p);
-        }
         if (natural || rewardOnStop) {
             // Primero el sistema de recompensas granular del SurvivorManager (deshabilitado por default en WorldConfig)
             var eligible = plugin.survivors().processRewards(s, natural);
@@ -801,7 +796,11 @@ public final class EventManager {
         AttributeInstance sp = le.getAttribute(Attribute.MOVEMENT_SPEED);
         if (sp != null) sp.setBaseValue(sp.getBaseValue() * speed * plugin.scaled(diff, "speed"));
 
-        if (name != null) le.customName(Util.mini(name));
+        if (name != null) {
+            // Sin setCustomNameVisible el nombre configurado en horde.mobs nunca se veía.
+            le.customName(Util.mini(name));
+            le.setCustomNameVisible(true);
+        }
         if (le instanceof Ageable a) a.setAdult();
         le.setRemoveWhenFarAway(false);
         le.setPersistent(false);

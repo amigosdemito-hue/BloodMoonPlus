@@ -336,10 +336,20 @@ public final class BloodMoonCommand implements TabExecutor {
     }
 
     private void killmobs(CommandSender s, String[] a) {
-        // Limpia TODO lo de la Luna en todos los mundos, haya evento o no: antes solo miraba
-        // los mundos con sesión, así que un jefe invocado a mano no se podía quitar.
+        // Limpia TODO lo de la Luna, haya evento o no: antes solo miraba los mundos con sesión,
+        // así que un jefe invocado a mano no se podía quitar.
+        // El tabulador ofrecía mundos pero el argumento se ignoraba y se limpiaba el servidor
+        // entero; ahora /luna killmobs <mundo> limpia solo ese mundo.
+        List<org.bukkit.World> targets;
+        if (a.length > 0) {
+            org.bukkit.World w = Bukkit.getWorld(a[0]);
+            if (w == null) { m().send(s, "unknown-world"); return; }
+            targets = List.of(w);
+        } else {
+            targets = Bukkit.getWorlds();
+        }
         int removed = 0;
-        for (org.bukkit.World w : Bukkit.getWorlds()) {
+        for (org.bukkit.World w : targets) {
             removed += plugin.bosses().removeAll(w);
             removed += plugin.events().removeTagged(w);
         }
