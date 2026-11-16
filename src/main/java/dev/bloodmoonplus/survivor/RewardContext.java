@@ -90,6 +90,14 @@ public final class RewardContext {
 
     /** Resuelve todos los placeholders modernos (%player%, %world%, %boss_name% etc.). */
     public String resolve(String text, Player target) {
+        return resolve(text,
+                target == null ? null : target.getUniqueId(),
+                target == null ? null : target.getName());
+    }
+
+    /** Variante sin Bukkit (id y nombre del destinatario). La usa resolve(...) y permite probar
+     *  los placeholders por jugador en tests unitarios, sin un servidor ni un Player real. */
+    public String resolve(String text, UUID targetId, String targetName) {
         if (text == null) return "";
         Matcher m = PLACEHOLDER.matcher(text);
         StringBuilder sb = new StringBuilder();
@@ -97,8 +105,8 @@ public final class RewardContext {
             String key = m.group(1).toLowerCase();
             String opt = m.group(2);
             String replacement = switch (key) {
-                case "player", "player_name" -> target == null ? "" : target.getName();
-                case "player_uuid" -> target == null ? "" : target.getUniqueId().toString();
+                case "player", "player_name" -> targetName == null ? "" : targetName;
+                case "player_uuid" -> targetId == null ? "" : targetId.toString();
                 case "world", "world_name" -> worldName;
                 case "world_uuid" -> {
                     // Bukkit.getWorld() puede devolver null (mundo descargado): antes lanzaba NPE.
@@ -117,11 +125,11 @@ public final class RewardContext {
                 // recompensa con %participation_seconds% imprimía una cadena vacía.
                 // El sufijo explícito :valor sigue teniendo prioridad.
                 case "participation_seconds" -> opt != null ? opt
-                        : (target == null ? "" : String.valueOf(participationSeconds(target)));
+                        : (targetId == null ? "" : String.valueOf(participationSeconds(targetId)));
                 case "participation_percent" -> opt != null ? opt
-                        : (target == null ? "" : String.valueOf(participationPercent(target)));
-                case "died" -> opt != null ? opt : Boolean.toString(target != null && hasDied(target));
-                case "survived" -> opt != null ? opt : Boolean.toString(target != null && !hasDied(target));
+                        : (targetId == null ? "" : String.valueOf(participationPercent(targetId)));
+                case "died" -> opt != null ? opt : Boolean.toString(targetId != null && hasDied(targetId));
+                case "survived" -> opt != null ? opt : Boolean.toString(targetId != null && !hasDied(targetId));
                 case "boss_name" -> bossName;
                 case "boss_type" -> bossType;
                 case "boss_uuid" -> "";
@@ -143,24 +151,24 @@ public final class RewardContext {
         String result = sb.toString()
                 .replace("$w", worldName)
                 .replace("$b", bossName);
-        if (target != null) result = result.replace("$p", target.getName());
+        if (targetName != null) result = result.replace("$p", targetName);
         return result;
     }
 
-    private boolean hasDied(Player p) {
-        return died != null && died.contains(p.getUniqueId());
+    private boolean hasDied(UUID id) {
+        return died != null && died.contains(id);
     }
 
-    private long participationSeconds(Player p) {
+    private long participationSeconds(UUID id) {
         if (joinedAtMs == null) return 0;
-        Long joined = joinedAtMs.get(p.getUniqueId());
+        Long joined = joinedAtMs.get(id);
         if (joined == null) return 0;
         return Math.max(0, (endTime - joined) / 1000);
     }
 
-    private long participationPercent(Player p) {
+    private long participationPercent(UUID id) {
         if (durationSeconds <= 0) return 0;
-        return Math.min(100, participationSeconds(p) * 100 / Math.max(1, durationSeconds));
+        return Math.min(100, participationSeconds(id) * 100 / Math.max(1, durationSeconds));
     }
 
     /** Parsea un comando con su sufijo de audiencia. */
