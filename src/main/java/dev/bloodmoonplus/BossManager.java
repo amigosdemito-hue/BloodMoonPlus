@@ -42,10 +42,7 @@ public final class BossManager {
         /** Jefe que invoca esbirros (SUMMON o SWARM). Solo estos frenan las oleadas mientras
          *  vivan: son los únicos que necesitan el hueco del pozo para sus invocaciones. */
         boolean summonsMinions() {
-            for (Ability a : abilities) {
-                if ("SUMMON".equals(a.type()) || "SWARM".equals(a.type())) return true;
-            }
-            return false;
+            return abilities.stream().anyMatch(a -> "SUMMON".equals(a.type()) || "SWARM".equals(a.type()));
         }
     }
 
@@ -354,10 +351,8 @@ public final class BossManager {
     boolean anySummonerAlive(World world) {
         if (world == null) return false;
         for (Instance bi : alive.values()) {
-            if (!bi.def.summonsMinions()) continue;
-            Entity ent = Bukkit.getEntity(bi.id);
-            if (ent instanceof LivingEntity le && !le.isDead() && le.isValid()
-                    && le.getWorld().equals(world)) return true;
+            if (!bi.def.summonsMinions() || !world.equals(bi.world)) continue;
+            if (Bukkit.getEntity(bi.id) instanceof LivingEntity le && !le.isDead() && le.isValid()) return true;
         }
         return false;
     }

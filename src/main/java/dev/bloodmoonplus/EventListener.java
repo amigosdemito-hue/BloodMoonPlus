@@ -55,8 +55,10 @@ public final class EventListener implements Listener {
      */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onHordeFriendlyFire(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof LivingEntity victim) || !EventManager.isTagged(victim)) return;
-        if (e.getDamageSource().getCausingEntity() instanceof Enemy) e.setCancelled(true);
+        if (EventManager.isTagged(e.getEntity())
+                && e.getDamageSource().getCausingEntity() instanceof Enemy) {
+            e.setCancelled(true);
+        }
     }
 
     /**
