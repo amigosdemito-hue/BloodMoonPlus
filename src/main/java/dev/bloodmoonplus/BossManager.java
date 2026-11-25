@@ -348,9 +348,13 @@ public final class BossManager {
             }
             double frac = Math.max(0, Math.min(1, le.getHealth() / Util.maxHealth(le)));
             bi.bar.progress((float) frac);
+            // Solo se envía el paquete cuando el estado cambia: esto corre cada 0.5 s por jefe
+            // y antes reenviaba la barra a TODOS los jugadores online en cada pasada.
             for (Player p : Bukkit.getOnlinePlayers()) {
-                if (p.getWorld().equals(le.getWorld())) p.showBossBar(bi.bar);
-                else p.hideBossBar(bi.bar);
+                boolean sameWorld = p.getWorld().equals(le.getWorld());
+                boolean shown = EventManager.barShows(bi.bar, p);
+                if (sameWorld && !shown) p.showBossBar(bi.bar);
+                else if (!sameWorld && shown) p.hideBossBar(bi.bar);
             }
             // Segunda fase (enloquecida): al bajar del umbral, se activa una sola vez
             if (!bi.enraged && bi.def.enrageAt() > 0 && frac <= bi.def.enrageAt()) {

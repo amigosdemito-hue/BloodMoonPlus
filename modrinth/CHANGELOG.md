@@ -59,6 +59,24 @@ ability, explosion particles were trimmed (1 emitter + 95 particles instead of 3
 processes at most **48 entities** and **1400 blocks**, and the minion summon is capped at 6 alive
 per boss. Nothing in the kit allocates unbounded work per tick, so a large farm next to the fight
 cannot stall the server.
+- **A horde wave no longer sweeps the world twice per player.** `spawnWave` called
+`getNearbyEntities(48,48,48)` — a 97³ entity sweep that touches hundreds of entities with mods
+installed — twice for every eligible player, only to count live horde mobs. The cap
+(`horde.max-alive-per-player` × eligible players) now reads a per-world counter that
+`countHordeAlive` already refreshed every ~2 s, so a wave does no entity sweeping at all and the
+cap applies to the whole world instead of a bubble around each player.
+- **Spawn search stopped allocating thousands of blocks and strings.** `findSpawn` ran up to 12
+attempts × 17 vertical steps per mob, building three `Block`s and three `toString().contains(...)`
+per candidate. It now tries 8 positions, checks the cheap conditions first (feet passable, head
+passable) and compares `Material` constants against a small set. Wave size is unchanged.
+- **Mob names are parsed once.** Every spawned horde mob re-ran the MiniMessage parser (and the
+legacy-colour converter) on its configured name; the `Component` is now built once in `reload()`
+and shared by every mob of that type.
+- **The world clock is no longer re-sent every second.** With `event.lock-night` the session tick
+called `setTime` every second, so every player received a time packet every second; the night is
+now only re-applied once the world has drifted more than 30 s past it. Boss bars are sent only
+when a player's visibility actually changes, and the session tick reads the world's player list
+once instead of six times.
 
 ### Added — 7 languages
 - **Spanish, English, Portuguese, French, German, Italian and Russian**, complete and selectable in

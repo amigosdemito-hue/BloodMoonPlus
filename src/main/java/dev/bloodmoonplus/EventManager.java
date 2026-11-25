@@ -12,6 +12,7 @@ import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Difficulty;
@@ -95,16 +96,28 @@ public final class EventManager {
         }
     }
 
-    record MobDef(EntityType type, double weight, double health, double damage, double speed, String name,
+    /** display llega ya parseado desde reload(): antes cada mob de cada oleada volvía a pasar su
+     *  nombre por MiniMessage (y por el conversor de códigos legacy) al spawnear. */
+    record MobDef(EntityType type, double weight, double health, double damage, double speed, Component display,
                   Map<EquipmentSlot, Material> equipment, double equipChance, String table) {}
 
     private static final int[] DY = {0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8};
+
+    /** Suelos sobre los que un mob de la horda no debe aparecer. Antes se comprobaba con
+     *  toString().contains(...) por cada bloque candidato de cada búsqueda de spawn. */
+    private static final Set<Material> UNSAFE_GROUND = EnumSet.of(Material.LAVA, Material.FIRE,
+            Material.SOUL_FIRE, Material.MAGMA_BLOCK, Material.SWEET_BERRY_BUSH, Material.POWDER_SNOW,
+            Material.CACTUS);
 
     private final BloodMoonPlus plugin;
     /** Una sesión por mundo (clave = nombre del mundo), todas las de un mismo evento
      *  arrancan y terminan juntas: es lo que hace que el evento sea GLOBAL. */
     private final Map<String, Session> sessions = new LinkedHashMap<>();
     private final List<MobDef> mobs = new ArrayList<>();
+    /** Mobs de la horda vivos por mundo. Lo refresca countHordeAlive() (el snapshot de
+     *  placeholders lo llama cada ~2 s) y lo ajustan spawnWave/removeTagged, así que el tope de
+     *  la oleada no necesita recorrer el mundo con getNearbyEntities. */
+    private final Map<String, Integer> aliveHorde = new HashMap<>();
 
     private boolean hordeEnabled;
     /** event.global: el evento cubre TODOS los mundos cargados, no solo los de la lista. */
@@ -170,9 +183,10 @@ public final class EventManager {
                 plugin.getLogger().warning("horde.mobs: tipo inválido " + m.get("type"));
                 continue;
             }
+            String name = Util.str(m, "name", null);
             mobs.add(new MobDef(type, Util.num(m, "weight", 1), Util.num(m, "health", 0),
                     Util.num(m, "damage-multiplier", 1), Util.num(m, "speed-multiplier", 1),
-                    Util.str(m, "name", null), parseEquipment(m.get("equipment")),
+                    name == null ? null : Util.mini(name), parseEquipment(m.get("equipment")),
                     Util.num(m, "equipment-chance", 1), Util.str(m, "loot-table", null)));
         }
     }
@@ -252,7 +266,11 @@ public final class EventManager {
             return;
         }
         try {
-            w.setTime(time);
+            // setTime reenvía el paquete de la hora a todos los jugadores del mundo. Como el evento
+            // vuelve a fijar la noche cada segundo, ese paquete salía 1 vez por segundo y jugador;
+            // ahora solo cuando la hora se ha desviado más de ~30 s de juego del valor objetivo.
+            long t = w.getTime();
+            if (t < time || t > time + 600) w.setTime(time);
         } catch (IllegalArgumentException ex) {
             worldsWithoutClock.add(w.getName());
             plugin.getLogger().warning("No se puede fijar la hora en '" + w.getName()
@@ -531,7 +549,10 @@ public final class EventManager {
             plugin.data().saveActive(w.getName(), global.startMs, global.endMs, global.difficulty);
         }
 
-        for (Player p : w.getPlayers()) {
+        // Una sola copia de la lista por tick: antes se pedía 6 veces (participantes, tres
+        // sonidos ambientales, niebla y barra) y cada llamada recorre los jugadores del mundo.
+        List<Player> players = w.getPlayers();
+        for (Player p : players) {
             if (p.getGameMode() == GameMode.SURVIVAL || p.getGameMode() == GameMode.ADVENTURE) {
                 global.participants.add(p.getUniqueId());
                 // Hora de entrada real (los placeholders y SurvivorRewards ya no usan la
@@ -549,29 +570,29 @@ public final class EventManager {
         if (!w.isThundering()) w.setThundering(true);
         if (now - global.lastAmbientThunderMs > 40_000L + ThreadLocalRandom.current().nextInt(30_000)) {
             global.lastAmbientThunderMs = now;
-            if (!w.getPlayers().isEmpty()) {
-                Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
+            if (!players.isEmpty()) {
+                Player rp = players.get(ThreadLocalRandom.current().nextInt(players.size()));
                 rp.playSound(rp.getLocation(), org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.4f, 0.35f);
             }
         }
         if (now - global.lastAmbientCaveMs >= 30_000L) {
             global.lastAmbientCaveMs = now;
-            if (!w.getPlayers().isEmpty()) {
-                Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
+            if (!players.isEmpty()) {
+                Player rp = players.get(ThreadLocalRandom.current().nextInt(players.size()));
                 rp.playSound(rp.getLocation(), org.bukkit.Sound.AMBIENT_CAVE, 0.35f, 0.45f);
             }
         }
         if (now - global.lastHeartbeatMs >= 40_000L) {
             global.lastHeartbeatMs = now;
-            if (!w.getPlayers().isEmpty()) {
-                Player rp = w.getPlayers().get(ThreadLocalRandom.current().nextInt(w.getPlayers().size()));
+            if (!players.isEmpty()) {
+                Player rp = players.get(ThreadLocalRandom.current().nextInt(players.size()));
                 rp.playSound(rp.getLocation(), org.bukkit.Sound.ENTITY_WARDEN_HEARTBEAT, 0.25f, 0.7f);
             }
         }
         // Niebla roja ligera cada 4 segundos en lugar de cada 2, y solo glow puntual.
         if (now - global.lastFogMs >= 4_000L) {
             global.lastFogMs = now;
-            for (Player p : w.getPlayers()) {
+            for (Player p : players) {
                 w.spawnParticle(org.bukkit.Particle.DUST, p.getLocation().add(0, 0.5, 0), 6, 0.7, 0.35, 0.7, 0.02,
                         new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(140, 0, 0), 0.9f));
                 if (!p.hasPotionEffect(org.bukkit.potion.PotionEffectType.GLOWING)) {
@@ -644,12 +665,21 @@ public final class EventManager {
         }
     }
 
+    /** ¿Ese jugador ya ve la barra? `BossBar.viewers()` no ofrece `contains()`, y volver a llamar a
+     *  `showBossBar` reenvía el paquete aunque el jugador ya la tenga delante. */
+    public static boolean barShows(BossBar bar, Player p) {
+        for (Object a : bar.viewers()) if (a == p) return true;
+        return false;
+    }
+
     private void updateBar(Session s, long now) {
         long rem = s.endMs - now;
         float prog = (float) Math.max(0, Math.min(1, rem / (double) Math.max(1, s.endMs - s.startMs)));
         s.bar.progress(prog);
         s.bar.name(plugin.messages().get("event.bar", "time", Util.dur(rem / 1000), "difficulty", Util.fmt(s.difficulty)));
-        for (Player p : s.world.getPlayers()) p.showBossBar(s.bar);
+        // showBossBar es idempotente, pero cada llamada reenvó el paquete de la barra: con varios
+        // jugadores y este tick cada segundo era un goteo constante de paquetes sin efecto real.
+        for (Player p : s.world.getPlayers()) if (!barShows(s.bar, p)) p.showBossBar(s.bar);
     }
 
     // ------------------------------------------------------------------ hordas
@@ -686,37 +716,33 @@ public final class EventManager {
         World w = s.world;
         List<Player> targets = only != null ? List.of(only) : w.getPlayers();
 
+        // Jugadores elegibles UNA sola vez: antes se recalculaba con stream() y otra vez en el bucle.
+        List<Player> eligiblePlayers = new ArrayList<>(targets.size());
+        for (Player p : targets) if (eligible(p, s)) eligiblePlayers.add(p);
+        if (eligiblePlayers.isEmpty()) return 0;
+
         double sizeScale = plugin.scaled(s.difficulty, "horde-size");
         // Oleadas progresivas por número de oleada: 1ª=5, 2ª=10, 3ª=15... hasta wave-max-size (30)
         s.waveCount++;
         int dynamicBase = Math.min(waveMaxSize, baseSize * s.waveCount);
         int perWave = Math.max(1, (int) Math.round(dynamicBase * sizeScale));
-        // Con muchos jugadores o muchos mobs ya vivos, bajamos el tope de la oleada para evitar
-        // que el mundo se sature rápido (llegada de mods + 20 jugadores + muchos mods spawneando).
-        int nearGlobal = 0;
-        for (Player p : targets) {
-            if (!eligible(p, s)) continue;
-            for (Entity e : p.getNearbyEntities(48, 48, 48)) {
-                if (e instanceof LivingEntity le && isTagged(le)) { nearGlobal++; break; }
-            }
-        }
-        int playerCount = (int) targets.stream().filter(p -> eligible(p, s)).count();
-        int saturation = Math.min(100, nearGlobal / Math.max(1, playerCount) + (playerCount * 6));
+        // Tope de mobs de la horda vivos en el mundo: max-alive-per-player × jugadores elegibles,
+        // con un margen que crece por oleada. El recuento sale del contador del mundo (lo refresca
+        // countHordeAlive cada ~2 s), así que una oleada ya NO recorre dos veces por jugador un cubo
+        // de 97x97x97 entidades con getNearbyEntities(): ese era el pico de lag de cada horda, y con
+        // mods y varios jugadores cada llamada toca cientos de entidades.
         int cap = Math.max(1, (int) Math.round(maxPerPlayer * sizeScale * (1 + s.waveCount * 0.15)
-                * (100 - Math.min(40, saturation)) / 100.0));
+                * eligiblePlayers.size()));
+        int room = cap - hordeAlive(w);
+        if (room <= 0) return 0;
         int spawned = 0;
-        for (Player p : targets) {
-            if (!eligible(p, s)) continue;
-            int near = 0;
-            // Contamos solo los mobs de la Luna CERCA (48b) usando los chunks vecinos del
-            // jugador (getNearbyEntities) en lugar de recorrer TODAS las entidades del mundo,
-            // que con 40 jugadores y cientos de mobs es muy costoso en cada oleada.
-            for (Entity e : p.getNearbyEntities(48, 48, 48)) {
-                if (e instanceof LivingEntity le && isTagged(le)) near++;
-            }
-            int amount = Math.min(perWave, Math.max(0, cap - near));
-            // Rayo cinematográfico + anuncio de horda cayendo (solo para la primera oleada del jugador)
-            if (s.lastHordeAnnounceMs == 0 || System.currentTimeMillis() - s.lastHordeAnnounceMs > 30_000L) {
+        boolean announceHorde = s.lastHordeAnnounceMs == 0 || System.currentTimeMillis() - s.lastHordeAnnounceMs > 30_000L;
+        for (Player p : eligiblePlayers) {
+            if (spawned >= room) break;
+            int amount = Math.min(perWave, room - spawned);
+            // Rayo cinematográfico + anuncio de horda cayendo (como mucho uno cada 30 s)
+            if (announceHorde) {
+                announceHorde = false;
                 // Encontrar un punto de spawn para el rayo cinematográfico
                 Location rayPoint = findSpawn(p.getLocation(), minDist, maxDist);
                 if (rayPoint != null) {
@@ -743,11 +769,12 @@ public final class EventManager {
                 }
                 MobDef d = Util.pick(mobs, MobDef::weight);
                 if (d == null) continue;
-                LivingEntity le = spawn(loc, d.type(), d.health(), d.damage(), d.speed(), d.name(), d.equipment(),
+                LivingEntity le = spawn(loc, d.type(), d.health(), d.damage(), d.speed(), d.display(), d.equipment(),
                         d.equipChance(), s.difficulty, d.table(), p);
                 if (le != null) spawned++;
             }
         }
+        if (spawned > 0) aliveHorde.merge(w.getName(), spawned, Integer::sum);
         return spawned;
     }
 
@@ -755,13 +782,20 @@ public final class EventManager {
     public LivingEntity spawnMinion(Location loc, EntityType type, double diff, Player target) {
         for (MobDef d : mobs) {
             if (d.type() == type) {
-                return spawn(loc, type, d.health(), d.damage(), d.speed(), d.name(), d.equipment(), d.equipChance(), diff, d.table(), target);
+                return spawn(loc, type, d.health(), d.damage(), d.speed(), d.display(), d.equipment(), d.equipChance(), diff, d.table(), target);
             }
         }
-        return spawn(loc, type, 0, 1, 1, null, Map.of(), 1, diff, null, target);
+        return spawn(loc, type, 0, 1, 1, (Component) null, Map.of(), 1, diff, null, target);
     }
 
+    /** Variante para textos sueltos (jefes): parsea el nombre una vez y delega en la de Component. */
     public LivingEntity spawn(Location loc, EntityType type, double health, double dmg, double speed, String name,
+                              Map<EquipmentSlot, Material> equip, double equipChance, double diff, String table, Player target) {
+        return spawn(loc, type, health, dmg, speed, name == null ? null : Util.mini(name),
+                equip, equipChance, diff, table, target);
+    }
+
+    public LivingEntity spawn(Location loc, EntityType type, double health, double dmg, double speed, Component display,
                               Map<EquipmentSlot, Material> equip, double equipChance, double diff, String table, Player target) {
         Entity ent;
         try {
@@ -799,17 +833,18 @@ public final class EventManager {
         AttributeInstance sp = le.getAttribute(Attribute.MOVEMENT_SPEED);
         if (sp != null) sp.setBaseValue(sp.getBaseValue() * speed * plugin.scaled(diff, "speed"));
 
-        if (name != null) {
+        if (display != null) {
+            // El Component llega ya parseado desde reload(): antes cada mob repetía el MiniMessage.
             // Sin setCustomNameVisible el nombre configurado en horde.mobs nunca se veía.
-            le.customName(Util.mini(name));
+            le.customName(display);
             le.setCustomNameVisible(true);
         }
         if (le instanceof Ageable a) a.setAdult();
         le.setRemoveWhenFarAway(false);
         le.setPersistent(false);
 
-        EntityEquipment eq = le.getEquipment();
-        if (eq != null && equip != null) {
+        EntityEquipment eq = equip == null || equip.isEmpty() ? null : le.getEquipment();
+        if (eq != null) {
             for (Map.Entry<EquipmentSlot, Material> en : equip.entrySet()) {
                 if (ThreadLocalRandom.current().nextDouble() <= equipChance) {
                     eq.setItem(en.getKey(), new ItemStack(en.getValue()));
@@ -880,21 +915,31 @@ public final class EventManager {
         for (LivingEntity le : w.getLivingEntities()) {
             if (isTagged(le) && !le.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) n++;
         }
+        aliveHorde.put(w.getName(), n);
         return n;
     }
+
+    /** Último recuento conocido de mobs de la horda vivos en el mundo (0 si aún no se ha contado).
+     *  Lo usa spawnWave para no pasarse del tope sin recorrer el mundo en cada oleada. */
+    public int hordeAlive(World w) { return w == null ? 0 : aliveHorde.getOrDefault(w.getName(), 0); }
 
     public int removeTagged(World w) {
         int n = 0;
         for (LivingEntity le : w.getLivingEntities()) {
             if (isTagged(le)) { le.remove(); n++; }
         }
+        aliveHorde.remove(w.getName());
         return n;
     }
 
     public Location findSpawn(Location c, double min, double max) {
         World w = c.getWorld();
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
-        for (int i = 0; i < 12; i++) {
+        int minY = w.getMinHeight() + 1, maxY = w.getMaxHeight() - 2;
+        // 8 intentos en lugar de 12 y las comprobaciones baratas primero: una búsqueda llegaba a
+        // pagar 12×17 bloques por CADA mob de la oleada, y por cada bloque tres Block nuevos y
+        // tres toString().contains(...).
+        for (int i = 0; i < 8; i++) {
             double ang = rnd.nextDouble() * Math.PI * 2;
             double dist = min + rnd.nextDouble() * (max - min);
             int x = c.getBlockX() + (int) Math.round(Math.cos(ang) * dist);
@@ -902,18 +947,14 @@ public final class EventManager {
             if (!w.isChunkLoaded(x >> 4, z >> 4)) continue;
             for (int dy : DY) {
                 int y = c.getBlockY() + dy;
-                if (y <= w.getMinHeight() + 1 || y >= w.getMaxHeight() - 2) continue;
+                if (y <= minY || y >= maxY) continue;
                 Block feet = w.getBlockAt(x, y, z);
-                Block head = w.getBlockAt(x, y + 1, z);
-                Block below = w.getBlockAt(x, y - 1, z);
-                if (feet.isPassable() && head.isPassable() && !feet.isLiquid() && !head.isLiquid()
-                        && below.getType().isSolid() && !below.getType().isAir()
-                        && !below.getType().toString().contains("LAVA")
-                        && !below.getType().toString().contains("FIRE")
-                        && !below.getType().toString().contains("MAGMA")
-                        && !below.getType().toString().contains("SWEET_BERRY")) {
-                    return new Location(w, x + 0.5, y, z + 0.5);
-                }
+                if (!feet.isPassable() || feet.isLiquid()) continue;
+                Block head = feet.getRelative(BlockFace.UP);
+                if (!head.isPassable() || head.isLiquid()) continue;
+                Material ground = feet.getRelative(BlockFace.DOWN).getType();
+                if (!ground.isSolid() || UNSAFE_GROUND.contains(ground)) continue;
+                return new Location(w, x + 0.5, y, z + 0.5);
             }
         }
         return null;
