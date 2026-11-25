@@ -59,6 +59,8 @@ loot:
 item:
   rarity-line: "<gray>Редкость: {rarity}"
   serial-line: "<dark_red>Уникальный экземпляр <white>#{serial}<gray>/{limit}"
+  owner-line: "<dark_gray>Добыто: <white>{owner}"
+  owner-unknown: "<dark_gray>Охотник неизвестен"
   no-disenchant: "<red>Предметы Кровавой Луны не теряют зачарования и проклятия."
   updated: "<green>Ваши предметы Кровавой Луны обновлены последними улучшениями."
 

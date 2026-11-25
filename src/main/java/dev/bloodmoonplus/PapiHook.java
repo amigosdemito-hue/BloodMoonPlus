@@ -243,9 +243,15 @@ public final class PapiHook extends PlaceholderExpansion {
         return "100%";
     }
 
+    /** Objetos únicos que lleva el jugador. Recorre también armadura y mano secundaria: antes
+     *  solo miraba el inventario principal y un mítico puesto no contaba. */
     private int countUniqueItems(Player p) {
         int n = 0;
-        for (var item : p.getInventory().getContents()) {
+        java.util.List<org.bukkit.inventory.ItemStack> all = new java.util.ArrayList<>(
+                java.util.Arrays.asList(p.getInventory().getContents()));
+        all.addAll(java.util.Arrays.asList(p.getInventory().getArmorContents()));
+        all.add(p.getInventory().getItemInOffHand());
+        for (var item : all) {
             if (item == null || !item.hasItemMeta()) continue;
             var pdc = item.getItemMeta().getPersistentDataContainer();
             if (pdc.has(dev.bloodmoonplus.Keys.ITEM_SERIAL, org.bukkit.persistence.PersistentDataType.INTEGER)) n++;

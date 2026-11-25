@@ -59,6 +59,8 @@ loot:
 item:
   rarity-line: "<gray>Raridade: {rarity}"
   serial-line: "<dark_red>Exemplar único <white>#{serial}<gray>/{limit}"
+  owner-line: "<dark_gray>Caçado por <white>{owner}"
+  owner-unknown: "<dark_gray>Caçador desconhecido"
   no-disenchant: "<red>Os itens da Lua de Sangue não perdem encantamentos nem maldições."
   updated: "<green>Seus itens da Lua foram atualizados com as últimas melhorias."
 

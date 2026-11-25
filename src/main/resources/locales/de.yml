@@ -59,6 +59,8 @@ loot:
 item:
   rarity-line: "<gray>Seltenheit: {rarity}"
   serial-line: "<dark_red>Einzelstück <white>#{serial}<gray>/{limit}"
+  owner-line: "<dark_gray>Gejagt von <white>{owner}"
+  owner-unknown: "<dark_gray>Jäger unbekannt"
   no-disenchant: "<red>Blutmond-Gegenstände verlieren niemals Verzauberungen oder Flüche."
   updated: "<green>Deine Blutmond-Gegenstände wurden mit den neuesten Verbesserungen aktualisiert."
 

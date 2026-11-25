@@ -102,6 +102,19 @@ public final class ItemFactory {
             rp.set(Keys.ITEM_SERIAL, PersistentDataType.INTEGER, serial);
             changed = true;
         }
+        // La rareza y el cazador viajaban en el PDC del objeto original: si el yunque o la
+        // herrería los perdían, el objeto dejaba de brillar, de ir directo al inventario y de
+        // mostrar su dueño. Se restauran junto al id y el número de serie.
+        String rarity = op.get(Keys.ITEM_RARITY, PersistentDataType.STRING);
+        if (rarity != null && !rarity.equals(rp.get(Keys.ITEM_RARITY, PersistentDataType.STRING))) {
+            rp.set(Keys.ITEM_RARITY, PersistentDataType.STRING, rarity);
+            changed = true;
+        }
+        String itemOwner = op.get(Keys.ITEM_OWNER, PersistentDataType.STRING);
+        if (itemOwner != null && !rp.has(Keys.ITEM_OWNER, PersistentDataType.STRING)) {
+            rp.set(Keys.ITEM_OWNER, PersistentDataType.STRING, itemOwner);
+            changed = true;
+        }
         if (om.isUnbreakable() && !rm.isUnbreakable()) {
             rm.setUnbreakable(true);
             changed = true;
@@ -117,7 +130,11 @@ public final class ItemFactory {
      *  item), quita la maldición de desaparición de la 1.0.2 y borra las claves de las viejas
      *  habilidades. No toca el nombre que le puso el jugador, ni el desgaste, ni el lore.
      *  Devuelve true si modificó el stack (que se edita in situ). */
-    public boolean refresh(ItemStack stack) {
+    public boolean refresh(ItemStack stack) { return refresh(stack, null); }
+
+    /** Puesta al día con un dueño de respaldo: a los objetos repartidos antes de que existiera
+     *  la línea de cazador se les pone como dueño el jugador que los tiene al entrar. */
+    public boolean refresh(ItemStack stack, String fallbackOwner) {
         if (!isMoonItem(stack)) return false;
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) return false;
@@ -179,6 +196,25 @@ public final class ItemFactory {
             meta.displayName(Util.item(d.name()));
             changed = true;
         }
+        // Dueño del objeto: se guarda en el PDC para poder reconstruir la lore siempre. Los
+        // objetos viejos no lo traen; se les asigna el jugador que los tiene al pasar por aquí.
+        String owner = pdc.get(Keys.ITEM_OWNER, PersistentDataType.STRING);
+        if (owner == null && fallbackOwner != null) {
+            owner = fallbackOwner;
+            pdc.set(Keys.ITEM_OWNER, PersistentDataType.STRING, owner);
+            changed = true;
+        }
+        // La lore se regenera desde items.yml: así un objeto creado antes de este cambio
+        // recupera su descripción, su línea de rareza y su cazador en vez de quedarse con una
+        // lore vieja e incompleta para siempre.
+        if (d.name() != null) {
+            Integer serial = pdc.get(Keys.ITEM_SERIAL, PersistentDataType.INTEGER);
+            List<Component> lore = loreFor(d, owner, serial == null ? 0 : serial);
+            if (!lore.equals(meta.lore())) {
+                meta.lore(lore);
+                changed = true;
+            }
+        }
         if (changed) stack.setItemMeta(meta);
         return changed;
     }
@@ -204,28 +240,29 @@ public final class ItemFactory {
      *  /luna refresh. */
     public int refreshPlayer(org.bukkit.entity.Player p) {
         int changed = 0;
+        String who = p.getName();
         ItemStack[] contents = p.getInventory().getContents();
         for (int i = 0; i < contents.length; i++) {
-            if (!refresh(contents[i])) continue;
+            if (!refresh(contents[i], who)) continue;
             p.getInventory().setItem(i, contents[i]);
             changed++;
         }
         ItemStack[] armor = p.getInventory().getArmorContents();
         boolean armorChanged = false;
         for (ItemStack a : armor) {
-            if (!refresh(a)) continue;
+            if (!refresh(a, who)) continue;
             armorChanged = true;
             changed++;
         }
         if (armorChanged) p.getInventory().setArmorContents(armor);
         ItemStack off = p.getInventory().getItemInOffHand();
-        if (refresh(off)) {
+        if (refresh(off, who)) {
             p.getInventory().setItemInOffHand(off);
             changed++;
         }
         ItemStack[] ender = p.getEnderChest().getContents();
         for (int i = 0; i < ender.length; i++) {
-            if (!refresh(ender[i])) continue;
+            if (!refresh(ender[i], who)) continue;
             p.getEnderChest().setItem(i, ender[i]);
             changed++;
         }
@@ -288,22 +325,9 @@ public final class ItemFactory {
         ItemStack stack = new ItemStack(d.material(), Math.max(1, amount));
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) return stack;
-        String rarityDisp = plugin.loot().rarityDisplay(d.rarity());
-        Messages msg = plugin.messages();
-
         if (d.name() != null) meta.displayName(Util.item(d.name()));
 
-        List<Component> lore = new ArrayList<>();
-        for (String line : d.lore()) {
-            lore.add(Util.item(line.replace("{owner}", owner == null ? "?" : owner).replace("{rarity}", rarityDisp)));
-        }
-        if (showRarityLine && d.name() != null) {
-            lore.add(Component.empty());
-            lore.add(Util.item(msg.fill(msg.raw("item.rarity-line"), "rarity", rarityDisp)));
-        }
-        if (d.limit() > 0 && serial > 0) {
-            lore.add(Util.item(msg.fill(msg.raw("item.serial-line"), "serial", String.valueOf(serial), "limit", String.valueOf(d.limit()))));
-        }
+        List<Component> lore = loreFor(d, owner, serial);
         if (!lore.isEmpty()) meta.lore(lore);
 
         for (Map.Entry<String, Integer> e : d.enchants().entrySet()) {
@@ -328,7 +352,35 @@ public final class ItemFactory {
         pdc.set(Keys.ITEM_ID, PersistentDataType.STRING, d.id());
         pdc.set(Keys.ITEM_RARITY, PersistentDataType.STRING, d.rarity());
         if (serial > 0) pdc.set(Keys.ITEM_SERIAL, PersistentDataType.INTEGER, serial);
+        if (owner != null && !owner.isBlank()) pdc.set(Keys.ITEM_OWNER, PersistentDataType.STRING, owner);
         stack.setItemMeta(meta);
         return stack;
+    }
+
+    /** Lore completa del objeto: descripción de items.yml, línea de rareza y cazador (y número
+     *  de serie si es único). Se genera en un único sitio para que build() y refresh() nunca
+     *  produzcan objetos distintos y para que los repartidos antes recuperen lo que les faltaba. */
+    private List<Component> loreFor(ItemDef d, String owner, int serial) {
+        if (d.name() == null) return List.of();
+        String rarityDisp = plugin.loot().rarityDisplay(d.rarity());
+        String hunter = owner == null || owner.isBlank() || owner.equals("?") ? null : owner;
+        Messages msg = plugin.messages();
+        List<Component> lore = new ArrayList<>();
+        for (String line : d.lore()) {
+            lore.add(Util.item(line.replace("{owner}", hunter == null ? "?" : hunter)
+                    .replace("{rarity}", rarityDisp)));
+        }
+        lore.add(Component.empty());
+        if (showRarityLine) {
+            lore.add(Util.item(msg.fill(msg.raw("item.rarity-line"), "rarity", rarityDisp)));
+        }
+        lore.add(Util.item(hunter == null
+                ? msg.raw("item.owner-unknown")
+                : msg.fill(msg.raw("item.owner-line"), "owner", hunter)));
+        if (d.limit() > 0 && serial > 0) {
+            lore.add(Util.item(msg.fill(msg.raw("item.serial-line"), "serial", String.valueOf(serial),
+                    "limit", String.valueOf(d.limit()))));
+        }
+        return lore;
     }
 }

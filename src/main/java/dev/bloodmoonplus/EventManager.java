@@ -128,7 +128,6 @@ public final class EventManager {
     private boolean hordeEnabled;
     /** event.global: el evento cubre TODOS los mundos cargados, no solo los de la lista. */
     private boolean globalMode = true;
-    private boolean skipEmpty = true;
     private double waveInterval, minDist, maxDist, firstWaveDelay;
     /** Tope de la progresión de oleadas (1ª=5, 2ª=10, 3ª=15... hasta este valor). */
     private int waveMaxSize = 30;
@@ -178,8 +177,6 @@ public final class EventManager {
         maxMult = c.getDouble("difficulty.max", 10);
         survivorTable = c.getString("loot.survivor-table", "survivors");
         defaultTable = c.getString("loot.default-table", "mob_horde");
-        // Enforce: si no hay players online en el mundo del evento, no generamos la horda
-        skipEmpty = c.getBoolean("schedule.skip-if-no-players", true);
         globalMode = c.getBoolean("event.global", true);
         keepVanilla = c.getBoolean("loot.keep-vanilla-drops", false);
 
@@ -336,8 +333,9 @@ public final class EventManager {
             String d = Util.fmt(diff);
             // Una sola línea por fase en consola: el resto son anuncios de chat para los jugadores.
             plugin.getLogger().info("Luna de Sangre iniciada en '" + w.getName() + "' (x" + d + ", " + minutes + " min).");
-            // Trueno ambiental (sin lluvia: clear-weather manda y tickSession la apaga)
-            w.setThundering(true);
+            // Trueno ambiental (sin lluvia): clear-weather manda, así que con el cielo limpio
+            // configurado no se fuerza la tormenta.
+            if (!clearWeather) w.setThundering(true);
             Component title = plugin.messages().get("event.title", "difficulty", d);
             Component sub = plugin.messages().get("event.subtitle", "difficulty", d);
             for (Player p : w.getPlayers()) {
@@ -581,8 +579,12 @@ public final class EventManager {
         // se mantiene el ambiente pero se van los truenos/sonidos muy frecuentes y la niebla constante.
         // La tormenta del evento especial dura lo que marca stormUntilMs; el resto del
         // tiempo se mantiene el cielo despejado (clear-weather).
-        if (w.hasStorm() && now > global.stormUntilMs) w.setStorm(false);
-        if (!w.isThundering()) w.setThundering(true);
+        // Solo se despeja el cielo si la config lo pide: con clear-weather: false el clima
+        // natural del mundo sigue su curso y no se le corta la tormenta al jugador.
+        if (clearWeather && w.hasStorm() && now > global.stormUntilMs) w.setStorm(false);
+        // clear-weather: el cielo se queda limpio. Antes se forzaba la tormenta cada tick y la
+        // opción no hacía nada (el jugador veía lluvia y rayos toda la noche).
+        if (!clearWeather && !w.isThundering()) w.setThundering(true);
         if (now - global.lastAmbientThunderMs > 40_000L + ThreadLocalRandom.current().nextInt(30_000)) {
             global.lastAmbientThunderMs = now;
             if (!players.isEmpty()) {

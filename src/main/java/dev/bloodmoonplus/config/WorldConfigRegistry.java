@@ -58,7 +58,7 @@ public final class WorldConfigRegistry {
             }
         }
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(cfgFile);
-        WorldConfig wc = new WorldConfig(worldName, yml);
+        WorldConfig wc = new WorldConfig(yml);
         cache.put(worldName, wc);
         return wc;
     }

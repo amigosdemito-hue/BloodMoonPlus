@@ -262,6 +262,9 @@ public final class BossManager {
         if (mythicWanted && !plugin.mythic().isAvailable()) {
             if (plugin.messages().announce("bosses", true))
                 plugin.messages().world(world, "boss.mythic-unavailable", "world", world.getName());
+            // FallbackToVanilla: false significa "sin MythicMobs no hay jefe". Antes la opción se
+            // ignoraba cuando el plugin no estaba instalado y el jefe vanilla salía igual.
+            if (!bossCfg.mythicFallback()) return false;
         }
 
         // Modo MYTHICMOBS: delega a Mythic si está disponible

@@ -28,6 +28,8 @@
 #               recogerlo del suelo y con /luna refresh <jugador|all>.
 #
 #  Placeholders de lore: {owner} {rarity}
+#  La linea de rareza y la de cazador se anaden SOLAS a cualquier objeto con nombre (el dueno
+#  sale de quien lo consiguio); no hace falta escribirlas en el lore de cada item.
 # ============================================================
 settings:
   show-rarity-line: true
@@ -57,13 +59,13 @@ items:
   espada_oxidada:
     material: WOODEN_SWORD
     name: "<gray>Espada Oxidada"
-    lore: ["<gray>Lo que la luna dejó atrás."]
+    lore: ["<gray>Forjada con restos de la última luna."]
     rarity: COMUN
     enchants: { sharpness: 2, unbreaking: 1 }
   espada_piedra:
     material: STONE_SWORD
     name: "<white>Espada de Piedra Lunar"
-    lore: ["<gray>Piedra con filo de medianoche."]
+    lore: ["<gray>Piedra tallada bajo la luna roja."]
     rarity: POCO_COMUN
     enchants: { sharpness: 3, unbreaking: 2, looting: 1 }
   espada_sanguinaria:
@@ -87,7 +89,7 @@ items:
   colmillo_vampirico:
     material: NETHERITE_SWORD
     name: "<gold><bold>Colmillo Vampírico</bold>"
-    lore: ["<gray>Bebe la vida de sus víctimas.", "<gold>Vampírico III · Trueno III · Cohete II · Marchitar II", "<dark_gray>Cazado por {owner}"]
+    lore: ["<gray>Bebe la vida de sus víctimas.", "<gold>Vampírico III · Trueno III · Cohete II · Marchitar II"]
     rarity: LEGENDARIO
     enchants: { sharpness: 5, unbreaking: 3, mending: 1, fire_aspect: 2, looting: 3, sweeping_edge: 3, vampire: 3, wither: 2, thunder: 3, rocket: 2 }
     glow: true
@@ -97,7 +99,6 @@ items:
     lore:
       - "<gray>Forjada en el instante en que la luna sangró."
       - "<red>Vampírico III · Trueno V · Parálisis III · Golpe doble II"
-      - "<dark_gray>Cazada por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { sharpness: 5, unbreaking: 3, mending: 1, fire_aspect: 2, looting: 3, sweeping_edge: 3, vampire: 3, thunder: 5, wither: 2, double_strike: 2, paralyze: 3 }
@@ -110,13 +111,13 @@ items:
   hacha_oxidada:
     material: WOODEN_AXE
     name: "<gray>Hacha Oxidada"
-    lore: ["<gray>Apenas corta, pero asusta."]
+    lore: ["<gray>Apenas corta: la luna no perdona a los novatos."]
     rarity: COMUN
     enchants: { sharpness: 2, efficiency: 2, unbreaking: 1 }
   hacha_piedra:
     material: STONE_AXE
     name: "<white>Hacha de Piedra Lunar"
-    lore: ["<gray>Para leña y para cabezas."]
+    lore: ["<gray>Para la leña y para lo que se cruce."]
     rarity: POCO_COMUN
     enchants: { sharpness: 3, efficiency: 3, unbreaking: 2 }
   hacha_sangrienta:
@@ -140,7 +141,7 @@ items:
   hacha_abismal:
     material: NETHERITE_AXE
     name: "<gold><bold>Hacha del Abismo</bold>"
-    lore: ["<gray>El trueno vive en su filo.", "<gold>Trueno IV · Vampírico II · Decapitador II · Leñador", "<dark_gray>Cazada por {owner}"]
+    lore: ["<gray>El trueno vive en su filo.", "<gold>Trueno IV · Vampírico II · Decapitador II · Leñador"]
     rarity: LEGENDARIO
     enchants: { sharpness: 5, efficiency: 5, unbreaking: 3, mending: 1, thunder: 4, vampire: 2, decapitator: 2, treefeller: 1 }
     glow: true
@@ -150,7 +151,6 @@ items:
     lore:
       - "<gray>El último sonido que oyeron."
       - "<red>Trueno V · Golpe doble II · Vampírico III · Leñador"
-      - "<dark_gray>Cazada por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { sharpness: 5, efficiency: 5, unbreaking: 3, mending: 1, double_strike: 2, vampire: 3, thunder: 5, decapitator: 2, treefeller: 1 }
@@ -163,13 +163,13 @@ items:
   pico_oxidado:
     material: WOODEN_PICKAXE
     name: "<gray>Pico Oxidado"
-    lore: ["<gray>Excava, si tienes paciencia."]
+    lore: ["<gray>Excava despacio, pero excava."]
     rarity: COMUN
     enchants: { efficiency: 2, unbreaking: 1 }
   pico_piedra:
     material: STONE_PICKAXE
     name: "<white>Pico de Piedra Lunar"
-    lore: ["<gray>Piedra contra piedra."]
+    lore: ["<gray>Hierro y piedra para abrir la roca."]
     rarity: POCO_COMUN
     enchants: { efficiency: 3, unbreaking: 2, fortune: 1 }
   pico_umbrial:
@@ -187,7 +187,7 @@ items:
   pico_espectral:
     material: NETHERITE_PICKAXE
     name: "<gold><bold>Pico Espectral</bold>"
-    lore: ["<gold>Túnel II · Minero de vetas III · Fundidor IV · Telequinesis", "<dark_gray>Cazado por {owner}"]
+    lore: ["<gold>Túnel II · Minero de vetas III · Fundidor IV · Telequinesis"]
     rarity: LEGENDARIO
     enchants: { efficiency: 5, fortune: 3, unbreaking: 3, mending: 1, tunnel: 2, veinminer: 3, smelter: 4, telekinesis: 1, haste: 3 }
     glow: true
@@ -197,7 +197,6 @@ items:
     lore:
       - "<gray>La montaña se rinde a su paso."
       - "<red>Túnel III · Minero de vetas III · Fundidor V · Telequinesis"
-      - "<dark_gray>Cazado por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { efficiency: 5, fortune: 3, unbreaking: 3, mending: 1, tunnel: 3, veinminer: 3, blast_mining: 2, smelter: 5, telekinesis: 1 }
@@ -210,13 +209,13 @@ items:
   pala_oxidada:
     material: WOODEN_SHOVEL
     name: "<gray>Pala Oxidada"
-    lore: ["<gray>Cava hoyos pequeños."]
+    lore: ["<gray>Sirve para abrir la primera tumba."]
     rarity: COMUN
     enchants: { efficiency: 2, unbreaking: 1 }
   pala_piedra:
     material: STONE_SHOVEL
     name: "<white>Pala de Piedra Lunar"
-    lore: ["<gray>Arena, tierra y ceniza."]
+    lore: ["<gray>Arena, tierra y ceniza de la horda."]
     rarity: POCO_COMUN
     enchants: { efficiency: 3, unbreaking: 2, fortune: 1 }
   pala_sangrienta:
@@ -234,7 +233,7 @@ items:
   pala_espectral:
     material: NETHERITE_SHOVEL
     name: "<gold><bold>Pala Espectral</bold>"
-    lore: ["<gold>Túnel III · Fundidor III · Telequinesis", "<dark_gray>Cazada por {owner}"]
+    lore: ["<gold>Túnel III · Fundidor III · Telequinesis"]
     rarity: LEGENDARIO
     enchants: { efficiency: 5, fortune: 3, unbreaking: 3, mending: 1, tunnel: 3, smelter: 3, telekinesis: 1 }
     glow: true
@@ -244,7 +243,6 @@ items:
     lore:
       - "<gray>Donde cava, ya no hay nada."
       - "<red>Túnel III · Prisa III · Fundidor V · Telequinesis"
-      - "<dark_gray>Cazada por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { efficiency: 5, fortune: 3, unbreaking: 3, mending: 1, tunnel: 3, haste: 3, smelter: 5, telekinesis: 1 }
@@ -257,13 +255,13 @@ items:
   azada_oxidada:
     material: WOODEN_HOE
     name: "<gray>Azada Oxidada"
-    lore: ["<gray>La cosecha de la luna."]
+    lore: ["<gray>La cosecha que la luna dejó."]
     rarity: COMUN
     enchants: { efficiency: 2, unbreaking: 1 }
   azada_piedra:
     material: STONE_HOE
     name: "<white>Azada de Piedra Lunar"
-    lore: ["<gray>Siembra y recoge sola.", "<white>Replantador"]
+    lore: ["<gray>Siembra, recoge y vuelve a sembrar.", "<white>Replantador"]
     rarity: POCO_COMUN
     enchants: { efficiency: 3, unbreaking: 2, replanter: 1 }
   azada_sangrienta:
@@ -281,7 +279,7 @@ items:
   azada_espectral:
     material: NETHERITE_HOE
     name: "<gold><bold>Azada Espectral</bold>"
-    lore: ["<gold>Prisa II · Fundidor III · Telequinesis · Replantador", "<dark_gray>Cazada por {owner}"]
+    lore: ["<gold>Prisa II · Fundidor III · Telequinesis · Replantador"]
     rarity: LEGENDARIO
     enchants: { efficiency: 5, unbreaking: 3, mending: 1, haste: 2, smelter: 3, telekinesis: 1, replanter: 1 }
     glow: true
@@ -291,7 +289,6 @@ items:
     lore:
       - "<gray>La noche cosecha a los vivos."
       - "<red>Prisa III · Fundidor V · Telequinesis · Replantador"
-      - "<dark_gray>Cazada por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { efficiency: 5, unbreaking: 3, mending: 1, haste: 3, smelter: 5, telekinesis: 1, replanter: 1 }
@@ -304,13 +301,13 @@ items:
   arco_astillado:
     material: BOW
     name: "<gray>Arco Astillado"
-    lore: ["<gray>Flechas torcidas, puntería dudosa."]
+    lore: ["<gray>Flechas torcidas y una puntería que da pena."]
     rarity: COMUN
     enchants: { power: 2, unbreaking: 2 }
   arco_hueso:
     material: BOW
     name: "<white>Arco de Hueso Lunar"
-    lore: ["<gray>Hueso de algo que ya no caza."]
+    lore: ["<gray>Hueso de algo que ya no volverá a cazar."]
     rarity: POCO_COMUN
     enchants: { power: 3, punch: 1, unbreaking: 3 }
   arco_carmesi:
@@ -334,7 +331,7 @@ items:
   arco_lunar:
     material: BOW
     name: "<gold><bold>Arco Lunar</bold>"
-    lore: ["<gray>La luna guía cada flecha.", "<gold>Flechas vampíricas III · Flechas explosivas II · Flechas de dragón II", "<dark_gray>Cazado por {owner}"]
+    lore: ["<gray>La luna guía cada flecha.", "<gold>Flechas vampíricas III · Flechas explosivas II · Flechas de dragón II"]
     rarity: LEGENDARIO
     enchants: { power: 5, punch: 2, flame: 1, infinity: 1, unbreaking: 3, mending: 1, vampiric_arrows: 3, sniper: 2, explosive_arrows: 2, dragonfire_arrows: 2 }
     glow: true
@@ -344,7 +341,6 @@ items:
     lore:
       - "<gray>La noche entera cabe en una flecha."
       - "<red>Flechas vampíricas III · Explosivas III · De dragón III · Electrizadas II"
-      - "<dark_gray>Cazado por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { power: 5, punch: 2, flame: 1, infinity: 1, unbreaking: 3, mending: 1, vampiric_arrows: 3, explosive_arrows: 3, dragonfire_arrows: 3, sniper: 2, electrified_arrows: 2 }
@@ -357,13 +353,13 @@ items:
   ballesta_astillada:
     material: CROSSBOW
     name: "<gray>Ballesta Astillada"
-    lore: ["<gray>Dispara, a veces."]
+    lore: ["<gray>Dispara... casi siempre."]
     rarity: COMUN
     enchants: { quick_charge: 1, unbreaking: 2 }
   ballesta_hueso:
     material: CROSSBOW
     name: "<white>Ballesta de Hueso Lunar"
-    lore: ["<gray>Perfora la primera capa."]
+    lore: ["<gray>Perfora la primera capa y se atasca en la segunda."]
     rarity: POCO_COMUN
     enchants: { quick_charge: 2, piercing: 2, unbreaking: 3 }
   ballesta_carmesi:
@@ -381,7 +377,7 @@ items:
   ballesta_dorada:
     material: CROSSBOW
     name: "<gold><bold>Ballesta del Alba</bold>"
-    lore: ["<gray>Dispara antes de que la noche lo haga.", "<gold>Flechas explosivas II · Vampíricas II · Francotirador II", "<dark_gray>Cazada por {owner}"]
+    lore: ["<gray>Dispara antes de que la noche lo haga.", "<gold>Flechas explosivas II · Vampíricas II · Francotirador II"]
     rarity: LEGENDARIO
     enchants: { multishot: 1, quick_charge: 3, piercing: 4, unbreaking: 3, mending: 1, electrified_arrows: 3, explosive_arrows: 2, vampiric_arrows: 2, sniper: 2 }
     glow: true
@@ -391,7 +387,6 @@ items:
     lore:
       - "<gray>Tres virotes y tres finales distintos."
       - "<red>Explosivas III · Vampíricas III · De dragón III · Electrizadas III"
-      - "<dark_gray>Cazada por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { multishot: 1, quick_charge: 3, piercing: 4, unbreaking: 3, mending: 1, electrified_arrows: 3, explosive_arrows: 3, vampiric_arrows: 3, dragonfire_arrows: 3, sniper: 2 }
@@ -404,13 +399,13 @@ items:
   tridente_oxidado:
     material: TRIDENT
     name: "<gray>Tridente Oxidado"
-    lore: ["<gray>Sacado del fondo del río."]
+    lore: ["<gray>Arrancado del fondo de un río de sangre."]
     rarity: COMUN
     enchants: { impaling: 2, loyalty: 1, unbreaking: 2 }
   tridente_mares:
     material: TRIDENT
     name: "<white>Tridente de los Mares"
-    lore: ["<gray>Vuelve solo a la mano."]
+    lore: ["<gray>Vuelve solo a la mano que lo lanzó."]
     rarity: POCO_COMUN
     enchants: { impaling: 3, loyalty: 2, unbreaking: 3, mending: 1 }
   tridente_sangriento:
@@ -428,7 +423,7 @@ items:
   tridente_tormenta:
     material: TRIDENT
     name: "<gold><bold>Tridente de la Tormenta</bold>"
-    lore: ["<gold>Infernal III · Canalización · Empalador V", "<dark_gray>Cazado por {owner}"]
+    lore: ["<gold>Infernal III · Canalización · Empalador V"]
     rarity: LEGENDARIO
     enchants: { impaling: 5, loyalty: 3, channeling: 1, unbreaking: 3, mending: 1, infernus: 3, soulbound: 1 }
     glow: true
@@ -438,7 +433,6 @@ items:
     lore:
       - "<gray>Llama a la tormenta carmesí."
       - "<red>Infernal III · Canalización · Empalador V · Alma ligada"
-      - "<dark_gray>Cazado por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { impaling: 5, loyalty: 3, channeling: 1, unbreaking: 3, mending: 1, infernus: 3, soulbound: 1, restore: 3 }
@@ -451,13 +445,13 @@ items:
   maza_oxidada:
     material: MACE
     name: "<gray>Maza Oxidada"
-    lore: ["<gray>Pesa más de lo que debería."]
+    lore: ["<gray>Pesa más de lo que debería; ya va siendo hora de devolverlo."]
     rarity: COMUN
     enchants: { density: 1, unbreaking: 2 }
   maza_pesada:
     material: MACE
     name: "<white>Maza Pesada"
-    lore: ["<gray>Cada golpe deja marca."]
+    lore: ["<gray>Cada golpe deja un cráter."]
     rarity: POCO_COMUN
     enchants: { density: 2, breach: 1, unbreaking: 3 }
   maza_hueso:
@@ -475,7 +469,7 @@ items:
   martillo_trueno:
     material: MACE
     name: "<gold><bold>Martillo del Trueno</bold>"
-    lore: ["<gold>Cae como el cielo enojado.", "<gold>Densidad V · Brecha IV · Reparación automática", "<dark_gray>Cazado por {owner}"]
+    lore: ["<gold>Cae como el cielo enojado.", "<gold>Densidad V · Brecha IV · Reparación automática"]
     rarity: LEGENDARIO
     enchants: { density: 5, breach: 4, wind_burst: 3, unbreaking: 3, mending: 1, soulbound: 1, restore: 2 }
     glow: true
@@ -485,7 +479,6 @@ items:
     lore:
       - "<gray>Cada golpe sacude la tierra."
       - "<red>Densidad V · Brecha IV · Reparación automática · Alma ligada"
-      - "<dark_gray>Cazada por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { density: 5, breach: 4, wind_burst: 3, unbreaking: 3, mending: 1, soulbound: 1, restore: 3 }
@@ -498,19 +491,19 @@ items:
   casco_cuero:
     material: LEATHER_HELMET
     name: "<gray>Casco de Cuero"
-    lore: ["<gray>Mejor que nada."]
+    lore: ["<gray>Cuero curtido: mejor que ir a cabeza descubierta."]
     rarity: COMUN
     enchants: { protection: 1, unbreaking: 1 }
   casco_cadena:
     material: CHAINMAIL_HELMET
     name: "<white>Casco de Cadena Lunar"
-    lore: ["<gray>Anillos contra colmillos."]
+    lore: ["<gray>Anillos de acero contra colmillos."]
     rarity: POCO_COMUN
     enchants: { protection: 2, unbreaking: 2, respiration: 1 }
   casco_hierro:
     material: IRON_HELMET
     name: "<red>Casco de Hierro Carmesí"
-    lore: ["<gray>Aguanta lo que venga.", "<red>Protección elemental II"]
+    lore: ["<gray>Aguanta lo que la noche le eche encima.", "<red>Protección elemental II"]
     rarity: RARO
     enchants: { protection: 3, unbreaking: 3, respiration: 2, elemental_protection: 2 }
   casco_cazador:
@@ -522,7 +515,7 @@ items:
   casco_eclipse:
     material: NETHERITE_HELMET
     name: "<gold><bold>Yelmo del Eclipse</bold>"
-    lore: ["<gold>Protección elemental IV · Visión nocturna · Saturación II", "<dark_gray>Cazado por {owner}"]
+    lore: ["<gold>Protección elemental IV · Visión nocturna · Saturación II"]
     rarity: LEGENDARIO
     enchants: { protection: 5, unbreaking: 3, mending: 1, thorns: 3, respiration: 3, elemental_protection: 4, night_vision: 1, saturation: 2 }
     glow: true
@@ -532,7 +525,6 @@ items:
     lore:
       - "<gray>Quien la porta ve en la oscuridad."
       - "<red>Protección elemental IV · Visión nocturna · Saturación II · Respiración acuática"
-      - "<dark_gray>Cazada por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { protection: 5, unbreaking: 3, mending: 1, thorns: 3, respiration: 3, elemental_protection: 4, night_vision: 1, saturation: 2, water_breathing: 1 }
@@ -545,19 +537,19 @@ items:
   peto_cuero:
     material: LEATHER_CHESTPLATE
     name: "<gray>Peto de Cuero"
-    lore: ["<gray>Cuero curtido a mano."]
+    lore: ["<gray>Cuero curtido a mano y cosido con tendones."]
     rarity: COMUN
     enchants: { protection: 1, unbreaking: 1 }
   peto_cadena:
     material: CHAINMAIL_CHESTPLATE
     name: "<white>Peto de Cadena Lunar"
-    lore: ["<gray>Anillos que aguantan."]
+    lore: ["<gray>Anillos que aguantan el primer mordisco."]
     rarity: POCO_COMUN
     enchants: { protection: 2, unbreaking: 2 }
   peto_hierro:
     material: IRON_CHESTPLATE
     name: "<red>Peto de Hierro Carmesí"
-    lore: ["<gray>Y el que te toque, se quema.", "<red>Escudo ígneo I · Protección elemental II"]
+    lore: ["<gray>Quien te toque se quema.", "<red>Escudo ígneo I · Protección elemental II"]
     rarity: RARO
     enchants: { protection: 3, unbreaking: 3, elemental_protection: 2, fire_shield: 1 }
   peto_cazador:
@@ -569,7 +561,7 @@ items:
   peto_guardian:
     material: NETHERITE_CHESTPLATE
     name: "<gold><bold>Peto del Guardián Carmesí</bold>"
-    lore: ["<gold>El cielo castiga a quien te agreda.", "<gold>Corazón de dragón III · Escudo ígneo III · Acero frío II", "<dark_gray>Cazado por {owner}"]
+    lore: ["<gold>El cielo castiga a quien te agreda.", "<gold>Corazón de dragón III · Escudo ígneo III · Acero frío II"]
     rarity: LEGENDARIO
     enchants: { protection: 5, unbreaking: 3, mending: 1, thorns: 3, fire_shield: 3, hardened: 2, dragon_heart: 3, cold_steel: 2 }
     glow: true
@@ -579,7 +571,6 @@ items:
     lore:
       - "<gray>Forjado con la ceniza de una estrella."
       - "<red>Corazón de dragón V · Escudo ígneo IV · Acero frío III · Protección elemental IV"
-      - "<dark_gray>Cazado por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { protection: 5, unbreaking: 3, mending: 1, thorns: 3, fire_shield: 4, hardened: 2, dragon_heart: 5, cold_steel: 3, elemental_protection: 4 }
@@ -592,13 +583,13 @@ items:
   grebas_cuero:
     material: LEATHER_LEGGINGS
     name: "<gray>Grebas de Cuero"
-    lore: ["<gray>Protegen lo justo."]
+    lore: ["<gray>Protegen lo justo para llegar vivo al amanecer."]
     rarity: COMUN
     enchants: { protection: 1, unbreaking: 1 }
   grebas_cadena:
     material: CHAINMAIL_LEGGINGS
     name: "<white>Grebas de Cadena Lunar"
-    lore: ["<gray>Cadenas que no ceden."]
+    lore: ["<gray>Cadenas que no ceden al arrastre."]
     rarity: POCO_COMUN
     enchants: { protection: 2, unbreaking: 2 }
   grebas_hierro:
@@ -616,7 +607,7 @@ items:
   grebas_titan:
     material: NETHERITE_LEGGINGS
     name: "<gold><bold>Grebas del Titán</bold>"
-    lore: ["<gold>Protección elemental IV · Fuerza de frenado III · Espinas II", "<dark_gray>Cazadas por {owner}"]
+    lore: ["<gold>Protección elemental IV · Fuerza de frenado III · Espinas II"]
     rarity: LEGENDARIO
     enchants: { protection: 5, unbreaking: 3, mending: 1, thorns: 2, elemental_protection: 4, stopping_force: 3 }
     glow: true
@@ -626,7 +617,6 @@ items:
     lore:
       - "<gray>El suelo nunca las alcanza."
       - "<red>Protección elemental IV · Fuerza de frenado III · Sigilo III · Espinas III"
-      - "<dark_gray>Cazadas por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { protection: 5, unbreaking: 3, mending: 1, thorns: 3, elemental_protection: 4, stopping_force: 3, swift_sneak: 3 }
@@ -639,13 +629,13 @@ items:
   botas_cuero:
     material: LEATHER_BOOTS
     name: "<gray>Botas de Cuero"
-    lore: ["<gray>Ligeras y gastadas."]
+    lore: ["<gray>Ligeras, gastadas y con barro de la última huida."]
     rarity: COMUN
     enchants: { protection: 1, unbreaking: 1 }
   botas_cadena:
     material: CHAINMAIL_BOOTS
     name: "<white>Botas de Cadena Lunar"
-    lore: ["<gray>Aterrizan sin romperse."]
+    lore: ["<gray>Aterrizan sin romperse desde lo alto."]
     rarity: POCO_COMUN
     enchants: { protection: 2, unbreaking: 2, feather_falling: 1 }
   botas_hierro:
@@ -669,7 +659,7 @@ items:
   botas_noctambulo:
     material: NETHERITE_BOOTS
     name: "<gold><bold>Botas del Noctámbulo</bold>"
-    lore: ["<gray>Nadie te alcanza de noche.", "<gold>Velocidad II · Salto II · Caminafuego II · Profundidad III", "<dark_gray>Cazadas por {owner}"]
+    lore: ["<gray>Nadie te alcanza de noche.", "<gold>Velocidad II · Salto II · Caminafuego II · Profundidad III"]
     rarity: LEGENDARIO
     enchants: { protection: 5, unbreaking: 3, mending: 1, feather_falling: 4, depth_strider: 3, soul_speed: 3, speed: 2, jumping: 2, flame_walker: 2 }
     glow: true
@@ -679,7 +669,6 @@ items:
     lore:
       - "<gray>Pisas la noche y no dejas huella."
       - "<red>Velocidad II · Salto II · Caminafuego II · Rebote · Protección elemental IV"
-      - "<dark_gray>Cazadas por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { protection: 5, unbreaking: 3, mending: 1, feather_falling: 4, depth_strider: 3, soul_speed: 3, elemental_protection: 4, speed: 2, jumping: 2, flame_walker: 2, rebound: 1 }
@@ -692,19 +681,19 @@ items:
   escudo_astillado:
     material: SHIELD
     name: "<gray>Escudo Astillado"
-    lore: ["<gray>Madera y tablas viejas."]
+    lore: ["<gray>Tablas viejas que aún aguantan un golpe."]
     rarity: COMUN
     enchants: { unbreaking: 1 }
   escudo_reforzado:
     material: SHIELD
     name: "<white>Escudo Reforzado"
-    lore: ["<gray>Refuerzos de hierro."]
+    lore: ["<gray>Tablas con refuerzos de hierro."]
     rarity: POCO_COMUN
     enchants: { unbreaking: 2 }
   escudo_carmesi:
     material: SHIELD
     name: "<red>Escudo Carmesí"
-    lore: ["<gray>Se repara solo con el tiempo.", "<red>Restauración I"]
+    lore: ["<gray>La sangre reseca sella sus grietas.", "<red>Restauración I"]
     rarity: RARO
     enchants: { unbreaking: 3, restore: 1 }
   escudo_guardian:
@@ -716,7 +705,7 @@ items:
   escudo_espinas:
     material: SHIELD
     name: "<gold><bold>Égida Carmesí</bold>"
-    lore: ["<gray>Quien te golpea, se queda seco.", "<gold>Restauración III · Alma ligada · Irrompible", "<dark_gray>Cazada por {owner}"]
+    lore: ["<gray>Quien te golpea, se queda seco.", "<gold>Restauración III · Alma ligada · Irrompible"]
     rarity: LEGENDARIO
     enchants: { unbreaking: 3, mending: 1, restore: 3, soulbound: 1 }
     glow: true
@@ -726,7 +715,6 @@ items:
     lore:
       - "<gray>El último muro antes de la noche."
       - "<red>Restauración III · Alma ligada · Irrompible"
-      - "<dark_gray>Cazada por {owner}"
     rarity: MITICO
     limit: 3
     enchants: { unbreaking: 3, mending: 1, restore: 3, soulbound: 1 }

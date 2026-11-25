@@ -42,8 +42,6 @@ public final class WorldConfig {
             boolean mythicFallback
     ) {}
 
-    private final String worldName;
-    private final YamlConfiguration yml;
     private final boolean permanentBloodMoon;
     private final boolean bedNotAllowed;
     private final boolean dyingLossesInventory;
@@ -53,9 +51,7 @@ public final class WorldConfig {
     private final List<String> commandsOnStart;
     private final List<String> commandsOnEnd;
 
-    public WorldConfig(String worldName, YamlConfiguration yml) {
-        this.worldName = worldName;
-        this.yml = yml;
+    public WorldConfig(YamlConfiguration yml) {
         this.permanentBloodMoon = yml.getBoolean("WorldPermanent", false);
         this.bedNotAllowed = yml.getBoolean("BedNotAllowed", true);
         this.dyingLossesInventory = yml.getBoolean("DyingLossesInventory", false);
@@ -98,7 +94,6 @@ public final class WorldConfig {
         );
     }
 
-    public String worldName() { return worldName; }
     public boolean permanentBloodMoon() { return permanentBloodMoon; }
     public boolean bedNotAllowed() { return bedNotAllowed; }
     public boolean dyingLossesInventory() { return dyingLossesInventory; }

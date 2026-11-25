@@ -360,15 +360,13 @@ public final class BloodMoonCommand implements TabExecutor {
         if (d == null) { m().send(s, "cmd.item-unknown", "item", a[1]); return; }
         int n = 1;
         if (a.length > 2) { try { n = Math.max(1, Math.min(64, Integer.parseInt(a[2]))); } catch (NumberFormatException ignored) { } }
-        int serial = 0;
+        // Antes el bucle esperaba hasta 2 s de reloj por si el límite de ejemplares frenaba la
+        // creación; create() ya devuelve null en cuanto se agota, así que sobraba esa espera.
         List<ItemStack> created = new ArrayList<>();
-        long deadline = System.currentTimeMillis() + 2000;
-        while (System.currentTimeMillis() < deadline) {
+        for (int i = 0; i < n; i++) {
             ItemStack ci = plugin.items().create(d, 1, p.getName());
             if (ci == null) break;
             created.add(ci);
-            serial++;
-            if (serial >= n) break;
         }
         if (created.isEmpty()) {
             // El item existe pero ya no quedan ejemplares únicos: antes se avisaba de que el
