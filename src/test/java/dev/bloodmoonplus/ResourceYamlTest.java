@@ -44,12 +44,19 @@ class ResourceYamlTest {
     private static final Map<String, Integer> EE_MAX = Map.ofEntries(
             Map.entry("vampire", 3), Map.entry("venom", 2), Map.entry("wither", 2),
             Map.entry("ice_aspect", 3), Map.entry("double_strike", 2), Map.entry("paralyze", 5),
-            Map.entry("thunder", 3), Map.entry("sniper", 3), Map.entry("electrified_arrows", 3),
-            Map.entry("vampiric_arrows", 3), Map.entry("haste", 3), Map.entry("smelter", 1),
+            Map.entry("thunder", 5), Map.entry("sniper", 2), Map.entry("electrified_arrows", 3),
+            Map.entry("vampiric_arrows", 3), Map.entry("haste", 3), Map.entry("smelter", 5),
             Map.entry("cutter", 3), Map.entry("decapitator", 2), Map.entry("hardened", 2),
-            Map.entry("dragon_heart", 5), Map.entry("regrowth", 4), Map.entry("speed", 3),
-            Map.entry("jumping", 2), Map.entry("stopping_force", 2), Map.entry("fire_shield", 4),
-            Map.entry("night_vision", 1), Map.entry("lightweight", 1), Map.entry("infernus", 3));
+            Map.entry("dragon_heart", 5), Map.entry("regrowth", 4), Map.entry("speed", 2),
+            Map.entry("jumping", 2), Map.entry("stopping_force", 3), Map.entry("fire_shield", 4),
+            Map.entry("night_vision", 1), Map.entry("lightweight", 1), Map.entry("infernus", 3),
+            Map.entry("tunnel", 3), Map.entry("veinminer", 3), Map.entry("telekinesis", 1),
+            Map.entry("blast_mining", 5), Map.entry("replanter", 1), Map.entry("treefeller", 1),
+            Map.entry("explosive_arrows", 3), Map.entry("poisoned_arrows", 3),
+            Map.entry("dragonfire_arrows", 3), Map.entry("elemental_protection", 4),
+            Map.entry("saturation", 2), Map.entry("water_breathing", 1), Map.entry("cold_steel", 3),
+            Map.entry("flame_walker", 2), Map.entry("rebound", 1), Map.entry("soulbound", 1),
+            Map.entry("restore", 3), Map.entry("rocket", 2), Map.entry("nimble", 1));
 
     /** Rarezas que suben los encantamientos vanilla hasta el nivel 5 (protección 5, espinas 5...). */
     private static boolean highRarity(String rarity) {
@@ -99,6 +106,35 @@ class ResourceYamlTest {
         assertTrue(cursed.isEmpty(), "Items con maldiciones (ya no se usan): " + cursed);
         assertNull(items.get("settings.vanishing-curse-min-rarity"),
                 "items.yml: la Maldición de desaparición ya no existe; borra settings.vanishing-curse-min-rarity");
+    }
+
+    /** Cada clase de arma, herramienta y armadura (espada, hacha, pico, pala, azada, arco,
+     *  ballesta, tridente, maza, casco, peto, grebas, botas, escudo) tiene una versión de CADA
+     *  rareza. La clase se deduce del sufijo del material (DIAMOND_SWORD -> SWORD). */
+    @Test
+    void everyEquipmentClassHasAllRarities() {
+        YamlConfiguration items = YamlConfiguration.loadConfiguration(res("items.yml"));
+        List<String> classes = List.of("SWORD", "AXE", "PICKAXE", "SHOVEL", "HOE", "BOW",
+                "CROSSBOW", "TRIDENT", "MACE", "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS", "SHIELD");
+        List<String> rarities = List.of("COMUN", "POCO_COMUN", "RARO", "EPICO", "LEGENDARIO", "MITICO");
+        Map<String, Set<String>> found = new java.util.HashMap<>();
+        for (String id : items.getConfigurationSection("items").getKeys(false)) {
+            String material = items.getString("items." + id + ".material", "");
+            for (String cls : classes) {
+                if (!material.equals(cls) && !material.endsWith("_" + cls)) continue;
+                String rarity = java.text.Normalizer.normalize(
+                                items.getString("items." + id + ".rarity", "COMUN"),
+                                java.text.Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}", "").trim().toUpperCase(java.util.Locale.ROOT);
+                found.computeIfAbsent(cls, k -> new HashSet<>()).add(rarity);
+            }
+        }
+        List<String> missing = new ArrayList<>();
+        for (String cls : classes) {
+            Set<String> have = found.getOrDefault(cls, Set.of());
+            for (String r : rarities) if (!have.contains(r)) missing.add(cls + " sin " + r);
+        }
+        assertTrue(missing.isEmpty(), "Clases sin una versión de cada rareza: " + missing);
     }
 
     @Test

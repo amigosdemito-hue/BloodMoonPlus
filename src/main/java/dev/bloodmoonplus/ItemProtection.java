@@ -166,29 +166,18 @@ public final class ItemProtection implements Listener {
         }
     }
 
-    /** Efectos que aplicaban los viejos pasivos de item (1.0.2) con duración gigante. Ya no
-     *  existe nada que los renueve, así que sin esta limpieza se quedarían pegados para
-     *  siempre. Solo se quitan los de duración enorme: una poción o un faro legítimos duran
-     *  mucho menos. */
-    private static final String[] LEGACY_PASSIVES = {"speed", "strength", "resistance",
-            "health_boost", "regeneration", "haste", "night_vision", "slow_falling", "jump_boost"};
-
-    private static void clearLegacyPassives(Player p) {
-        for (String key : LEGACY_PASSIVES) {
-            var type = Reg.effect(key);
-            if (type == null) continue;
-            var effect = p.getPotionEffect(type);
-            if (effect != null && effect.getDuration() > 20 * 60 * 20) p.removePotionEffect(type);
-        }
-    }
-
     /** Pone al día los objetos que el jugador ya tenía (incluso renombrados) con la definición
      *  actual de items.yml: encantamientos al día y sin la maldición de desaparición de la 1.0.2.
-     *  También borra los pasivos viejos; es seguro repetirlo en cada entrada. */
+     *  Es seguro repetirlo en cada entrada.
+     *
+     *  Aquí había además una limpieza de los antiguos pasivos de item (1.0.2). Se retiró: aquellos
+     *  pasivos duraban 7 segundos y los refrescaba el plugin, así que ya no queda ninguno vivo, y
+     *  el filtro (durar más de una hora) solo podía borrar efectos legítimos de ExcellentEnchants
+     *  (Dragon Heart, Night Vision...) nada más entrar. Los efectos de poción que llevan los
+     *  objetos de la Luna son de ExcellentEnchants, no del sistema viejo. */
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        clearLegacyPassives(p);
         if (!plugin.items().migrateOnJoin()) return;
         // Un par de segundos después: el inventario del jugador ya está cargado del todo.
         Bukkit.getScheduler().runTaskLater(plugin, () -> {

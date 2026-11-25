@@ -49,19 +49,49 @@ tables:
     rolls: 1-2
     rarity-weights: { COMUN: 600, POCO_COMUN: 260, RARO: 110, EPICO: 32, LEGENDARIO: 5, MITICO: 0.5 }
     entries:
-      # Comunes: siempre caen (generosos: arriesgas la vida, no la vuelves a perder)
+      # Comunes: materiales (siempre caen; arriesgas la vida, no la vuelves a perder)
       - { item: carne, weight: 40, amount: "3-8", drop-chance: 1.0 }
       - { item: flechas, weight: 30, amount: "6-16", drop-chance: 1.0 }
       - { item: polvora, weight: 30, amount: "2-6", drop-chance: 1.0 }
       - { item: hierro, weight: 25, amount: "3-7", drop-chance: 1.0 }
       - { item: hueso, weight: 25, amount: "3-7", drop-chance: 1.0 }
       - { item: cuerda, weight: 20, amount: "2-5", drop-chance: 1.0 }
-      # Poco comunes: casi siempre
+      # Comunes: equipo básico de cada clase (madera y cuero)
+      - { item: espada_oxidada, weight: 20, drop-chance: 0.5 }
+      - { item: hacha_oxidada, weight: 20, drop-chance: 0.5 }
+      - { item: pico_oxidado, weight: 20, drop-chance: 0.5 }
+      - { item: pala_oxidada, weight: 18, drop-chance: 0.5 }
+      - { item: azada_oxidada, weight: 16, drop-chance: 0.45 }
+      - { item: arco_astillado, weight: 18, drop-chance: 0.45 }
+      - { item: ballesta_astillada, weight: 16, drop-chance: 0.45 }
+      - { item: tridente_oxidado, weight: 10, drop-chance: 0.35 }
+      - { item: maza_oxidada, weight: 12, drop-chance: 0.35 }
+      - { item: casco_cuero, weight: 14, drop-chance: 0.45 }
+      - { item: peto_cuero, weight: 14, drop-chance: 0.45 }
+      - { item: grebas_cuero, weight: 14, drop-chance: 0.45 }
+      - { item: botas_cuero, weight: 14, drop-chance: 0.45 }
+      - { item: escudo_astillado, weight: 12, drop-chance: 0.4 }
+      # Poco comunes: materiales (casi siempre)
       - { item: oro, weight: 30, amount: "2-5", drop-chance: 0.95 }
       - { item: manzana_dorada, weight: 20, amount: "1", drop-chance: 0.9 }
       - { item: botella_xp, weight: 30, amount: "3-9", drop-chance: 0.9 }
       - { item: ojo_ender, weight: 15, amount: "1-2", drop-chance: 0.75 }
       - { item: obsidiana, weight: 15, amount: "1-3", drop-chance: 0.65 }
+      # Poco comunes: equipo de piedra y cadena
+      - { item: espada_piedra, weight: 20, drop-chance: 0.45 }
+      - { item: hacha_piedra, weight: 20, drop-chance: 0.45 }
+      - { item: pico_piedra, weight: 20, drop-chance: 0.45 }
+      - { item: pala_piedra, weight: 18, drop-chance: 0.45 }
+      - { item: azada_piedra, weight: 16, drop-chance: 0.4 }
+      - { item: arco_hueso, weight: 18, drop-chance: 0.4 }
+      - { item: ballesta_hueso, weight: 16, drop-chance: 0.4 }
+      - { item: tridente_mares, weight: 10, drop-chance: 0.3 }
+      - { item: maza_pesada, weight: 12, drop-chance: 0.3 }
+      - { item: casco_cadena, weight: 14, drop-chance: 0.4 }
+      - { item: peto_cadena, weight: 14, drop-chance: 0.4 }
+      - { item: grebas_cadena, weight: 14, drop-chance: 0.4 }
+      - { item: botas_cadena, weight: 14, drop-chance: 0.4 }
+      - { item: escudo_reforzado, weight: 12, drop-chance: 0.35 }
       # Raros: materiales comunes más frecuentes; armas rotas siguen al 5%
       - { item: diamante, weight: 40, amount: "1-3", drop-chance: 0.55 }
       - { item: perla_ender, weight: 30, amount: "1-2", drop-chance: 0.5 }
@@ -70,6 +100,17 @@ tables:
       - { item: daga_sombras, weight: 14, drop-chance: 0.05 }
       - { item: arco_tormenta, weight: 14, drop-chance: 0.05 }
       - { item: pico_umbrial, weight: 12, drop-chance: 0.3 }
+      - { item: hacha_sangrienta, weight: 14, drop-chance: 0.2 }
+      - { item: pala_sangrienta, weight: 12, drop-chance: 0.2 }
+      - { item: azada_sangrienta, weight: 10, drop-chance: 0.2 }
+      - { item: ballesta_carmesi, weight: 14, drop-chance: 0.15 }
+      - { item: tridente_sangriento, weight: 10, drop-chance: 0.12 }
+      - { item: maza_hueso, weight: 12, drop-chance: 0.15 }
+      - { item: casco_hierro, weight: 12, drop-chance: 0.15 }
+      - { item: peto_hierro, weight: 12, drop-chance: 0.15 }
+      - { item: grebas_hierro, weight: 12, drop-chance: 0.15 }
+      - { item: botas_hierro, weight: 12, drop-chance: 0.15 }
+      - { item: escudo_carmesi, weight: 10, drop-chance: 0.12 }
       # Épicos: más frecuentes, totem y netherita mucho más probables
       - { item: manzana_encantada, weight: 20, drop-chance: 0.25 }
       - { item: totem, weight: 30, amount: "1", drop-chance: 0.45 }
@@ -83,7 +124,14 @@ tables:
       - { item: ballesta_abismo, weight: 10, drop-chance: 0.15 }
       - { item: botas_estrondo, weight: 10, drop-chance: 0.12 }
       - { item: hacha_ventisca, weight: 11, drop-chance: 0.15 }
-      # Legendarios: muy raros (armas al 5%)
+      - { item: pico_abismal, weight: 10, drop-chance: 0.12 }
+      - { item: pala_abismal, weight: 9, drop-chance: 0.12 }
+      - { item: azada_abismal, weight: 8, drop-chance: 0.1 }
+      - { item: arco_abismal, weight: 10, drop-chance: 0.12 }
+      - { item: tridente_profundo, weight: 9, drop-chance: 0.1 }
+      - { item: maza_carmesi, weight: 9, drop-chance: 0.1 }
+      - { item: escudo_guardian, weight: 8, drop-chance: 0.1 }
+      # Legendarios: muy raros (armas al 5-6%)
       - { item: colmillo_vampirico, weight: 20, drop-chance: 0.06 }
       - { item: arco_lunar, weight: 20, drop-chance: 0.06 }
       - { item: botas_noctambulo, weight: 20, drop-chance: 0.06 }
@@ -91,6 +139,12 @@ tables:
       - { item: martillo_trueno, weight: 18, drop-chance: 0.05 }
       - { item: peto_guardian, weight: 18, drop-chance: 0.045 }
       - { item: ballesta_dorada, weight: 18, drop-chance: 0.05 }
+      - { item: hacha_abismal, weight: 18, drop-chance: 0.06 }
+      - { item: pico_espectral, weight: 18, drop-chance: 0.06 }
+      - { item: pala_espectral, weight: 16, drop-chance: 0.05 }
+      - { item: azada_espectral, weight: 14, drop-chance: 0.05 }
+      - { item: casco_eclipse, weight: 18, drop-chance: 0.05 }
+      - { item: grebas_titan, weight: 18, drop-chance: 0.05 }
       # Míticos: probabilidad de oveja rosa (~0.5-0.8%)
       - { item: hoja_eclipse, weight: 20, drop-chance: 0.008 }
       - { item: corona_luna_sangre, weight: 20, drop-chance: 0.006 }
@@ -100,6 +154,12 @@ tables:
       - { item: hacha_apocalipsis, weight: 20, drop-chance: 0.006 }
       - { item: peto_eclipse, weight: 20, drop-chance: 0.005 }
       - { item: grebas_eclipse, weight: 20, drop-chance: 0.005 }
+      - { item: arco_eclipse, weight: 20, drop-chance: 0.007 }
+      - { item: ballesta_eclipse, weight: 18, drop-chance: 0.006 }
+      - { item: pico_eclipse, weight: 20, drop-chance: 0.006 }
+      - { item: pala_eclipse, weight: 18, drop-chance: 0.005 }
+      - { item: botas_eclipse, weight: 20, drop-chance: 0.006 }
+      - { item: escudo_eclipse, weight: 16, drop-chance: 0.005 }
 
   # Mobs élite (Verdugo Menor): mejor probabilidad
   mob_elite:

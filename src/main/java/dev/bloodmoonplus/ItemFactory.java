@@ -63,6 +63,7 @@ public final class ItemFactory {
                     s.getBoolean("glow"), s.getString("item-model"), s.getInt("limit", 0)));
         }
         warnUnknownEnchants();
+        warnUnsupportedEnchants();
         plugin.getLogger().info("Items cargados: " + defs.size());
     }
 
@@ -247,6 +248,23 @@ public final class ItemFactory {
                 + " items con encantamientos inexistentes, así que los items ya repartidos con"
                 + " encantamientos de EE se perderán al entrar sus dueños. Reinstala ExcellentEnchants"
                 + " y ejecuta /luna refresh <jugador|all> antes de retirarlo.");
+    }
+
+    /** Avisa de los encantamientos de items.yml que el MATERIAL no acepta (por ejemplo Tunnel en
+     *  un hacha, o Dragon Heart en unas botas). Minecraft los omite al crear el objeto, así que
+     *  el item salía sin ellos y en silencio; ahora queda en el log al arrancar. */
+    private void warnUnsupportedEnchants() {
+        Set<String> bad = new TreeSet<>();
+        for (ItemDef d : defs.values()) {
+            ItemStack sample = new ItemStack(d.material());
+            for (String key : d.enchants().keySet()) {
+                Enchantment en = Reg.enchantment(key);
+                if (en == null || en.canEnchantItem(sample)) continue;
+                bad.add(d.id() + "/" + key + " (" + d.material() + ")");
+            }
+        }
+        if (bad.isEmpty()) return;
+        plugin.getLogger().warning("items.yml: encantamientos que no se pueden aplicar al material y se omiten: " + bad);
     }
 
     /** ¿La puesta al día al entrar debe migrar items antiguos? (config items.migrate-on-join). */
