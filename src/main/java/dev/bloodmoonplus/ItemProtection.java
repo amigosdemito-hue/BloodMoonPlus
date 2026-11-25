@@ -7,15 +7,17 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareGrindstoneEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -38,8 +40,8 @@ public final class ItemProtection implements Listener {
     private final BloodMoonPlus plugin;
     /** Aviso del grindstone con enfriamiento: el evento se dispara varias veces seguidas. */
     private final Map<UUID, Long> warned = new HashMap<>();
-    /** Jugadores con una puesta al día ya encolada: un solo clic dispara varios eventos. */
-    private final Set<UUID> refreshQueued = new HashSet<>();
+    /** Ranuras con una puesta al día ya encolada (uuid:slot): un solo clic dispara varios eventos. */
+    private final Set<String> refreshQueued = new HashSet<>();
 
     ItemProtection(BloodMoonPlus plugin) {
         this.plugin = plugin;
@@ -83,45 +85,44 @@ public final class ItemProtection implements Listener {
         if (fixed != null) e.setResult(fixed);
     }
 
-    /** Un objeto de la Luna recogido del suelo se pone al día en el mismo tick en que entra al
-     *  inventario: antes había que reconectar o esperar a `/luna refresh`. */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    /** Un objeto de la Luna recogido del suelo se pone al día ANTES de que entre al inventario:
+     *  se edita el stack del item que está en el suelo, así que no se reescribe ninguna ranura
+     *  del jugador ni el cursor. Antes había que reconectar o esperar a `/luna refresh`. */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPickup(EntityPickupItemEvent e) {
-        if (!(e.getEntity() instanceof Player p)) return;
-        if (!plugin.items().isMoonItem(e.getItem().getItemStack())) return;
-        refreshSoon(p);
+        if (!(e.getEntity() instanceof Player)) return;
+        ItemStack stack = e.getItem().getItemStack();
+        if (!plugin.items().isMoonItem(stack)) return;
+        if (plugin.items().refresh(stack)) e.getItem().setItemStack(stack);
     }
 
-    /** Sacarlo de un cofre o shulker, o moverlo dentro del inventario, también cuenta: ese clic
-     *  deja el objeto en el cursor o en otra ranura y se refresca en el tick siguiente. */
+    /** Sacar el objeto de un cofre o shulker, soltarlo o moverlo dentro del inventario: se pone
+     *  al día SOLO la ranura en la que queda, en el tick siguiente. El cursor no se toca
+     *  (escribirlo a mitad de un clic desincroniza la pantalla del cliente) y no se recorre el
+     *  inventario entero, así que el resto de ranuras no se reescribe nunca. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onClick(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player p)) return;
+        if (!(e.getClickedInventory() instanceof PlayerInventory)) return;
         if (!plugin.items().isMoonItem(e.getCurrentItem()) && !plugin.items().isMoonItem(e.getCursor())) return;
-        refreshSoon(p);
+        refreshSlotsSoon(p, e.getView(), List.of(e.getRawSlot()));
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onDrag(InventoryDragEvent e) {
-        if (!(e.getWhoClicked() instanceof Player p)) return;
-        for (ItemStack it : e.getNewItems().values()) {
-            if (!plugin.items().isMoonItem(it)) continue;
-            refreshSoon(p);
-            return;
+    /** Encola UNA puesta al día por ranura (slots crudos de la vista) para el tick siguiente:
+     *  escribir el inventario a mitad de un clic desincroniza la pantalla del cliente, y un clic
+     *  genera varios eventos seguidos. */
+    private void refreshSlotsSoon(Player p, InventoryView view, List<Integer> rawSlots) {
+        for (int raw : rawSlots) {
+            if (raw < 0 || raw >= view.countSlots()) continue;
+            String key = p.getUniqueId() + ":" + raw;
+            if (!refreshQueued.add(key)) continue;
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                refreshQueued.remove(key);
+                if (!p.isOnline()) return;
+                ItemStack it = view.getItem(raw);
+                if (plugin.items().refresh(it)) view.setItem(raw, it);
+            });
         }
-    }
-
-    /** Encola UNA puesta al día para el tick siguiente: tocar el inventario a mitad de un evento
-     *  de clic desincroniza la pantalla del cliente, y un clic genera varios eventos seguidos. */
-    private void refreshSoon(Player p) {
-        if (!refreshQueued.add(p.getUniqueId())) return;
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            refreshQueued.remove(p.getUniqueId());
-            if (!p.isOnline()) return;
-            ItemStack cursor = p.getItemOnCursor();
-            if (plugin.items().refresh(cursor)) p.setItemOnCursor(cursor);
-            plugin.items().refreshPlayer(p);
-        });
     }
 
     /** Efectos que aplicaban los viejos pasivos de item (1.0.2) con duración gigante. Ya no
