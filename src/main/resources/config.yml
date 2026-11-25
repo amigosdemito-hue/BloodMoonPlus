@@ -139,7 +139,7 @@ horde:
   interval-seconds: 25
   base-size: 5                 # mobs por jugador en cada oleada (x1); 1ª=5, 2ª=10, 3ª=15...
   wave-max-size: 30            # tope de esa progresión (si tu servidor ya tiene config, aplica este valor por defecto)
-  max-alive-per-player: 25     # tope de mobs de la horda vivos en el mundo
+  max-alive-per-player: 70     # tope de mobs vivos POR JUGADOR, jefes incluidos; al matar el 50 % se le repone el otro 50 %
   spawn-distance: { min: 14, max: 28 }
   require-armor:               # solo caen hordas en jugadores con armadura mínima
     enabled: false

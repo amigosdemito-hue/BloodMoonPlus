@@ -4,7 +4,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 
 final class Keys {
-    static NamespacedKey MOB, BOSS, SCALE, DIFF, TABLE, ITEM_ID, ITEM_ABILITIES, ITEM_PASSIVES,
+    static NamespacedKey MOB, BOSS, OWNER, SCALE, DIFF, TABLE, ITEM_ID, ITEM_ABILITIES, ITEM_PASSIVES,
             ITEM_RARITY, ITEM_SERIAL, BLEED, BLEED_DMG, BLEED_SRC, HEAL_AURA;
 
     private Keys() {}
@@ -12,6 +12,7 @@ final class Keys {
     static void init(Plugin p) {
         MOB = new NamespacedKey(p, "mob");
         BOSS = new NamespacedKey(p, "boss");
+        OWNER = new NamespacedKey(p, "owner");
         SCALE = new NamespacedKey(p, "dmg_scale");
         DIFF = new NamespacedKey(p, "difficulty");
         TABLE = new NamespacedKey(p, "table");

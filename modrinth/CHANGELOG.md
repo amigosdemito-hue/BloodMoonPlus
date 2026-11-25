@@ -63,8 +63,12 @@ cannot stall the server.
 `getNearbyEntities(48,48,48)` — a 97³ entity sweep that touches hundreds of entities with mods
 installed — twice for every eligible player, only to count live horde mobs. The cap
 (`horde.max-alive-per-player` × eligible players) now reads a per-world counter that
-`countHordeAlive` already refreshed every ~2 s, so a wave does no entity sweeping at all and the
-cap applies to the whole world instead of a bubble around each player.
+`countHordeAlive` already refreshed every ~2 s, so a wave does no entity sweeping at all.
+- **Hard cap of 70 horde mobs per player, bosses included.** The ceiling no longer grows with the
+wave number or the difficulty: every player owns at most `horde.max-alive-per-player` (70) horde
+mobs and bosses at once, counted through an owner tag and resynced from the world every ~2 s. When
+a player kills half of that quota, the plugin spawns the other half for them on the next tick, so
+the pressure stays constant without ever going over 70 per player.
 - **Spawn search stopped allocating thousands of blocks and strings.** `findSpawn` ran up to 12
 attempts × 17 vertical steps per mob, building three `Block`s and three `toString().contains(...)`
 per candidate. It now tries 8 positions, checks the cheap conditions first (feet passable, head

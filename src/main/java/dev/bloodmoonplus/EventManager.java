@@ -114,10 +114,15 @@ public final class EventManager {
      *  arrancan y terminan juntas: es lo que hace que el evento sea GLOBAL. */
     private final Map<String, Session> sessions = new LinkedHashMap<>();
     private final List<MobDef> mobs = new ArrayList<>();
-    /** Mobs de la horda vivos por mundo. Lo refresca countHordeAlive() (el snapshot de
-     *  placeholders lo llama cada ~2 s) y lo ajustan spawnWave/removeTagged, así que el tope de
-     *  la oleada no necesita recorrer el mundo con getNearbyEntities. */
-    private final Map<String, Integer> aliveHorde = new HashMap<>();
+    /** Mobs de la horda vivos POR JUGADOR (clave = UUID del dueño), jefes incluidos. Es el cupo
+     *  real del evento: lo ajustan spawn/onHordeMobKilled y lo reconstruye countHordeAlive desde
+     *  las entidades del mundo cada ~2 s, así que una oleada no necesita recorrer entidades. */
+    private final Map<UUID, Integer> aliveByPlayer = new HashMap<>();
+    /** Bajas de cada jugador desde el último relleno: al llegar a la mitad de su tope (35 de 70)
+     *  se le vuelve a spawnear el otro 50 %. */
+    private final Map<UUID, Integer> killedTowardRefill = new HashMap<>();
+    /** Jugadores con un repoblado en curso, para no lanzar dos a la vez. */
+    private final Set<UUID> refilling = new HashSet<>();
 
     private boolean hordeEnabled;
     /** event.global: el evento cubre TODOS los mundos cargados, no solo los de la lista. */
@@ -147,7 +152,7 @@ public final class EventManager {
         waveInterval = c.getDouble("horde.interval-seconds", 25);
         baseSize = c.getInt("horde.base-size", 5);
         waveMaxSize = Math.max(1, c.getInt("horde.wave-max-size", 30));
-        maxPerPlayer = c.getInt("horde.max-alive-per-player", 25);
+        maxPerPlayer = Math.max(1, c.getInt("horde.max-alive-per-player", 70));
         minDist = c.getDouble("horde.spawn-distance.min", 14);
         maxDist = Math.max(minDist + 1, c.getDouble("horde.spawn-distance.max", 28));
         firstWaveDelay = c.getDouble("event.first-wave-delay-seconds", 10);
@@ -408,6 +413,8 @@ public final class EventManager {
         for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(s.bar);
         plugin.bosses().removeAll(s.world);
         if (removeOnEnd) removeTagged(s.world);
+        // Un evento nuevo arranca sin arrastrar las bajas del anterior.
+        for (UUID id : s.participants) killedTowardRefill.remove(id);
         if (lockNight) setWorldTime(s.world, endTime);
         restoreDifficulty(s.world, s);
 
@@ -726,20 +733,16 @@ public final class EventManager {
         s.waveCount++;
         int dynamicBase = Math.min(waveMaxSize, baseSize * s.waveCount);
         int perWave = Math.max(1, (int) Math.round(dynamicBase * sizeScale));
-        // Tope de mobs de la horda vivos en el mundo: max-alive-per-player × jugadores elegibles,
-        // con un margen que crece por oleada. El recuento sale del contador del mundo (lo refresca
-        // countHordeAlive cada ~2 s), así que una oleada ya NO recorre dos veces por jugador un cubo
-        // de 97x97x97 entidades con getNearbyEntities(): ese era el pico de lag de cada horda, y con
-        // mods y varios jugadores cada llamada toca cientos de entidades.
-        int cap = Math.max(1, (int) Math.round(maxPerPlayer * sizeScale * (1 + s.waveCount * 0.15)
-                * eligiblePlayers.size()));
-        int room = cap - hordeAlive(w);
-        if (room <= 0) return 0;
+        // Tope POR JUGADOR, jefes incluidos: no crece con el número de oleada ni con la dificultad,
+        // así que cada jugador elegible puede tener como mucho max-alive-per-player (70) mobs suyos
+        // vivos a la vez. El cupo sale de aliveByPlayer, que mantienen spawn/onHordeMobKilled y
+        // reconstruye countHordeAlive desde el mundo cada ~2 s.
         int spawned = 0;
         boolean announceHorde = s.lastHordeAnnounceMs == 0 || System.currentTimeMillis() - s.lastHordeAnnounceMs > 30_000L;
         for (Player p : eligiblePlayers) {
-            if (spawned >= room) break;
-            int amount = Math.min(perWave, room - spawned);
+            int room = maxPerPlayer - aliveByPlayer.getOrDefault(p.getUniqueId(), 0);
+            if (room <= 0) continue;
+            int amount = Math.min(perWave, room);
             // Rayo cinematográfico + anuncio de horda cayendo (como mucho uno cada 30 s)
             if (announceHorde) {
                 announceHorde = false;
@@ -754,28 +757,43 @@ public final class EventManager {
                     // Solo el mundo del jugador: antes se filtraba a los demás mundos.
                     plugin.messages().world(p.getWorld(), "event.horde-descending", "player", p.getName());
             }
-            for (int i = 0; i < amount; i++) {
-                Location loc = findSpawn(p.getLocation(), minDist, maxDist);
-                if (loc == null) continue;
-                // Escalera visual moderada: cada 5 mobes en lugar de cada 3, para no saturan el mundo
-                // con rayos y partículas cuando ya hay mods y 20 jugadores.
-                if (i % 5 == 0) {
-                    Location spot = findSpawn(p.getLocation(), minDist, maxDist);
-                    if (spot != null) {
-                        w.strikeLightningEffect(spot);
-                        w.spawnParticle(org.bukkit.Particle.DUST, spot.add(0, 1, 0), 10, 0.3, 0.4, 0.3, 0.05,
-                                new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.2f));
-                    }
-                }
-                MobDef d = Util.pick(mobs, MobDef::weight);
-                if (d == null) continue;
-                LivingEntity le = spawn(loc, d.type(), d.health(), d.damage(), d.speed(), d.display(), d.equipment(),
-                        d.equipChance(), s.difficulty, d.table(), p);
-                if (le != null) spawned++;
-            }
+            spawned += spawnBatch(p, s, amount);
         }
-        if (spawned > 0) aliveHorde.merge(w.getName(), spawned, Integer::sum);
         return spawned;
+    }
+
+    /** Spawnea hasta `amount` mobs de la horda alrededor de `p` y los anota como suyos.
+     *  Lo usan la oleada normal y el relleno del 50 % tras las bajas. */
+    private int spawnBatch(Player p, Session s, int amount) {
+        int spawned = 0;
+        for (int i = 0; i < amount; i++) {
+            // Escala visual moderada: cada 5 mobs en lugar de cada 3, para no saturar el mundo
+            // con rayos y partículas cuando ya hay mods y 20 jugadores.
+            if (i % 5 == 0) spawnEffect(p);
+            if (spawnOne(p, s)) spawned++;
+        }
+        if (spawned > 0) aliveByPlayer.merge(p.getUniqueId(), spawned, Integer::sum);
+        return spawned;
+    }
+
+    /** Un mob de la horda junto a `p`, elegido de la tabla de pesos. */
+    private boolean spawnOne(Player p, Session s) {
+        Location loc = findSpawn(p.getLocation(), minDist, maxDist);
+        if (loc == null) return false;
+        MobDef d = Util.pick(mobs, MobDef::weight);
+        if (d == null) return false;
+        return spawn(loc, d.type(), d.health(), d.damage(), d.speed(), d.display(), d.equipment(),
+                d.equipChance(), s.difficulty, d.table(), p) != null;
+    }
+
+    /** Rayo + polvo rojo que acompañan la caída de cada 5 mobs. */
+    private void spawnEffect(Player p) {
+        World w = p.getWorld();
+        Location spot = findSpawn(p.getLocation(), minDist, maxDist);
+        if (spot == null) return;
+        w.strikeLightningEffect(spot);
+        w.spawnParticle(org.bukkit.Particle.DUST, spot.add(0, 1, 0), 10, 0.3, 0.4, 0.3, 0.05,
+                new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.2f));
     }
 
     /** Mob de refuerzo (invocaciones de jefes): usa la definición de la horda si existe. */
@@ -815,6 +833,8 @@ public final class EventManager {
 
         var pdc = le.getPersistentDataContainer();
         pdc.set(Keys.MOB, PersistentDataType.BYTE, (byte) 1);
+        // Dueño del mob: con esta marca se cuenta el cupo de 70 por jugador (jefes incluidos).
+        if (target != null) pdc.set(Keys.OWNER, PersistentDataType.STRING, target.getUniqueId().toString());
         // Etiqueta de scoreboard ADEMÁS del PDC: si vanilla convierte el mob (zombi → ahogado)
         // la entidad nueva puede perder el PDC, pero la etiqueta sobrevive al menos al evento
         // de transformación, que la vuelve a copiar.
@@ -884,6 +904,9 @@ public final class EventManager {
         if (scale != null) dst.set(Keys.SCALE, PersistentDataType.DOUBLE, scale);
         String table = src.get(Keys.TABLE, PersistentDataType.STRING);
         if (table != null) dst.set(Keys.TABLE, PersistentDataType.STRING, table);
+        // El mob transformado sigue siendo del mismo jugador: sin esto el cupo se liberaba solo.
+        String owner = src.get(Keys.OWNER, PersistentDataType.STRING);
+        if (owner != null) dst.set(Keys.OWNER, PersistentDataType.STRING, owner);
         String boss = src.get(Keys.BOSS, PersistentDataType.STRING);
         if (boss != null) dst.set(Keys.BOSS, PersistentDataType.STRING, boss);
 
@@ -908,27 +931,116 @@ public final class EventManager {
     }
 
     /** Mobs de la horda VIVOS en un mundo (etiquetados y que no son jefes). Lo usa el
-     *  placeholder %bloodmoon_horde_count%; lo llama el snapshot cada ~2 s, no PAPI. */
+     *  placeholder %bloodmoon_horde_count%; lo llama el snapshot cada ~2 s, no PAPI. De paso
+     *  resincroniza el cupo por jugador con las entidades reales del mundo. */
     public int countHordeAlive(World w) {
         if (w == null) return 0;
         int n = 0;
+        Map<UUID, Integer> owned = new HashMap<>();
         for (LivingEntity le : w.getLivingEntities()) {
-            if (isTagged(le) && !le.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) n++;
+            if (!isTagged(le)) continue;
+            UUID owner = ownerOf(le);
+            if (owner != null) owned.merge(owner, 1, Integer::sum);
+            if (!le.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) n++;
         }
-        aliveHorde.put(w.getName(), n);
+        // Los jugadores del mundo se resincronizan con lo que hay de verdad: así un mob muerto,
+        // despawnado o transformado no deja el cupo inflado para siempre.
+        for (Player p : w.getPlayers()) {
+            Integer count = owned.get(p.getUniqueId());
+            if (count == null) aliveByPlayer.remove(p.getUniqueId());
+            else aliveByPlayer.put(p.getUniqueId(), count);
+        }
         return n;
     }
 
-    /** Último recuento conocido de mobs de la horda vivos en el mundo (0 si aún no se ha contado).
-     *  Lo usa spawnWave para no pasarse del tope sin recorrer el mundo en cada oleada. */
-    public int hordeAlive(World w) { return w == null ? 0 : aliveHorde.getOrDefault(w.getName(), 0); }
+    /** Dueño (jugador al que se le asignó) de un mob del evento, o null si no tiene. */
+    static UUID ownerOf(Entity e) {
+        if (e == null) return null;
+        String raw = e.getPersistentDataContainer().get(Keys.OWNER, PersistentDataType.STRING);
+        if (raw == null) return null;
+        try {
+            return UUID.fromString(raw);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    /** Baja de un mob de la horda o de un jefe: descuenta el cupo de su dueño y, cuando ya ha
+     *  matado la mitad de su tope (35 de 70), le vuelve a spawnear el otro 50 %.
+     *  Lo llama EventListener en EntityDeathEvent. */
+    public void onHordeMobKilled(LivingEntity mob) {
+        UUID owner = ownerOf(mob);
+        if (owner == null) return;
+        int alive = aliveByPlayer.getOrDefault(owner, 0);
+        if (alive <= 1) aliveByPlayer.remove(owner);
+        else aliveByPlayer.put(owner, alive - 1);
+
+        int half = Math.max(1, maxPerPlayer / 2);
+        int killed = killedTowardRefill.merge(owner, 1, Integer::sum);
+        if (killed < half) return;
+        killedTowardRefill.put(owner, killed - half);
+        refill(owner);
+    }
+
+    /** Mobs que el repoblado suelta por tick: 35 mobs se reparten en ~18 ticks (<1 s) en lugar
+     *  de 35 spawns y 35 búsquedas de spawn en un solo tick. */
+    private static final int REFILL_PER_TICK = 2;
+
+    /** Repone al jugador la otra mitad de su cupo, de a poco por tick. Arranca en el tick
+     *  siguiente: spawnear entidades dentro del propio EntityDeathEvent funciona, pero no conviene
+     *  encadenar spawns desde el manejador de muertes. */
+    private void refill(UUID owner) {
+        if (!refilling.add(owner)) return;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            Player p = Bukkit.getPlayer(owner);
+            Session s = p != null && p.isOnline() && !p.isDead() ? session(p.getWorld()) : null;
+            int room = maxPerPlayer - aliveByPlayer.getOrDefault(owner, 0);
+            int amount = Math.min(Math.max(1, maxPerPlayer / 2), room);
+            if (s == null || p == null || !hordeEnabled || mobs.isEmpty() || !eligible(p, s) || amount <= 0) {
+                refilling.remove(owner);
+                return;
+            }
+            new org.bukkit.scheduler.BukkitRunnable() {
+                int left = amount;
+
+                @Override
+                public void run() {
+                    Player player = Bukkit.getPlayer(owner);
+                    Session ses = player != null && player.isOnline() ? session(player.getWorld()) : null;
+                    int roomNow = maxPerPlayer - aliveByPlayer.getOrDefault(owner, 0);
+                    // Se corta si el evento terminó, el jugador salió/murió o ya está a tope.
+                    if (left <= 0 || ses == null || player.isDead() || !eligible(player, ses) || roomNow <= 0) {
+                        refilling.remove(owner);
+                        cancel();
+                        return;
+                    }
+                    int n = Math.min(Math.min(REFILL_PER_TICK, left), roomNow);
+                    int spawned = 0;
+                    for (int i = 0; i < n; i++) if (spawnOne(player, ses)) spawned++;
+                    if (spawned > 0) aliveByPlayer.merge(owner, spawned, Integer::sum);
+                    // Se descuenta lo intentado, no lo logrado: si no hay suelo válido el lote no
+                    // se reintenta para siempre.
+                    left -= n;
+                }
+            }.runTaskTimer(plugin, 0L, 1L);
+        });
+    }
 
     public int removeTagged(World w) {
         int n = 0;
+        Set<UUID> owners = new HashSet<>();
         for (LivingEntity le : w.getLivingEntities()) {
-            if (isTagged(le)) { le.remove(); n++; }
+            if (!isTagged(le)) continue;
+            UUID owner = ownerOf(le);
+            if (owner != null) owners.add(owner);
+            le.remove();
+            n++;
         }
-        aliveHorde.remove(w.getName());
+        // Sin mobs vivos tampoco quedan cupos ni bajas pendientes de esos jugadores.
+        for (UUID id : owners) {
+            aliveByPlayer.remove(id);
+            killedTowardRefill.remove(id);
+        }
         return n;
     }
 
