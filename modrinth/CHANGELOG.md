@@ -83,9 +83,11 @@ copy (Protection 4 and the removed ability lists). The refresh applies **that** 
 - The unbreakable flag and serial numbers survive the migration, and anything still carrying the
   Curse of Vanishing is cleaned up; old passive potion effects (infinite duration) are cleared when
   a player joins.
-- Event and boss mobs are now `persistent`, so they no longer despawn on their own when players move
-  away (the deprecated `setRemoveWhenFarAway(false)` was overridden by `setPersistent(false)` right
-  after it). The event end, `/luna stop` and the startup cleanup still remove them.
+- Event and boss mobs no longer vanish when players move away: they are marked as not despawnable
+  **and** saved with their chunk, so they survive both the distance despawn and the chunk being
+  unloaded. `Entity#setPersistent` only controls saving, so on its own it was not enough, and
+  `Mob#setPersistenceRequired` does not exist on 26.1/26.2; the mobs use the compatible call. The
+  event end, `/luna stop` and the startup cleanup still remove them.
 - Enchantment lookup goes through the live registry (`RegistryAccess`) instead of the deprecated
   `Registry.ENCHANTMENT` field, so ExcellentEnchants enchantments are always current.
 

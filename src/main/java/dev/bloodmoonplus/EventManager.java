@@ -940,12 +940,7 @@ public final class EventManager {
             le.setCustomNameVisible(true);
         }
         if (le instanceof Ageable a) a.setAdult();
-        // Un mob del evento no puede desaparecer solo: vanilla borra los mobs que se alejan de
-        // los jugadores y un jefe se esfumaría a mitad de pelea. Antes se llamaba a
-        // setRemoveWhenFarAway(false) y acto seguido a setPersistent(false), que es el MISMO
-        // flag al revés: la segunda llamada dejaba el mob despawneable. Lo quitan el final del
-        // evento, /luna stop y la limpieza de resume() al arrancar, así que no se acumulan.
-        le.setPersistent(true);
+        keepAlive(le);
 
         EntityEquipment eq = equip == null || equip.isEmpty() ? null : le.getEquipment();
         if (eq != null) {
@@ -958,6 +953,21 @@ public final class EventManager {
         }
         if (target != null && le instanceof Mob m) m.setTarget(target);
         return le;
+    }
+
+    /** Un mob del evento no puede desaparecer solo al alejarse los jugadores. Vanilla lo decide con
+     *  dos cosas distintas: el flag "PersistenceRequired" (no despawnear por distancia) y el flag de
+     *  guardado del chunk (sin él la entidad se pierde cuando la zona se descarga, que es justo lo
+     *  que pasaba: la horda se esfumaba al irte lejos). En la API 26.3 lo primero se hace con
+     *  {@code Mob#setPersistenceRequired}, pero ese método NO existe en 26.1/26.2, que el plugin
+     *  sigue soportando (api-version 26.2), así que se usa su equivalente antiguo, deprecado pero
+     *  presente en todas las versiones. {@code Entity#setPersistent} sólo controla el guardado y no
+     *  sustituye a esta llamada. Los quita el final del evento, /luna stop y la limpieza de
+     *  resume() al arrancar, así que no se acumulan. */
+    @SuppressWarnings("deprecation")
+    private static void keepAlive(LivingEntity le) {
+        le.setRemoveWhenFarAway(false);
+        le.setPersistent(true);
     }
 
     /** Etiquetas de scoreboard de los mobs y jefes de la Luna. */
@@ -1000,7 +1010,7 @@ public final class EventManager {
             to.customName(from.customName());
             to.setCustomNameVisible(true);
         }
-        to.setPersistent(true);
+        keepAlive(to);
         // El ahogado nace con 20 de vida: conserva la vida escalada del mob original.
         AttributeInstance hpFrom = from.getAttribute(Attribute.MAX_HEALTH);
         AttributeInstance hpTo = to.getAttribute(Attribute.MAX_HEALTH);
