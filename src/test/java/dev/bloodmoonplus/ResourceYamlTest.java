@@ -82,6 +82,25 @@ class ResourceYamlTest {
         assertTrue(legacy.isEmpty(), "Items con habilidades propias (ya no existen): " + legacy);
     }
 
+    /** Ningún item puede llevar maldiciones: la Maldición de desaparición automática de la 1.0.2
+     *  se retiró y el código ya no lee `settings.vanishing-curse-min-rarity`. */
+    @Test
+    void noItemCarriesCurses() {
+        YamlConfiguration items = YamlConfiguration.loadConfiguration(res("items.yml"));
+        List<String> cursed = new ArrayList<>();
+        for (String id : items.getConfigurationSection("items").getKeys(false)) {
+            var ench = items.getConfigurationSection("items." + id + ".enchants");
+            if (ench == null) continue;
+            for (String key : ench.getKeys(false)) {
+                String k = key.trim().toLowerCase(java.util.Locale.ROOT).replace("minecraft:", "");
+                if (k.equals("vanishing_curse") || k.equals("binding_curse")) cursed.add(id + "/" + key);
+            }
+        }
+        assertTrue(cursed.isEmpty(), "Items con maldiciones (ya no se usan): " + cursed);
+        assertNull(items.get("settings.vanishing-curse-min-rarity"),
+                "items.yml: la Maldición de desaparición ya no existe; borra settings.vanishing-curse-min-rarity");
+    }
+
     @Test
     void lootYamlLoadsAndHasTables() {
         YamlConfiguration y = YamlConfiguration.loadConfiguration(res("loot.yml"));

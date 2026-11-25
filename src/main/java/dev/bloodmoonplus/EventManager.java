@@ -940,8 +940,12 @@ public final class EventManager {
             le.setCustomNameVisible(true);
         }
         if (le instanceof Ageable a) a.setAdult();
-        le.setRemoveWhenFarAway(false);
-        le.setPersistent(false);
+        // Un mob del evento no puede desaparecer solo: vanilla borra los mobs que se alejan de
+        // los jugadores y un jefe se esfumaría a mitad de pelea. Antes se llamaba a
+        // setRemoveWhenFarAway(false) y acto seguido a setPersistent(false), que es el MISMO
+        // flag al revés: la segunda llamada dejaba el mob despawneable. Lo quitan el final del
+        // evento, /luna stop y la limpieza de resume() al arrancar, así que no se acumulan.
+        le.setPersistent(true);
 
         EntityEquipment eq = equip == null || equip.isEmpty() ? null : le.getEquipment();
         if (eq != null) {
@@ -996,8 +1000,7 @@ public final class EventManager {
             to.customName(from.customName());
             to.setCustomNameVisible(true);
         }
-        to.setRemoveWhenFarAway(false);
-        to.setPersistent(false);
+        to.setPersistent(true);
         // El ahogado nace con 20 de vida: conserva la vida escalada del mob original.
         AttributeInstance hpFrom = from.getAttribute(Attribute.MAX_HEALTH);
         AttributeInstance hpTo = to.getAttribute(Attribute.MAX_HEALTH);

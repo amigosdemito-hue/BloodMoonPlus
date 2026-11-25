@@ -13,12 +13,12 @@ Built to run smoothly on **40+ player** servers without changing the gameplay.
 
 - **🌍 7 languages** — Spanish, English, Portuguese, French, German, Italian and Russian, complete and switchable in `locales/locales.yml` with `/luna reload` (no restart). An unknown code warns and falls back to English, and the build fails if a translation loses a key or a `{placeholder}`.
 - **🟩 New boss — Fauces del Cataclismo** (`creeper_cargado`): a charged creeper **twice as tall**, **320 HP**, immune to every explosion. It **absorbs** players with `VORTEX`, summons **Crías del Cataclismo** with `SWARM` and **detonates** itself every 50 s without dying — only in its enraged phase does the blast open a crater.
-- **🛡️ Moon gear cannot be stripped** — the grindstone is blocked for Blood Moon items, the anvil and smithing table can never return a result with fewer enchantments, and the gear players already own is **upgraded automatically when they join** (renamed items included). `/luna refresh <player|all>` forces it instantly.
+- **🛡️ Moon gear cannot be stripped** — the grindstone is blocked for Blood Moon items (an unenchanted piece can still be repaired there), the anvil and smithing table can never return a result with fewer enchantments, and the gear players already own is **upgraded automatically when they join** (renamed items included). `/luna refresh <player|all>` forces it instantly.
 - **🗓️ Fixed schedules** — `weekly` mode (per weekday at a real time, configurable timezone, defaults to `America/Mexico_City`) or `interval` mode (every N hours). You can set **multiple runs on the same day**.
 - **🌐 Server-wide event** — one Blood Moon for **every loaded world at the same time** (`event.global: true`): night, hordes, bosses, the boss bar and survivor rewards all run everywhere together. Set it to `false` to go back to a `worlds` list.
 - **👹 10 bosses** with custom health bars, **enrage** phases, minimum difficulty, abilities and their own loot.
 - **🎁 45 items** sorted by rarity: common (always drop), rare, epic, legendary and **mythic** (extremely rare, ~0.1%, max 3 per server with a serial number).
-- **💀 Curse of Vanishing** on every **Rare-to-Mythic** weapon, tool and armour piece, so high-rarity gear is lost on death as its rarity implies (toggle with `settings.vanishing-curse-min-rarity`).
+- **✅ No curses** — no Moon weapon, tool or armour piece carries the Curse of Vanishing or the Curse of Binding, whatever its rarity: gear drops on death like any other item. The automatic curse from 1.0.2 was removed and gear already handed out loses it on join, on pickup or with `/luna refresh`.
 - **📦 Rare loot delivery**: rare, epic, legendary and mythic drops go straight to the killer's inventory when there is one.
 - **⚔️ ExcellentEnchants integration**: every item ships vanilla enchantments at their max (level 5 on legendary and mythic gear, e.g. Protection 5) plus EE enchantments (`thunder`, `vampire`, `electrified_arrows`, `dragon_heart`…), with EE's own per-level chance settings. No custom ability engine.
 - **🌊 Progressive waves** — wave 1: 5 mobs, wave 2: 10, wave 3: 15… up to a configurable cap.
@@ -65,7 +65,7 @@ Change `Language:` in `plugins/BloodMoonPlus/locales/locales.yml` and run **`/lu
 
 **`bosses.yml`:** your server's file is never overwritten. If you keep it, you keep your bosses and tuning, but the new **`creeper_cargado`** will not exist. The old `bar-color: BLACK` on the shadow hunter no longer deletes the boss (each field is validated separately and falls back to `RED` with a clear warning); the shipped file uses `PURPLE`. To get the new boss without losing your changes, back up your file, let the plugin generate the new one once and re-apply your adjustments.
 
-**`items.yml`** needs no changes (the vanishing-curse default lives in the code), and **`messages.yml`** is no longer read — you can delete it.
+**`items.yml`** needs no changes — `settings.vanishing-curse-min-rarity` is no longer read and you can delete it, and **`messages.yml`** is no longer read either.
 
 ---
 

@@ -239,8 +239,8 @@
   <div class="card">
     <span class="tag">Lo más visible para el jugador</span>
     <ul class="tight" style="margin-bottom:0">
-      <li>Los objetos raros y superiores desaparecen al morir (maldición de desaparición) y el
-        equipo de la Luna no se puede «limpiar» en la piedra de afilar.</li>
+      <li>El equipo de la Luna no se puede «limpiar» en la piedra de afilar. (La maldición de
+        desaparición de esta versión se retiró en la 1.0.3.)</li>
       <li>Un jefe nuevo que absorbe jugadores hacia su cuerpo y luego detona: ya no es una pelea
         de quedarse quieto.</li>
       <li>El chat deja de mentir: la participación y los supervivientes cuentan de verdad.</li>
@@ -259,7 +259,7 @@
     <p class="lede">Cambios de reglas y de contenido que afectan directamente a la partida.</p>
   </div>
 
-  <h3>2.1 &#183; Maldición de desaparición para el equipo raro y superior</h3>
+  <h3>2.1 &#183; Maldición de desaparición para el equipo raro y superior <span class="muted" style="font-size:10pt">(retirada en la 1.0.3)</span></h3>
   <p>Antes solo cuatro armas legendarias desaparecían al morir. Ahora <b>todo el equipo de raridad
     Raro, Épico, Legendario y Mítico</b> lleva la maldición de desaparición: espadas, hachas, picos,
     palas, azadas, arcos, ballestas, tridentes, mazas, cascos, petos, grebas, botas y élitros. Los
@@ -277,6 +277,9 @@
     servidores que ya tienen un <code>items.yml</code> antiguo y cualquier objeto que se añada en el
     futuro. Se desactiva con <code>settings.vanishing-curse-min-rarity: OFF</code> en
     <code>items.yml</code>; se puede subir el umbral (por ejemplo a <code>EPICO</code>) sin tocar código.</p>
+  <p class="muted" style="font-size:9.4pt"><b>Nota de la 1.0.3:</b> la maldición ya no se pone y la clave
+    <code>settings.vanishing-curse-min-rarity</code> ya no se lee. A los objetos que la traen se les quita
+    sola al entrar, al recogerlos o con <code>/luna refresh</code>.</p>
 
   <h3>2.2 &#183; El equipo de la Luna ya no se puede «limpiar»</h3>
   <div class="grid2">

@@ -300,7 +300,7 @@ The rolled item has its **own** drop probability. **If it fails, that roll gives
 
 - **Mythics:** at most **3 copies on the whole server** (serial number in the lore); once exhausted, they stop dropping.
 - **Broken Rare/Legendary weapons capped at 5%**: Blood Sword, Crimson Bow, Shadow Dagger, Storm Bow and Vampiric Fang.
-- **Rare-or-higher weapons, tools and armor have the Curse of Vanishing**: if you die with them, they disappear (a real risk to carrying them). *(Since 1.0.2.)*
+- **No curses**: no Moon piece carries the Curse of Vanishing or the Curse of Binding; if you die with one, it drops and anyone can pick it up. *(The automatic curse from 1.0.2 was removed in 1.0.3.)*
 - **Enchantments:** the level never exceeds **7** (trimmed on load).
 - Kills only count when a player is nearby (`require-player-kill`).
 - Legendary and Mythic items **glow** when dropped and ignore lava and explosions.
@@ -390,12 +390,10 @@ Step 3 percentages in each table (before the individual drop-chance):
 
 ### Legendaries
 
-> ⚠️ **Every weapon, tool and armor piece from Rare to Mythic carries the Curse of Vanishing**
-> (`vanishing_curse`): if you die with one in your inventory, the item **disappears** — it doesn't drop
-> to the ground and nobody can pick it up. It applies to swords, axes, pickaxes, shovels, hoes, bows,
-> crossbows, tridents, maces and armor (helmet, chestplate, leggings, boots, elytra) of Rare, Epic,
-> Legendary and Mythic rarity. Shields never carry it.
-> Controlled by `settings.vanishing-curse-min-rarity` in `items.yml` (`OFF` disables it).
+> ✅ **No Moon piece carries curses**: neither the Curse of Vanishing nor the Curse of Binding. If
+> you die with one, it drops like any other item and anyone can pick it up, Mythic gear included.
+> *(The automatic curse from 1.0.2 was removed in 1.0.3: gear already handed out loses it on join,
+> on pickup or with `/luna refresh`.)*
 
 | Item | Material | Drop | Enchantments |
 |------|----------|------|-----------|
@@ -531,8 +529,8 @@ original, start once so the new file is generated, then re-apply your changes (o
 ### `items.yml` and `messages.yml`
 
 - **For 1.0.2, `items.yml` needed no changes.** Only comments and the
-  `settings.vanishing-curse-min-rarity` key were added; the default (`RARO`) lives in the code, so
-  the Curse of Vanishing already applies. Add the key only if you want `OFF` or a higher threshold.
+  `settings.vanishing-curse-min-rarity` key were added, and that key **no longer exists**: 1.0.3
+  removed the Curse of Vanishing, so it is ignored and you can delete it from the file.
   **In 1.0.3 it does change: see "Updating from 1.0.2 to 1.0.3".**
 - **`messages.yml`** is no longer read by any code since 1.0.2: you can safely delete it.
 

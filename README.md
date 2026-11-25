@@ -301,7 +301,7 @@ El item sorteado tiene su **propia** probabilidad de drop. **Si falla, esa tirad
 
 - **Míticos:** máximo **3 ejemplares en todo el servidor** (número de serie en el lore); al agotarse, dejan de caer.
 - **Armas rotas Raro/Legendario capadas al 5%**: Espada Sanguinaria, Arco Carmesí, Daga de las Sombras, Arco de la Tormenta y Colmillo Vampírico.
-- **Armas, herramientas y armaduras de Raro en adelante con Maldición de desvanecimiento**: si mueres con ellas, desaparecen (riesgo real de llevarlas). *(Desde 1.0.2.)*
+- **Sin maldiciones**: ninguna pieza de la Luna lleva Maldición de desaparición ni de vínculo; si mueres con una encima, cae al suelo y cualquiera puede recogerla. *(La maldición automática de la 1.0.2 se retiró en la 1.0.3.)*
 - **Encantamientos:** el nivel nunca supera **7** (se recorta al cargar).
 - Solo cuenta matar a mobs de la horda con un jugador cerca (`require-player-kill`).
 - Los items Legendario y Mítico **brillan** al caer e ignoran lava y explosiones.
@@ -391,12 +391,10 @@ Porcentajes del paso 3 en cada tabla (antes del drop-chance individual):
 
 ### Legendarios
 
-> ⚠️ **Todas las armas, herramientas y armaduras de rareza Raro en adelante llevan Maldición de
-> desvanecimiento** (`vanishing_curse`): si mueres con ellas en el inventario, el objeto **desaparece** —
-> no cae al suelo y nadie puede recogerlo. Aplica a espadas, hachas, picos, palas, azadas, arcos,
-> ballestas, tridentes, mazas y a la armadura (yelmo, peto, grebas, botas, élitros) de rareza Raro,
-> Épico, Legendario y Mítico. Los escudos no la llevan.
-> Se controla con `settings.vanishing-curse-min-rarity` en `items.yml` (`OFF` para desactivarla).
+> ✅ **Ninguna pieza de la Luna lleva maldiciones**: ni Maldición de desaparición ni de vínculo.
+> Si mueres con una encima, cae al suelo como cualquier objeto y cualquiera puede recogerla,
+> también el equipo Mítico. *(La maldición automática de la 1.0.2 se retiró en la 1.0.3: a los
+> objetos ya repartidos se les quita sola al entrar, al recogerlos del suelo o con `/luna refresh`.)*
 
 | Item | Material | Drop | Encantamientos |
 |------|----------|------|-------------|
@@ -484,12 +482,12 @@ Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) 
 | Añadir encantamientos (mesa, yunques con libros, herrería) | ✅ Sí |
 | Renombrar en el yunque | ✅ Sí |
 | Reparar / mejorar | ✅ Sí |
-| **Quitarlos del grindstone** (desencantar, limpiar maldiciones) | ❌ No |
-| **Perder encantamientos, maldiciones, efectos o habilidades** | ❌ No |
+| **Quitarlos del grindstone** (desencantar) | ❌ No |
+| **Perder encantamientos, efectos o habilidades** | ❌ No |
 
-- El **grindstone** es el único método vanilla para *quitar* encantamientos (por eso servía para
-  limpiar la Maldición de desaparición): con un objeto de la Luna dentro, el resultado se anula y
-  el jugador recibe un aviso.
+- El **grindstone** es el único método vanilla para *quitar* encantamientos: con un objeto de la
+  Luna dentro, el resultado se anula y el jugador recibe un aviso. Sí se puede **reparar** una
+  pieza que no tenga encantamientos: el resultado se conserva.
 - En el **yunque** y la **mesa de herrería** el resultado se repara automáticamente: si alguna
   combinación dejaba el objeto con menos encantamientos, niveles más bajos o sin sus habilidades,
   se le devuelven los del objeto original. El renombrado y los encantamientos añadidos se quedan.
@@ -497,7 +495,8 @@ Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) 
   la definición actual de `items.yml` **al entrar al servidor, al recogerlos del suelo y al
   sacarlos de un cofre o shulker**. Los encantamientos que falten se añaden, los que superen el
   máximo del item **bajan** (Filo 7 → Filo 5; Protección 7 → Protección 5 en legendarios y
-  míticos), se pone la Maldición de desaparición y se borran los datos viejos de habilidades.
+  míticos), se quita la Maldición de desaparición si el objeto la trae y se borran los datos
+  viejos de habilidades.
   No se pierde el desgaste, ni el nombre que le pusiste, ni los encantamientos extra que añadiste
   y que no figuran en el `items.yml`. Funciona también con **shift-clic o la tecla de hotbar** al
   sacar el objeto de un cofre, Shulker o Cofre del End: se pone al día al caer en tu inventario.
@@ -607,8 +606,8 @@ el original, arranca una vez para que se genere el archivo nuevo y vuelve a apli
 ### `items.yml` y `messages.yml`
 
 - **Para la 1.0.2, `items.yml` no hacía falta tocarlo.** Solo se añadieron comentarios y la clave
-  `settings.vanishing-curse-min-rarity`; el valor por defecto (`RARO`) está en el código, así que la
-  maldición de desaparición ya se aplica. Añade la clave solo si quieres ponerla en `OFF` o subirla.
+  `settings.vanishing-curse-min-rarity`, que **ya no existe**: la 1.0.3 retiró la maldición de
+  desaparición, así que esa clave se ignora y puedes borrarla del archivo.
   **En la 1.0.3 sí cambia: ver «Actualizar de la 1.0.2 a la 1.0.3».**
 - **`messages.yml`** ya no lo lee ningún código desde la 1.0.2: puedes borrarlo sin miedo.
 

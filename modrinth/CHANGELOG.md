@@ -18,6 +18,10 @@ own per-level chance settings. Legendary and mythic gear raises the vanilla cap 
 exactly as before.
 
 **Highlights**
+- ⭐ **No curses on Moon gear**: the automatic **Curse of Vanishing** is gone for every rarity and
+  material, so a rare sword or a mythic chestplate drops on death like anything else. Gear already
+  handed out loses the curse on join, on pickup and with `/luna refresh`, and no item definition
+  carries a curse any more.
 - ⭐ **No more Sharpness 7 or Protection 7**: every enchantment is trimmed to its maximum
   (Sharpness 5, Unbreaking 3, Looting 3...), with **level 5 vanilla enchantments on legendary and
   mythic gear** (Protection 5, Thorns 5...).
@@ -28,7 +32,8 @@ exactly as before.
   `ice_aspect`, `fire_shield`, `stopping_force`, `dragon_heart`, `hardened` and friends.
 - **Existing gear is migrated** on join (`items.migrate-on-join`), **the moment it is picked up or
   taken out of a chest**, and whenever you run `/luna refresh <player|all>`. Above-max levels are
-  lowered, missing enchantments are added and the old ability data is removed.
+  lowered, missing enchantments are added, the Curse of Vanishing is stripped and the old ability
+  data is removed.
 - **ExcellentEnchants is optional to install, not to remove**: without it (and NightCore) the plugin
   still starts, **new** items get just the vanilla enchantments and the console warns once. Do not
   uninstall EE with gear already handed out: Minecraft deletes items whose enchantment is missing, so
@@ -62,20 +67,27 @@ copy (Protection 4 and the removed ability lists). The refresh applies **that** 
   each named-mob death (`settings.log-named-deaths` in `spigot.yml`); set it to `false` for a short
   log.
 - The grindstone now only cancels the result when it would really strip enchantments, so repairing
-  a Moon piece that has none works again.
-- `%bloodmoon_total_bosses_spawned%` counts every boss (it sat behind the `announce` gate and
+  a Moon piece that has none works again.- `%bloodmoon_total_bosses_spawned%` counts every boss (it sat behind the `announce` gate and
   skipped `announce: false` bosses) and `%bloodmoon_boss_type%` reports `MYTHICMOBS` for Mythic
   bosses instead of always `VANILLA`.
 
 ### Removed
 - The item ability engine (`ItemAbilities`) and the `abilities`/`passives` fields of `items.yml`.
 - `settings.max-enchant-level` (the old level-7 cap). Vanilla caps now apply per enchantment.
+- The automatic **Curse of Vanishing** and `settings.vanishing-curse-min-rarity`: the key is no
+  longer read, so an old `items.yml` can keep it without effect (or delete it).
 - The `%bloodmoon_abilities_count%` placeholder.
 
 ### Changed
 - `items.yml` enchantments rewritten: vanilla at max + up to 3 EE enchantments per item.
-- The vanishing curse, unbreakable flag and serial numbers survive the migration; old passive potion
-  effects (infinite duration) are cleared when a player joins.
+- The unbreakable flag and serial numbers survive the migration, and anything still carrying the
+  Curse of Vanishing is cleaned up; old passive potion effects (infinite duration) are cleared when
+  a player joins.
+- Event and boss mobs are now `persistent`, so they no longer despawn on their own when players move
+  away (the deprecated `setRemoveWhenFarAway(false)` was overridden by `setPersistent(false)` right
+  after it). The event end, `/luna stop` and the startup cleanup still remove them.
+- Enchantment lookup goes through the live registry (`RegistryAccess`) instead of the deprecated
+  `Registry.ENCHANTMENT` field, so ExcellentEnchants enchantments are always current.
 
 ### Added
 - `items.migrate-on-join` in `config.yml`.

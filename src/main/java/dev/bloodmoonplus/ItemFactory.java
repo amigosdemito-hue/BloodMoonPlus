@@ -27,10 +27,6 @@ public final class ItemFactory {
     private boolean migrateOnJoin = true;
     /** Claves heredadas de 1.0.2 y anteriores: sus datos ya no se usan y se borran al migrar. */
     private final NamespacedKey legacyAbilities, legacyPassives;
-    /** Rareza mínima (posición en loot.yml) que recibe Maldición de desaparición en armas,
-     *  herramientas y armadura; -1 = desactivado. Por defecto RARO (posición 2). */
-    private int vanishingMinRank = 2;
-
     ItemFactory(BloodMoonPlus plugin) {
         this.plugin = plugin;
         this.legacyAbilities = new NamespacedKey(plugin, "abilities");
@@ -42,18 +38,6 @@ public final class ItemFactory {
         YamlConfiguration y = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "items.yml"));
         showRarityLine = y.getBoolean("settings.show-rarity-line", true);
         migrateOnJoin = plugin.getConfig().getBoolean("items.migrate-on-join", true);
-        // Maldición de desaparición automática desde cierta rareza (OFF/NONE la desactiva).
-        String vanishFrom = y.getString("settings.vanishing-curse-min-rarity", "RARO");
-        if (vanishFrom == null || vanishFrom.isBlank()
-                || Util.key(vanishFrom).equals("OFF") || Util.key(vanishFrom).equals("NONE")) {
-            vanishingMinRank = -1;
-        } else {
-            vanishingMinRank = plugin.loot().rarityRank(vanishFrom);
-            if (vanishingMinRank < 0) {
-                plugin.getLogger().warning("items.yml: vanishing-curse-min-rarity '" + vanishFrom
-                        + "' no existe en loot.yml (rarities); no se aplicará la maldición.");
-            }
-        }
         ConfigurationSection sec = y.getConfigurationSection("items");
         if (sec == null) return;
         for (String id : sec.getKeys(false)) {
@@ -80,20 +64,6 @@ public final class ItemFactory {
         }
         warnUnknownEnchants();
         plugin.getLogger().info("Items cargados: " + defs.size());
-    }
-
-    /** Equipo que recibe la Maldición de desaparición: armas y herramientas (espadas, hachas,
-     *  picos, palas, azadas, arcos, ballestas, tridentes y mazas) MÁS armadura (yelmo, peto,
-     *  grebas, botas y élitros). Se compara por nombre de material para no depender de tags
-     *  que cambian entre versiones de la API. Los escudos y los materiales quedan fuera. */
-    private static boolean isGear(Material m) {
-        if (m == null) return false;
-        String n = m.name();
-        return n.endsWith("_SWORD") || n.endsWith("_AXE") || n.endsWith("_PICKAXE")
-                || n.endsWith("_SHOVEL") || n.endsWith("_HOE")
-                || n.equals("BOW") || n.equals("CROSSBOW") || n.equals("TRIDENT") || n.equals("MACE")
-                || n.endsWith("_HELMET") || n.endsWith("_CHESTPLATE") || n.endsWith("_LEGGINGS")
-                || n.endsWith("_BOOTS") || n.equals("ELYTRA");
     }
 
     public ItemDef get(String id) { return id == null ? null : defs.get(id); }
@@ -143,17 +113,30 @@ public final class ItemFactory {
 
     /** Pone al día un objeto ya existente con la definición ACTUAL de items.yml: ajusta los
      *  encantamientos al nivel pedido (sube los que falten y baja los que superen el máximo del
-     *  item), pone la maldición de desaparición que falte y borra las claves de las viejas
+     *  item), quita la maldición de desaparición de la 1.0.2 y borra las claves de las viejas
      *  habilidades. No toca el nombre que le puso el jugador, ni el desgaste, ni el lore.
      *  Devuelve true si modificó el stack (que se edita in situ). */
     public boolean refresh(ItemStack stack) {
         if (!isMoonItem(stack)) return false;
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) return false;
-        ItemDef d = get(meta.getPersistentDataContainer().get(Keys.ITEM_ID, PersistentDataType.STRING));
-        if (d == null) return false; // item de una config que ya no existe: se deja como está
         var pdc = meta.getPersistentDataContainer();
         boolean changed = false;
+        // Ningún objeto de la Luna lleva maldiciones: a los repartidos con la Maldición de
+        // desaparición que ponía la 1.0.2 se les quita en la siguiente puesta al día (entrar,
+        // recogerlo del suelo, sacarlo de un cofre o /luna refresh). Se toca SOLO esa maldición:
+        // si un jugador añadió otra cosa en el yunque, se queda. Va antes de resolver la
+        // definición para que también se limpie un objeto cuyo id ya no exista en items.yml.
+        Enchantment vanish = Reg.enchantment("vanishing_curse");
+        if (vanish != null && meta.hasEnchant(vanish)) {
+            meta.removeEnchant(vanish);
+            changed = true;
+        }
+        ItemDef d = get(pdc.get(Keys.ITEM_ID, PersistentDataType.STRING));
+        if (d == null) { // item de una config que ya no existe: solo se le quita la maldición
+            if (changed) stack.setItemMeta(meta);
+            return changed;
+        }
 
         // Puesta al día de encantamientos: sube los que falten Y baja los que estén por encima
         // del máximo del item (antes se recortaba a 7, así que "filo 7" o "protección 7"
@@ -172,15 +155,6 @@ public final class ItemFactory {
                 continue;
             }
             changed = true;
-        }
-        Enchantment vanish = Reg.enchantment("vanishing_curse");
-        if (vanish != null && vanishingMinRank >= 0 && isGear(d.material())
-                && plugin.loot().rarityRank(d.rarity()) >= vanishingMinRank
-                && !meta.hasEnchant(vanish)) {
-            try {
-                meta.addEnchant(vanish, 1, true);
-                changed = true;
-            } catch (IllegalArgumentException ignored) { }
         }
         // Migración: los datos de las viejas habilidades de item (1.0.2 y antes) ya no se usan.
         for (NamespacedKey legacy : new NamespacedKey[]{legacyAbilities, legacyPassives}) {
@@ -324,14 +298,6 @@ public final class ItemFactory {
             } catch (IllegalArgumentException ex) {
                 // Incompatible con el material: se salta ese encantamiento, no el item entero.
             }
-        }
-        // Maldición de desaparición obligatoria en ARMAS, HERRAMIENTAS y ARMADURA de rareza
-        // alta (Raro en adelante por defecto): si mueres con ellas se pierden, como corresponde
-        // a su rareza. Ajustable con settings.vanishing-curse-min-rarity (OFF la desactiva).
-        Enchantment vanish = Reg.enchantment("vanishing_curse");
-        if (vanish != null && vanishingMinRank >= 0 && isGear(d.material())
-                && plugin.loot().rarityRank(d.rarity()) >= vanishingMinRank) {
-            meta.addEnchant(vanish, 1, true);
         }
         if (d.unbreakable()) meta.setUnbreakable(true);
         if (d.glow()) meta.setEnchantmentGlintOverride(true);

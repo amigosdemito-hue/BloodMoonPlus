@@ -30,10 +30,11 @@ import java.util.UUID;
  *  - SÍ se pueden AÑADIR encantamientos (mesa de encantamientos, yunques con libros, herrería).
  *  - SÍ se pueden renombrar.
  *
- * El grindstone es el único método vanilla para QUITAR encantamientos y maldiciones (por eso
- * servía para limpiar la Maldición de desaparición), así que ahí se anula el resultado. En el
- * yunque y en la mesa de herrería, que solo pueden conservar o añadir, se repara el resultado
- * por si alguna combinación dejaba el objeto con menos encantamientos que el original.
+ * El grindstone es el único método vanilla para QUITAR encantamientos, así que ahí se anula el
+ * resultado (el atajo de "ya no lleva maldiciones, lo limpio" no existe: la maldición se fue
+ * del plugin en la 1.0.3, pero el objeto sigue sin poder desencantarse). En el yunque y en la
+ * mesa de herrería, que solo pueden conservar o añadir, se repara el resultado por si alguna
+ * combinación dejaba el objeto con menos encantamientos que el original.
  */
 public final class ItemProtection implements Listener {
 
@@ -182,7 +183,7 @@ public final class ItemProtection implements Listener {
     }
 
     /** Pone al día los objetos que el jugador ya tenía (incluso renombrados) con la definición
-     *  actual de items.yml: encantamientos, maldición de desaparición y habilidades que falten.
+     *  actual de items.yml: encantamientos al día y sin la maldición de desaparición de la 1.0.2.
      *  También borra los pasivos viejos; es seguro repetirlo en cada entrada. */
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {

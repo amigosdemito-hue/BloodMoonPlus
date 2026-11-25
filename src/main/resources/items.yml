@@ -13,19 +13,15 @@
 #      del item se crea igual. El nivel máximo lo fija ExcellentEnchants.
 #    - Máximo 3 encantamientos custom por item.
 #
-#  MALDICIÓN DE DESAPARICIÓN: toda ARMA, HERRAMIENTA (espada, hacha, pico, pala, azada, arco,
-#                  ballesta, tridente, maza) y ARMADURA (yelmo, peto, grebas, botas, élitros) de
-#                  rareza igual o superior a settings.vanishing-curse-min-rarity recibe
-#                  vanishing_curse 1 automáticamente. Los escudos no la reciben.
-#                  Pon OFF para desactivarla.
+#  MALDICIONES: ningún objeto de la Luna lleva maldiciones (ni de desaparición ni de vínculo),
+#               así que al morir caen al suelo como cualquier objeto. Si un objeto repartido con
+#               la 1.0.2 trae vanishing_curse, se le quita solo al entrar al servidor, al
+#               recogerlo del suelo y con /luna refresh <jugador|all>.
 #
 #  Placeholders de lore: {owner} {rarity}
 # ============================================================
 settings:
   show-rarity-line: true
-  # Rareza mínima de las armas, herramientas y armaduras que llevan Maldición de
-  # desaparición (RARO = desde Raro; OFF o NONE = desactivada).
-  vanishing-curse-min-rarity: RARO
 
 items:
   # ---------------- COMUNES / POCO COMUNES (vanilla) ----------------

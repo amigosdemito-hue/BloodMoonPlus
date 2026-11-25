@@ -1,5 +1,7 @@
 package dev.bloodmoonplus;
 
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.enchantments.Enchantment;
@@ -21,13 +23,21 @@ final class Reg {
      *  registro devuelve null y el encantamiento simplemente se omite. */
     private static final String EXCELLENT = "excellentenchants";
 
+    /** El registro VIVO del servidor, pedido en cada consulta: Bukkit deprecó los campos
+     *  estáticos de {@link Registry} justamente porque los plugins (ExcellentEnchants incluido)
+     *  registran sus entradas después de arrancar, así que una referencia guardada puede quedar
+     *  apuntando a un registro viejo. */
+    private static Registry<Enchantment> enchantments() {
+        return RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
+    }
+
     static Enchantment enchantment(String key) {
         NamespacedKey k = NamespacedKey.fromString(norm(key));
         if (k == null) return null;
-        Enchantment vanilla = Registry.ENCHANTMENT.get(k);
+        Enchantment vanilla = enchantments().get(k);
         if (vanilla != null) return vanilla;
         NamespacedKey custom = NamespacedKey.fromString(EXCELLENT + ":" + norm(key));
-        return custom == null ? null : Registry.ENCHANTMENT.get(custom);
+        return custom == null ? null : enchantments().get(custom);
     }
 
     /** true si el encantamiento resuelto es de ExcellentEnchants (namespace propio). */

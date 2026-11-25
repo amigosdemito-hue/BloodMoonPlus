@@ -101,12 +101,9 @@
 
 ### Legendarios — 4,5-6% (con anuncio global)
 
-> ⚠️ Las **armas, herramientas y armaduras de Raro en adelante** llevan **Maldición de desvanecimiento**:
-> al morir, el objeto desaparece en lugar de caer. Incluye las Raras y Épicas (Espada Sanguinaria,
-> Arco Carmesí, Daga de las Sombras, Arco de la Tormenta, Pico Umbrío, Hacha del Verdugo,
-> Espada de la Ruina, Ballesta del Abismo, Hacha de la Ventisca), la armadura (Yelmo, Peto, Grebas
-> y Botas del Cazador, Botas del Estrondo, Botas del Noctámbulo, Peto del Guardián, Corona, Peto y
-> Grebas del Eclipse) y todos los Míticos. Los escudos no la llevan.
+> ✅ **Ninguna pieza lleva maldiciones**: ni Maldición de desaparición ni de vínculo. Al morir caen
+> al suelo como cualquier objeto y cualquiera puede recogerlas, también el equipo Mítico. La
+> maldición automática de la 1.0.2 se retiró en la 1.0.3.
 
 | Item | Material | Drop | Encantamientos |
 |------|----------|------|-------------|

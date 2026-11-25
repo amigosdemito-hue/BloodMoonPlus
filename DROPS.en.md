@@ -80,11 +80,9 @@
 
 ### Legendaries
 
-> ⚠️ **Rare-or-higher weapons, tools and armor** carry the **Curse of Vanishing**: on death, the
-> item disappears instead of dropping. This includes Rare and Epic gear (Blood Sword, Crimson Bow,
-> Shadow Dagger, Storm Bow, Umbral Pickaxe, Executioner's Axe, Ruin Sword, Abyssal Crossbow,
-> Blizzard Axe), the armor pieces (Hunter's Helm/Chest/Legs/Boots, Thunder Boots, Nightwalker Boots,
-> Guardian's Chestplate, Eclipse Crown/Chest/Legs) and every Mythic. Shields do not carry it.
+> ✅ **No piece carries curses**: neither the Curse of Vanishing nor the Curse of Binding. On death
+> they drop like any other item and anyone can pick them up, Mythic gear included. The automatic
+> curse from 1.0.2 was removed in 1.0.3.
 
 | Item | Material | Drop | Enchantments |
 |------|----------|------|-----------|
