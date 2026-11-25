@@ -16,9 +16,23 @@ final class Reg {
         return k.startsWith("minecraft:") ? k.substring(10) : k;
     }
 
+    /** Encantamientos de ExcellentEnchants: viven en su propio namespace del registro de
+     *  Bukkit, así que no hace falta compilar contra su API. Si el plugin no está, el
+     *  registro devuelve null y el encantamiento simplemente se omite. */
+    private static final String EXCELLENT = "excellentenchants";
+
     static Enchantment enchantment(String key) {
         NamespacedKey k = NamespacedKey.fromString(norm(key));
-        return k == null ? null : Registry.ENCHANTMENT.get(k);
+        if (k == null) return null;
+        Enchantment vanilla = Registry.ENCHANTMENT.get(k);
+        if (vanilla != null) return vanilla;
+        NamespacedKey custom = NamespacedKey.fromString(EXCELLENT + ":" + norm(key));
+        return custom == null ? null : Registry.ENCHANTMENT.get(custom);
+    }
+
+    /** true si el encantamiento resuelto es de ExcellentEnchants (namespace propio). */
+    static boolean isCustom(Enchantment en) {
+        return en != null && EXCELLENT.equals(en.getKey().getNamespace());
     }
 
     static PotionEffectType effect(String key) {

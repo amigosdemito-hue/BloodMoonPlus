@@ -25,7 +25,7 @@ import java.util.Locale;
  *
  * Plus:   %bloodmoon_drop_chance_<item>%, %bloodmoon_pity_<rarity>%,
  *         %bloodmoon_bosses_defeated_session%, %bloodmoon_horde_active%,
- *         %bloodmoon_horde_count%, %bloodmoon_abilities_count%,
+ *         %bloodmoon_horde_count%,
  *         %bloodmoon_items_unique_owned%, %bloodmoon_mythic_active%,
  *         %bloodmoon_permanent_world%, %bloodmoon_event_elapsed%
  */
@@ -181,9 +181,6 @@ public final class PapiHook extends PlaceholderExpansion {
                 case "count" -> String.valueOf(session != null ? session.hordeAlive() : 0);
                 default -> null;
             };
-            case "abilities" -> sub.equals("count") && player instanceof Player pp
-                    ? String.valueOf(countAbilities(pp))
-                    : null;
             case "items" -> rest.equals("unique_owned") && player instanceof Player pp2
                     ? String.valueOf(countUniqueItems(pp2))
                     : null;
@@ -249,16 +246,6 @@ public final class PapiHook extends PlaceholderExpansion {
             }
         }
         return "100%";
-    }
-
-    private int countAbilities(Player p) {
-        int n = 0;
-        for (var item : p.getInventory().getContents()) {
-            if (item == null || !item.hasItemMeta()) continue;
-            var pdc = item.getItemMeta().getPersistentDataContainer();
-            if (pdc.has(dev.bloodmoonplus.Keys.ITEM_ABILITIES, org.bukkit.persistence.PersistentDataType.STRING)) n++;
-        }
-        return n;
     }
 
     private int countUniqueItems(Player p) {

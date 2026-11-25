@@ -361,32 +361,32 @@ Step 3 percentages in each table (before the individual drop-chance):
 > (Blood Sword, Crimson Bow, Shadow Dagger, Storm Bow, Vampiric Fang).
 > Mythics were already rarer on their own (0.5-0.8%).
 
-| Item | Material | Drop | Abilities |
+| Item | Material | Drop | Enchantments |
 |------|----------|------|-----------|
 | Diamond | DIAMOND (1-3) | 50% | — |
 | Ender Pearl | ENDER_PEARL (1-2) | 45% | — |
-| Blood Sword | DIAMOND_SWORD | **5%** | Lifesteal 5%, Poison (20%: 4 s) |
-| Crimson Bow | BOW | **5%** | Damage +6% |
-| **Shadow Dagger** | IRON_SWORD | **5%** | Crit (25%: ×1.8), Slowness, Poison · Passive: Speed I |
-| **Storm Bow** | BOW | **5%** | Lightning without a storm (15%: 6), Damage +8% |
-| **Umbral Pickaxe** | DIAMOND_PICKAXE | 25% | Fortune III, Efficiency V · Passive: Haste I |
+| Blood Sword | DIAMOND_SWORD | **5%** | Vampire II · Venom I (Sharpness V · Looting II) |
+| Crimson Bow | BOW | **5%** | Sniper I (Power V · Punch II) |
+| **Shadow Dagger** | IRON_SWORD | **5%** | Double Strike I · Ice Aspect II (Sharpness IV · Looting III) |
+| **Storm Bow** | BOW | **5%** | Electrified Arrows II (Power V · Flame) |
+| **Umbral Pickaxe** | DIAMOND_PICKAXE | 25% | Haste II · Smelter I (Fortune III · Efficiency V) |
 
 ### Epics
 
-| Item | Material | Drop | Abilities |
+| Item | Material | Drop | Enchantments |
 |------|----------|------|-----------|
 | Enchanted Golden Apple | ENCHANTED_GOLDEN_APPLE | 20% | — |
 | Totem | TOTEM_OF_UNDYING | 15% | — |
 | Netherite Scrap | NETHERITE_SCRAP (1-2) | 18% | — |
-| Executioner's Axe | NETHERITE_AXE | 12% | Damage +10%, Execute (≤30% health: +50%) |
-| Hunter's Helm | NETHERITE_HELMET | 10% | Reduction 3%, Reflect 15% |
-| Hunter's Chestplate | NETHERITE_CHESTPLATE | 10% | Reduction 4% · Passive: Resistance I |
-| Hunter's Leggings | NETHERITE_LEGGINGS | 10% | Reduction 4% |
-| Hunter's Boots | NETHERITE_BOOTS | 10% | Reduction 3% |
-| **Ruin Sword** | NETHERITE_SWORD | 14% | Crit (20%: ×1.9), Bleed, Lifesteal 6% · Passive: Strength I |
-| **Abyssal Crossbow** | CROSSBOW | 12% | Chain Lightning, Lightning (10%: 6), Piercing IV |
-| **Thunder Boots** | NETHERITE_BOOTS | 10% | Dodge 8%, Levitate (25%), Blast Wave (20%) · Passive: Jump Boost I |
-| **Blizzard Axe** | DIAMOND_AXE | 12% | Crit (22%: ×1.9), Slowness, Wither |
+| Executioner's Axe | NETHERITE_AXE | 12% | Cutter II · Decapitator I (Sharpness V · Efficiency V) |
+| Hunter's Helm | NETHERITE_HELMET | 10% | Hardened II (Protection IV · Respiration III) |
+| Hunter's Chestplate | NETHERITE_CHESTPLATE | 10% | Hardened II · Dragon Heart II (Protection IV) |
+| Hunter's Leggings | NETHERITE_LEGGINGS | 10% | Hardened II · Regrowth II (Protection IV) |
+| Hunter's Boots | NETHERITE_BOOTS | 10% | Speed I (Protection IV · Feather Falling IV) |
+| **Ruin Sword** | NETHERITE_SWORD | 14% | Vampire I · Wither II (Sharpness V · Looting III) |
+| **Abyssal Crossbow** | CROSSBOW | 12% | Electrified Arrows I (Multishot · Piercing IV) |
+| **Thunder Boots** | NETHERITE_BOOTS | 10% | Jumping II · Stopping Force I (Soul Speed III) |
+| **Blizzard Axe** | DIAMOND_AXE | 12% | Ice Aspect III · Paralyze II (Sharpness V) |
 
 ### Legendaries
 
@@ -397,65 +397,51 @@ Step 3 percentages in each table (before the individual drop-chance):
 > Legendary and Mythic rarity. Shields never carry it.
 > Controlled by `settings.vanishing-curse-min-rarity` in `items.yml` (`OFF` disables it).
 
-| Item | Material | Drop | Abilities |
+| Item | Material | Drop | Enchantments |
 |------|----------|------|-----------|
-| Vampiric Fang | NETHERITE_SWORD | **5%** | Lifesteal 12%, Wither (20%: 5 s) · Passive: Strength I |
-| Lunar Bow | BOW | 5% | Damage +15%, Ignite (30%: 6 s), Slowness (25%: 4 s) |
-| Nightwalker Boots | NETHERITE_BOOTS | 5% | Dodge 10%, Reduction 5% · Passives: Speed I, Jump Boost I |
-| Aegis of Thorns | SHIELD | 4% | Passive: Resistance I |
-| **Thunder Hammer** | MACE | 5% | Crit (25%: ×2.2), Lightning (25%: 9), Boss Slayer +25% · Passive: Strength I |
-| **Crimson Guardian Chestplate** | NETHERITE_CHESTPLATE | 4.5% | **Vengeful lightning (20%: a bolt strikes the attacker, no storm)**, Reduction 5% · Passives: Resistance I, Healing Aura (radius 6) |
-| **Dawn Crossbow** | CROSSBOW | 5% | Chain Lightning III, Damage +15%, Piercing IV |
+| Vampiric Fang | NETHERITE_SWORD | **5%** | Vampire III · Wither II (Sharpness V · Fire Aspect II) |
+| Lunar Bow | BOW | 5% | Vampiric Arrows II · Sniper II (Power V · Infinity) |
+| Nightwalker Boots | NETHERITE_BOOTS | 5% | Speed II · Night Vision I (Feather Falling IV) |
+| Aegis of Thorns | SHIELD | 4% | Unbreaking III · Mending |
+| **Thunder Hammer** | MACE | 5% | **Thunder II** · Double Strike I (Density V · Breach IV) |
+| **Crimson Guardian Chestplate** | NETHERITE_CHESTPLATE | 4.5% | Hardened II · **Fire Shield II** · Thorns III |
+| **Dawn Crossbow** | CROSSBOW | 5% | **Electrified Arrows III** (Piercing IV) |
 
 ### Mythics (max 3 per server, with a serial number)
 
-| Item | Material | Drop | Abilities |
+| Item | Material | Drop | Enchantments |
 |------|----------|------|-----------|
-| Crimson Eclipse Blade | NETHERITE_SWORD | 0.8% | Lifesteal 20%, Lightning (15%: 8), Boss Slayer +35%, Execute · Passive: Strength I |
-| Blood Moon Crown | NETHERITE_HELMET | 0.6% | Reduction 8%, Thorns, Reflect 20% · Passives: Night Vision, Health Boost II, Regeneration I |
-| Reaper's Scythe | NETHERITE_HOE | 0.5% | Execute, Wither, Lifesteal 10%, Crit (25%: ×2.2) |
-| Red Abyss Trident | TRIDENT | 0.7% | Lightning (30%: 10), Ignite (50%: 8 s), Damage +20% |
-| Colossus Mace | MACE | 0.6% | Damage +25%, Boss Slayer +40%, Slowness |
-| **Apocalypse Axe** | NETHERITE_AXE | 0.6% | Brutal crit (30%: ×2.5), Lifesteal 15%, Boss Slayer +40%, Bleed · Passive: Strength II |
-| **Crimson Eclipse Chestplate** | NETHERITE_CHESTPLATE | 0.5% | **Vengeful lightning (25%)**, Blast Wave (no block breaking), Reduction 6% · Passives: Resistance I, Regeneration I, Healing Aura (radius 8) |
-| **Eclipse Greaves** | NETHERITE_LEGGINGS | 0.5% | Dodge 10%, Reduction 4% · Passives: Speed I, Slow Falling |
+| Crimson Eclipse Blade | NETHERITE_SWORD | 0.8% | Vampire III · **Thunder II** · Wither II (Sharpness V) |
+| Blood Moon Crown | NETHERITE_HELMET | 0.6% | Dragon Heart III · Night Vision I (Protection V) |
+| Reaper's Scythe | NETHERITE_HOE | 0.5% | Wither II · Vampire II (Sharpness V · Fortune III) |
+| Red Abyss Trident | TRIDENT | 0.7% | Infernus III · **Thunder I** (Impaling V) |
+| Colossus Mace | MACE | 0.6% | **Thunder I** · Paralyze I (Density V · Breach IV) |
+| **Apocalypse Axe** | NETHERITE_AXE | 0.6% | Double Strike II · Vampire II (Sharpness V · Efficiency V) |
+| **Crimson Eclipse Chestplate** | NETHERITE_CHESTPLATE | 0.5% | Hardened II · **Fire Shield II** · Stopping Force I |
+| **Eclipse Greaves** | NETHERITE_LEGGINGS | 0.5% | Speed II · Lightweight I (Swift Sneak III) |
 
 ---
 
-## ⚔️ Item abilities (19)
+## ⚔️ Item enchantments
 
-### Weapons (12)
-| Ability | Parameters | Effect |
-|---------|-----------|--------|
-| `DAMAGE_BONUS` | `f` | Multiplies damage |
-| `LIFESTEAL` | `f` | Steals % of health on hit |
-| `LIGHTNING` | `prob:damage` | Summons lightning (no storm) |
-| `IGNITE` | `prob:sec` | Sets the enemy on fire |
-| `WITHER` | `prob:sec` | Applies wither |
-| `SLOW` | `prob:sec` | Applies slowness |
-| `EXECUTE` | `healthFrac:bonusFrac` | Bonus against low-health enemies |
-| `BOSS_SLAYER` | `f` | Bonus against Blood Moon mobs |
-| `CHAIN_LIGHTNING` | `prob:chains:damage:decay` | Lightning that jumps to N enemies |
-| `POISON` | `prob:sec:level` | Applies poison |
-| `BLEED` | `prob:sec:level` | Damage over time with particles |
-| `CRIT` | `prob:multiplier` | Critical hit with particles |
+Moon gear no longer carries custom abilities or above-vanilla levels. It ships:
 
-### Armor (7)
-| Ability | Parameters | Effect |
-|---------|-----------|--------|
-| `DAMAGE_REDUCTION` | `f` | Reduces incoming damage |
-| `DODGE` | `prob` | Dodges the hit |
-| `REFLECT` | `f` | Returns % of damage to the attacker |
-| `THORNS` | `prob:damage` | Damages the attacker |
-| `THUNDER_GUARD` | `prob:damage:attacker\|self` | If you're hit, a **lightning bolt without a storm** falls on the attacker (or on you with `self`) |
-| `BLAST_WAVE` | `prob:damage:force` | Shockwave that damages and launches the attacker; **does not break blocks** |
-| `LEVITATE` | `prob:sec:level` | Leaves the attacker floating |
+- **Vanilla enchantments at their max**: Sharpness 5, Unbreaking 3, Looting 3… **Legendary and
+  mythic** gear raises the cap to **5** even where vanilla stops lower (Protection 5, Thorns 5…).
+  Any higher value in `items.yml` is trimmed when the item is built.
+- **[ExcellentEnchants](https://nightexpressdev.com/excellentenchants/) enchantments**: `vampire`,
+  `thunder`, `electrified_arrows`, `dragon_heart`, `hardened`, `haste`... at the level that plugin
+  allows.
 
-### Passives (attributes = potion effects)
-| Passive | Parameters | Effect |
-|---------|-----------|--------|
-| `strength`, `speed`, `resistance`, `health_boost`, `regeneration`, `haste`, `night_vision`, `slow_falling`, `jump_boost`... | `effect:level` | Continuous attribute while worn |
-| `HEAL_AURA` | `radius:heal` | Heals nearby allies |
+> ⚠️ **Never remove ExcellentEnchants from a server with gear already handed out**: Minecraft deletes
+> any item whose enchantment does not exist, so those items would vanish when their owner logs in. If
+> the server starts without EE (for example on a Paper version it does not support yet), **new** items
+> get only the vanilla enchantments, the console warns once, and older EE items are lost on login.
+> Before removing EE, reinstall it and run `/luna refresh <player|all>` on a server where EE loaded.
+
+Each enchantment's chance (including `thunder`'s lightning) is configured in
+`plugins/ExcellentEnchants/enchants/<id>.yml`, not in BloodMoon. For thunder without a storm:
+`thunderstorm_only: false`.
 
 ---
 

@@ -205,6 +205,14 @@ horde:
       name: "<dark_red>Devastador de Sangre"
 
 # ------------------------------------------------------------
+#  ITEMS
+# ------------------------------------------------------------
+items:
+  # Puesta al día al entrar: recorta niveles por encima de vanilla y borra las viejas
+  # habilidades de item. Ponlo en false si prefieres migrar a mano con /luna refresh.
+  migrate-on-join: true
+
+# ------------------------------------------------------------
 #  LOOT
 # ------------------------------------------------------------
 loot:

@@ -1,6 +1,6 @@
 # 🩸 BloodMoonPlus — Blood Moon · 1.0.2-beta
 
-A **Blood Moon** event plugin for Paper servers: **7 complete languages**, **10 bosses**, **45 items** spread across rarities, **protected Moon gear**, enchantments up to **level 7**, **progressive waves**, **placeholders**, **full immersion** (red fog, lightning, ambient sounds and announcements) and **rare-loot inventory delivery**.
+A **Blood Moon** event plugin for Paper servers: **7 complete languages**, **10 bosses**, **45 items** spread across rarities, **protected Moon gear**, **vanilla-max enchantments plus ExcellentEnchants**, **progressive waves**, **placeholders**, **full immersion** (red fog, lightning, ambient sounds and announcements) and **rare-loot inventory delivery**.
 
 Built to run smoothly on **40+ player** servers without changing the gameplay.
 
@@ -13,14 +13,14 @@ Built to run smoothly on **40+ player** servers without changing the gameplay.
 
 - **🌍 7 languages** — Spanish, English, Portuguese, French, German, Italian and Russian, complete and switchable in `locales/locales.yml` with `/luna reload` (no restart). An unknown code warns and falls back to English, and the build fails if a translation loses a key or a `{placeholder}`.
 - **🟩 New boss — Fauces del Cataclismo** (`creeper_cargado`): a charged creeper **twice as tall**, **320 HP**, immune to every explosion. It **absorbs** players with `VORTEX`, summons **Crías del Cataclismo** with `SWARM` and **detonates** itself every 50 s without dying — only in its enraged phase does the blast open a crater.
-- **🛡️ Moon gear cannot be stripped** — the grindstone is blocked for Blood Moon items, the anvil and smithing table can never return a result with fewer enchantments or abilities, and the gear players already own is **upgraded automatically when they join** (renamed items included). `/luna refresh <player|all>` forces it instantly.
+- **🛡️ Moon gear cannot be stripped** — the grindstone is blocked for Blood Moon items, the anvil and smithing table can never return a result with fewer enchantments, and the gear players already own is **upgraded automatically when they join** (renamed items included). `/luna refresh <player|all>` forces it instantly.
 - **🗓️ Fixed schedules** — `weekly` mode (per weekday at a real time, configurable timezone, defaults to `America/Mexico_City`) or `interval` mode (every N hours). You can set **multiple runs on the same day**.
 - **🌐 Server-wide event** — one Blood Moon for **every loaded world at the same time** (`event.global: true`): night, hordes, bosses, the boss bar and survivor rewards all run everywhere together. Set it to `false` to go back to a `worlds` list.
 - **👹 10 bosses** with custom health bars, **enrage** phases, minimum difficulty, abilities and their own loot.
 - **🎁 45 items** sorted by rarity: common (always drop), rare, epic, legendary and **mythic** (extremely rare, ~0.1%, max 3 per server with a serial number).
 - **💀 Curse of Vanishing** on every **Rare-to-Mythic** weapon, tool and armour piece, so high-rarity gear is lost on death as its rarity implies (toggle with `settings.vanishing-curse-min-rarity`).
 - **📦 Rare loot delivery**: rare, epic, legendary and mythic drops go straight to the killer's inventory when there is one.
-- **⚔️ Custom enchantments** up to **level 7**, each with unique abilities (crit, thunder guard, blast wave, levitate, bleeding…).
+- **⚔️ ExcellentEnchants integration**: every item ships vanilla enchantments at their max (level 5 on legendary and mythic gear, e.g. Protection 5) plus EE enchantments (`thunder`, `vampire`, `electrified_arrows`, `dragon_heart`…), with EE's own per-level chance settings. No custom ability engine.
 - **🌊 Progressive waves** — wave 1: 5 mobs, wave 2: 10, wave 3: 15… up to a configurable cap.
 - **🌫️ Immersion** — red fog, lightning when hordes/bosses appear, ambient sounds and periodic announcements. No rain, but thunder.
 - **📊 Stats & survivors** — who survived, who dealt the most damage, rankings and MVP rewards, all counted from real participation time instead of estimates.

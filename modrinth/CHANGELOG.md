@@ -8,6 +8,45 @@ Modrinth. Lines marked with ⭐ are the most eye-catching features for the
 project page.
 -->
 
+## [1.0.3-beta] — ExcellentEnchants replaces the custom item abilities
+
+Moon gear no longer carries above-vanilla enchant levels or the plugin's own item abilities. Every
+weapon, tool and armour piece now ships **vanilla enchantments at their maximum** plus
+[ExcellentEnchants](https://nightexpressdev.com/excellentenchants/) enchantments, with that plugin's
+own per-level chance settings. Legendary and mythic gear raises the vanilla cap to **5** (Protection
+5, Thorns 5...). Bosses are untouched: their LIGHTNING, AURA, SUMMON, SWARM and EXPLODE abilities work
+exactly as before.
+
+**Highlights**
+- ⭐ **No more Sharpness 7 or Protection 7**: every enchantment is trimmed to its maximum
+  (Sharpness 5, Unbreaking 3, Looting 3...), with **level 5 vanilla enchantments on legendary and
+  mythic gear** (Protection 5, Thorns 5...).
+- ⭐ **Lightning comes from ExcellentEnchants**: `thunder` (weapons) and `electrified_arrows` (bows)
+  use EE's probability manager, configured in `plugins/ExcellentEnchants/enchants/`.
+- **The 19 custom item abilities are gone** (crit, lifesteal, thunder guard, blast wave, levitate,
+  bleed...) and are replaced by EE enchantments: `vampire`, `double_strike`, `venom`, `wither`,
+  `ice_aspect`, `fire_shield`, `stopping_force`, `dragon_heart`, `hardened` and friends.
+- **Existing gear is migrated** on join (`items.migrate-on-join`): above-max levels are lowered and
+  the old ability data is removed. `/luna refresh <player|all>` forces it at any time.
+- **ExcellentEnchants is optional to install, not to remove**: without it (and NightCore) the plugin
+  still starts, **new** items get just the vanilla enchantments and the console warns once. Do not
+  uninstall EE with gear already handed out: Minecraft deletes items whose enchantment is missing, so
+  run `/luna refresh <player|all>` with EE installed first if you ever need to drop it.
+
+### Removed
+- The item ability engine (`ItemAbilities`) and the `abilities`/`passives` fields of `items.yml`.
+- `settings.max-enchant-level` (the old level-7 cap). Vanilla caps now apply per enchantment.
+- The `%bloodmoon_abilities_count%` placeholder.
+
+### Changed
+- `items.yml` enchantments rewritten: vanilla at max + up to 3 EE enchantments per item.
+- The vanishing curse, unbreakable flag and serial numbers survive the migration; old passive potion
+  effects (infinite duration) are cleared when a player joins.
+
+### Added
+- `items.migrate-on-join` in `config.yml`.
+- Automatic `items.yml.bak` / `bosses.yml.bak` copies before the first upgrade.
+
 ## [1.0.2-beta] — 7 languages, protected gear, the Cataclysm Maw and a full audit
 
 The biggest update since 1.0.1. The plugin now speaks **seven languages**, Moon gear can no longer

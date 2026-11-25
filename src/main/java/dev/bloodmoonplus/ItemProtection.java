@@ -79,9 +79,27 @@ public final class ItemProtection implements Listener {
     /** Pone al día los objetos que el jugador ya tenía (incluso renombrados) con la definición
      *  actual de items.yml: encantamientos, maldición de desaparición y habilidades que falten.
      *  Nunca quita nada, así que es seguro repetirlo en cada entrada. */
+    /** Efectos que aplicaban los viejos pasivos de item (1.0.2) con duración gigante. Ya no
+     *  existe nada que los renueve, así que sin esta limpieza se quedarían pegados para
+     *  siempre. Solo se quitan los de duración enorme: una poción o un faro legítimos duran
+     *  mucho menos. */
+    private static final String[] LEGACY_PASSIVES = {"speed", "strength", "resistance",
+            "health_boost", "regeneration", "haste", "night_vision", "slow_falling", "jump_boost"};
+
+    private static void clearLegacyPassives(Player p) {
+        for (String key : LEGACY_PASSIVES) {
+            var type = Reg.effect(key);
+            if (type == null) continue;
+            var effect = p.getPotionEffect(type);
+            if (effect != null && effect.getDuration() > 20 * 60 * 20) p.removePotionEffect(type);
+        }
+    }
+
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
+        clearLegacyPassives(p);
+        if (!plugin.items().migrateOnJoin()) return;
         // Un par de segundos después: el inventario del jugador ya está cargado del todo.
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (plugin.items().refreshPlayer(p) > 0) plugin.messages().send(p, "item.updated");

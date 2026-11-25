@@ -362,32 +362,32 @@ Porcentajes del paso 3 en cada tabla (antes del drop-chance individual):
 > (Espada Sanguinaria, Arco Carmesí, Daga de las Sombras, Arco de la Tormenta, Colmillo Vampírico).
 > Los míticos ya eran más raros de por sí (0.5-0.8%).
 
-| Item | Material | Drop | Habilidades |
+| Item | Material | Drop | Encantamientos |
 |------|----------|------|-------------|
 | Diamante | DIAMOND (1-3) | 50% | — |
 | Perla de ender | ENDER_PEARL (1-2) | 45% | — |
-| Espada Sanguinaria | DIAMOND_SWORD | **5%** | Robavida 5%, Veneno (20%: 4 s) |
-| Arco Carmesí | BOW | **5%** | Daño +6% |
-| **Daga de las Sombras** | IRON_SWORD | **5%** | Crítico (25%: ×1.8), Lentitud, Veneno · Pasiva: Velocidad I |
-| **Arco de la Tormenta** | BOW | **5%** | Rayo sin tormenta (15%: 6), Daño +8% |
-| **Pico Umbrío** | DIAMOND_PICKAXE | 25% | Fortuna III, Eficiencia V · Pasiva: Haste I |
+| Espada Sanguinaria | DIAMOND_SWORD | **5%** | Vampírico II · Veneno I (Filo V · Botín II) |
+| Arco Carmesí | BOW | **5%** | Francotirador I (Poder V · Empuje II) |
+| **Daga de las Sombras** | IRON_SWORD | **5%** | Golpe doble I · Aspecto de hielo II (Filo IV · Botín III) |
+| **Arco de la Tormenta** | BOW | **5%** | Flechas electrizadas II (Poder V · Llama) |
+| **Pico Umbrío** | DIAMOND_PICKAXE | 25% | Prisa II · Fundidor I (Fortuna III · Eficiencia V) |
 
 ### Épicos
 
-| Item | Material | Drop | Habilidades |
+| Item | Material | Drop | Encantamientos |
 |------|----------|------|-------------|
 | Manzana encantada | ENCHANTED_GOLDEN_APPLE | 20% | — |
 | Tótem | TOTEM_OF_UNDYING | 15% | — |
 | Fragmento de netherita | NETHERITE_SCRAP (1-2) | 18% | — |
-| Hacha del Verdugo | NETHERITE_AXE | 12% | Daño +10%, Ejecución (≤30% vida: +50%) |
-| Yelmo del Cazador | NETHERITE_HELMET | 10% | Reducción 3%, Reflejo 15% |
-| Peto del Cazador | NETHERITE_CHESTPLATE | 10% | Reducción 4% · Pasiva: Resistencia I |
-| Pantalón del Cazador | NETHERITE_LEGGINGS | 10% | Reducción 4% |
-| Botas del Cazador | NETHERITE_BOOTS | 10% | Reducción 3% |
-| **Espada de la Ruina** | NETHERITE_SWORD | 14% | Crítico (20%: ×1.9), Sangrado, Robavida 6% · Pasiva: Fuerza I |
-| **Ballesta del Abismo** | CROSSBOW | 12% | Cadena de rayos, Rayo (10%: 6), Perfora IV |
-| **Botas del Estrondo** | NETHERITE_BOOTS | 10% | Esquiva 8%, Levitación (25%), Embate (20%) · Pasiva: Salto I |
-| **Hacha de la Ventisca** | DIAMOND_AXE | 12% | Crítico (22%: ×1.9), Lentitud, Marchitar |
+| Hacha del Verdugo | NETHERITE_AXE | 12% | Cortador II · Decapitador I (Filo V · Eficiencia V) |
+| Yelmo del Cazador | NETHERITE_HELMET | 10% | Endurecido II (Protección IV · Respiración III) |
+| Peto del Cazador | NETHERITE_CHESTPLATE | 10% | Endurecido II · Corazón de dragón II (Protección IV) |
+| Pantalón del Cazador | NETHERITE_LEGGINGS | 10% | Endurecido II · Regeneración II (Protección IV) |
+| Botas del Cazador | NETHERITE_BOOTS | 10% | Velocidad I (Protección IV · Caída de pluma IV) |
+| **Espada de la Ruina** | NETHERITE_SWORD | 14% | Vampírico I · Marchitar II (Filo V · Botín III) |
+| **Ballesta del Abismo** | CROSSBOW | 12% | Flechas electrizadas I (Multidisparo · Perfora IV) |
+| **Botas del Estrondo** | NETHERITE_BOOTS | 10% | Salto II · Fuerza de frenado I (Velocidad del alma III) |
+| **Hacha de la Ventisca** | DIAMOND_AXE | 12% | Aspecto de hielo III · Parálisis II (Filo V) |
 
 ### Legendarios
 
@@ -398,65 +398,52 @@ Porcentajes del paso 3 en cada tabla (antes del drop-chance individual):
 > Épico, Legendario y Mítico. Los escudos no la llevan.
 > Se controla con `settings.vanishing-curse-min-rarity` en `items.yml` (`OFF` para desactivarla).
 
-| Item | Material | Drop | Habilidades |
+| Item | Material | Drop | Encantamientos |
 |------|----------|------|-------------|
-| Colmillo Vampírico | NETHERITE_SWORD | **5%** | Robavida 12%, Marchitar (20%: 5 s) · Pasiva: Fuerza I |
-| Arco Lunar | BOW | 5% | Daño +15%, Incendiar (30%: 6 s), Lentitud (25%: 4 s) |
-| Botas del Noctámbulo | NETHERITE_BOOTS | 5% | Esquiva 10%, Reducción 5% · Pasivas: Velocidad I, Salto I |
-| Égida de Espinas | SHIELD | 4% | Pasiva: Resistencia I |
-| **Martillo del Trueno** | MACE | 5% | Crítico (25%: ×2.2), Rayo (25%: 9), Verdugo de jefes +25% · Pasiva: Fuerza I |
-| **Peto del Guardián Carmesí** | NETHERITE_CHESTPLATE | 4.5% | **Rayo vengador (20%: cae un rayo sobre el atacante, sin tormenta)**, Reducción 5% · Pasivas: Resistencia I, Aura de curación (radio 6) |
-| **Ballesta del Alba** | CROSSBOW | 5% | Cadena de rayos III, Daño +15%, Perfora IV |
+| Colmillo Vampírico | NETHERITE_SWORD | **5%** | Vampírico III · Marchitar II (Filo V · Aspecto ígneo II) |
+| Arco Lunar | BOW | 5% | Flechas vampíricas II · Francotirador II (Poder V · Infinidad) |
+| Botas del Noctámbulo | NETHERITE_BOOTS | 5% | Velocidad II · Visión nocturna I (Caída de pluma IV) |
+| Égida de Espinas | SHIELD | 4% | Irrompible III · Reparación |
+| **Martillo del Trueno** | MACE | 5% | **Trueno II** · Golpe doble I (Densidad V · Brecha IV) |
+| **Peto del Guardián Carmesí** | NETHERITE_CHESTPLATE | 4.5% | Endurecido II · **Escudo ígneo II** · Espinas III |
+| **Ballesta del Alba** | CROSSBOW | 5% | **Flechas electrizadas III** (Perfora IV) |
 
 ### Míticos (máx. 3 por servidor, con número de serie)
 
-| Item | Material | Drop | Habilidades |
+| Item | Material | Drop | Encantamientos |
 |------|----------|------|-------------|
-| Hoja del Eclipse Carmesí | NETHERITE_SWORD | 0.8% | Robavida 20%, Rayos (15%: 8), Verdugo de jefes +35%, Ejecución · Pasiva: Fuerza I |
-| Corona de la Luna de Sangre | NETHERITE_HELMET | 0.6% | Reducción 8%, Espinas, Reflejo 20% · Pasivas: Visión nocturna, Vida extra II, Regeneración I |
-| Guadaña del Segador | NETHERITE_HOE | 0.5% | Ejecución, Marchitar, Robavida 10%, Crítico (25%: ×2.2) |
-| Tridente del Abismo Rojo | TRIDENT | 0.7% | Rayos (30%: 10), Incendiar (50%: 8 s), Daño +20% |
-| Maza del Coloso | MACE | 0.6% | Daño +25%, Verdugo de jefes +40%, Lentitud |
-| **Hacha del Apocalipsis** | NETHERITE_AXE | 0.6% | Crítico brutal (30%: ×2.5), Robavida 15%, Verdugo de jefes +40%, Sangrado · Pasiva: Fuerza II |
-| **Peto del Eclipse Carmesí** | NETHERITE_CHESTPLATE | 0.5% | **Rayo vengador (25%)**, Embate (sin romper bloques), Reducción 6% · Pasivas: Resistencia I, Regeneración I, Aura de curación (radio 8) |
-| **Grebas del Eclipse** | NETHERITE_LEGGINGS | 0.5% | Esquiva 10%, Reducción 4% · Pasivas: Velocidad I, Caída lenta |
+| Hoja del Eclipse Carmesí | NETHERITE_SWORD | 0.8% | Vampírico III · **Trueno II** · Marchitar II (Filo V) |
+| Corona de la Luna de Sangre | NETHERITE_HELMET | 0.6% | Corazón de dragón III · Visión nocturna I (Protección V) |
+| Guadaña del Segador | NETHERITE_HOE | 0.5% | Marchitar II · Vampírico II (Filo V · Fortuna III) |
+| Tridente del Abismo Rojo | TRIDENT | 0.7% | Infernal III · **Trueno I** (Empalador V) |
+| Maza del Coloso | MACE | 0.6% | **Trueno I** · Parálisis I (Densidad V · Brecha IV) |
+| **Hacha del Apocalipsis** | NETHERITE_AXE | 0.6% | Golpe doble II · Vampírico II (Filo V · Eficiencia V) |
+| **Peto del Eclipse Carmesí** | NETHERITE_CHESTPLATE | 0.5% | Endurecido II · **Escudo ígneo II** · Fuerza de frenado I |
+| **Grebas del Eclipse** | NETHERITE_LEGGINGS | 0.5% | Velocidad II · Ligero I (Sigilo III) |
 
 ---
 
-## ⚔️ Habilidades de items (19)
+## ⚔️ Encantamientos de los items
 
-### Armas (12)
-| Ability | Parámetros | Efecto |
-|---------|-----------|--------|
-| `DAMAGE_BONUS` | `f` | Multiplica el daño |
-| `LIFESTEAL` | `f` | Roba % de vida al dañar |
-| `LIGHTNING` | `prob:daño` | Invoca rayo (sin tormenta) |
-| `IGNITE` | `prob:seg` | Quema al enemigo |
-| `WITHER` | `prob:seg` | Aplica marchitar |
-| `SLOW` | `prob:seg` | Aplica lentitud |
-| `EXECUTE` | `vidaFrac:bonusFrac` | Bonus a enemigos con poca vida |
-| `BOSS_SLAYER` | `f` | Bonus contra mobs de la Luna de Sangre |
-| `CHAIN_LIGHTNING` | `prob:cadenas:daño:decaimiento` | Rayo que salta a N enemigos |
-| `POISON` | `prob:seg:nivel` | Aplica veneno |
-| `BLEED` | `prob:seg:nivel` | Daño en el tiempo con partículas |
-| `CRIT` | `prob:multiplicador` | Golpe crítico con partículas |
+Los items de la Luna ya no traen habilidades propias ni niveles por encima de vanilla. Llevan:
 
-### Armadura (7)
-| Ability | Parámetros | Efecto |
-|---------|-----------|--------|
-| `DAMAGE_REDUCTION` | `f` | Reduce el daño recibido |
-| `DODGE` | `prob` | Esquiva el golpe |
-| `REFLECT` | `f` | Devuelve % del daño al atacante |
-| `THORNS` | `prob:daño` | Daña al atacante |
-| `THUNDER_GUARD` | `prob:daño:attacker\|self` | Si te pegan, cae un **rayo sin tormenta** sobre el atacante (o sobre ti con `self`) |
-| `BLAST_WAVE` | `prob:daño:fuerza` | Onda expansiva que daña y lanza al atacante; **no rompe bloques** |
-| `LEVITATE` | `prob:seg:nivel` | El atacante queda flotando |
+- **Encantamientos vanilla al máximo**: filo 5, irrompible 3, botín 3, etc. En los **legendarios y
+  míticos** el tope sube a **5** aunque vanilla no llegue (protección 5, espinas 5...). Un nivel
+  mayor en `items.yml` se recorta automáticamente al cargar el item.
+- **Encantamientos de [ExcellentEnchants](https://nightexpressdev.com/excellentenchants/)**: `vampire`,
+  `thunder`, `electrified_arrows`, `dragon_heart`, `hardened`, `haste`… con el nivel que fija ese
+  plugin.
 
-### Pasivos (atributos = efectos de poción)
-| Pasivo | Parámetros | Efecto |
-|--------|-----------|--------|
-| `strength`, `speed`, `resistance`, `health_boost`, `regeneration`, `haste`, `night_vision`, `slow_falling`, `jump_boost`... | `efecto:nivel` | Atributo continuo mientras se porta |
-| `HEAL_AURA` | `radio:curación` | Cura a los aliados cercanos |
+> ⚠️ **No quites ExcellentEnchants de un servidor con items repartidos**: Minecraft borra cualquier
+> item cuyo encantamiento no exista, así que esos items desaparecerían al cargar el jugador. Si el
+> servidor arranca sin EE (por ejemplo en una versión aún no soportada) los items **nuevos** se crean
+> solo con los vanilla, la consola avisa una vez, y los que ya tenían EE se pierden al entrar. Antes
+> de retirar EE, instálalo de nuevo y limpia los items con `/luna refresh <jugador|all>` en una
+> versión con EE cargado.
+
+La probabilidad de cada encantamiento (incluido el rayo de `thunder`) se ajusta en
+`plugins/ExcellentEnchants/enchants/<id>.yml`, no en BloodMoon. Para que el trueno caiga sin tormenta:
+`thunderstorm_only: false`.
 
 ---
 

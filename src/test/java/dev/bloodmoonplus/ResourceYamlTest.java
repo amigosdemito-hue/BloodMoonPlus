@@ -17,11 +17,46 @@ import static org.junit.jupiter.api.Assertions.*;
  * Valida los recursos de loot:
  *  - items.yml y loot.yml deben ser YAML válido y tener contenido.
  *  - Todo item referenciado en loot.yml debe existir en items.yml.
- *  - Ningún encantamiento puede superar el límite de nivel 7.
+ *  - Ningún encantamiento puede superar su máximo: los vanilla, el suyo (filo 5, irrompible 3...
+ *    o 5 en legendarios y míticos) y los de ExcellentEnchants, el que declaramos aquí.
+ *  - Los items ya no llevan las viejas claves `abilities`/`passives`.
  */
 class ResourceYamlTest {
 
-    private static final int MAX_ENCHANT = 7;
+    /** Máximos vanilla (los mismos que devuelve Enchantment#getMaxLevel()). */
+    private static final Map<String, Integer> VANILLA_MAX = Map.ofEntries(
+            Map.entry("sharpness", 5), Map.entry("smite", 5), Map.entry("bane_of_arthropods", 5),
+            Map.entry("knockback", 2), Map.entry("fire_aspect", 2), Map.entry("looting", 3),
+            Map.entry("sweeping_edge", 3), Map.entry("unbreaking", 3), Map.entry("mending", 1),
+            Map.entry("vanishing_curse", 1), Map.entry("protection", 4), Map.entry("fire_protection", 4),
+            Map.entry("blast_protection", 4), Map.entry("projectile_protection", 4), Map.entry("thorns", 3),
+            Map.entry("respiration", 3), Map.entry("aqua_affinity", 1), Map.entry("feather_falling", 4),
+            Map.entry("depth_strider", 3), Map.entry("frost_walker", 2), Map.entry("soul_speed", 3),
+            Map.entry("swift_sneak", 3), Map.entry("power", 5), Map.entry("punch", 2),
+            Map.entry("flame", 1), Map.entry("infinity", 1), Map.entry("multishot", 1),
+            Map.entry("quick_charge", 3), Map.entry("piercing", 4), Map.entry("efficiency", 5),
+            Map.entry("fortune", 3), Map.entry("silk_touch", 1), Map.entry("density", 5),
+            Map.entry("breach", 4), Map.entry("wind_burst", 3), Map.entry("impaling", 5),
+            Map.entry("loyalty", 3), Map.entry("channeling", 1), Map.entry("riptide", 3));
+
+    /** Encantamientos de ExcellentEnchants usados y el nivel máximo que declaramos para cada
+     *  uno. Si un id se escribe mal aquí, el test falla y no se llega al servidor. */
+    private static final Map<String, Integer> EE_MAX = Map.ofEntries(
+            Map.entry("vampire", 3), Map.entry("venom", 2), Map.entry("wither", 2),
+            Map.entry("ice_aspect", 3), Map.entry("double_strike", 2), Map.entry("paralyze", 5),
+            Map.entry("thunder", 3), Map.entry("sniper", 3), Map.entry("electrified_arrows", 3),
+            Map.entry("vampiric_arrows", 3), Map.entry("haste", 3), Map.entry("smelter", 1),
+            Map.entry("cutter", 3), Map.entry("decapitator", 2), Map.entry("hardened", 2),
+            Map.entry("dragon_heart", 5), Map.entry("regrowth", 4), Map.entry("speed", 3),
+            Map.entry("jumping", 2), Map.entry("stopping_force", 2), Map.entry("fire_shield", 4),
+            Map.entry("night_vision", 1), Map.entry("lightweight", 1), Map.entry("infernus", 3));
+
+    /** Rarezas que suben los encantamientos vanilla hasta el nivel 5 (protección 5, espinas 5...). */
+    private static boolean highRarity(String rarity) {
+        String k = java.text.Normalizer.normalize(rarity, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").trim().toUpperCase(java.util.Locale.ROOT);
+        return k.equals("LEGENDARIO") || k.equals("MITICO");
+    }
 
     private static File res(String name) {
         return new File("src/main/resources", name);
@@ -32,8 +67,19 @@ class ResourceYamlTest {
         YamlConfiguration y = YamlConfiguration.loadConfiguration(res("items.yml"));
         assertNotNull(y.getConfigurationSection("items"), "items.yml: falta la sección 'items'");
         assertFalse(y.getConfigurationSection("items").getKeys(false).isEmpty(), "items.yml: sin items");
-        assertEquals(7, y.getInt("settings.max-enchant-level", -1),
-                "items.yml: settings.max-enchant-level debe ser 7");
+        assertNull(y.get("settings.max-enchant-level"),
+                "items.yml: el límite de nivel 7 ya no existe; cada encantamiento usa su máximo");
+    }
+
+    @Test
+    void itemsHaveNoLegacyAbilityKeys() {
+        YamlConfiguration items = YamlConfiguration.loadConfiguration(res("items.yml"));
+        List<String> legacy = new ArrayList<>();
+        for (String id : items.getConfigurationSection("items").getKeys(false)) {
+            if (items.contains("items." + id + ".abilities")) legacy.add(id + "/abilities");
+            if (items.contains("items." + id + ".passives")) legacy.add(id + "/passives");
+        }
+        assertTrue(legacy.isEmpty(), "Items con habilidades propias (ya no existen): " + legacy);
     }
 
     @Test
@@ -78,20 +124,30 @@ class ResourceYamlTest {
     }
 
     @Test
-    void noEnchantmentExceedsMaxLevel() {
+    void noEnchantmentExceedsItsRealMaxLevel() {
         YamlConfiguration items = YamlConfiguration.loadConfiguration(res("items.yml"));
-        int max = items.getInt("settings.max-enchant-level", 7);
         List<String> over = new ArrayList<>();
+        List<String> unknown = new ArrayList<>();
         for (String id : items.getConfigurationSection("items").getKeys(false)) {
             var enchSec = items.getConfigurationSection("items." + id + ".enchants");
             if (enchSec == null) continue;
+            boolean high = highRarity(items.getString("items." + id + ".rarity", "COMUN"));
             for (String ench : enchSec.getKeys(false)) {
+                String key = ench.trim().toLowerCase(java.util.Locale.ROOT).replace("minecraft:", "");
                 int lvl = items.getInt("items." + id + ".enchants." + ench);
-                if (lvl > max) over.add(id + "/" + ench + "=" + lvl);
+                Integer max = VANILLA_MAX.get(key);
+                if (max == null) {
+                    max = EE_MAX.get(key.replace("excellentenchants:", ""));
+                    if (max == null) unknown.add(id + "/" + ench);
+                } else if (high) {
+                    // Los legendarios y míticos suben el tope vanilla a 5 (protección 5).
+                    max = Math.max(max, 5);
+                }
+                if (max != null && lvl > max) over.add(id + "/" + ench + "=" + lvl + " (máx " + max + ")");
             }
         }
-        assertTrue(over.isEmpty(), "Encantamientos por encima del límite " + max + ": " + over);
-        assertTrue(max <= MAX_ENCHANT, "El límite de encantamiento no debe superar 7");
+        assertTrue(over.isEmpty(), "Encantamientos por encima de su máximo: " + over);
+        assertTrue(unknown.isEmpty(), "Encantamientos desconocidos en items.yml (¿id mal escrito?): " + unknown);
     }
 
     @Test

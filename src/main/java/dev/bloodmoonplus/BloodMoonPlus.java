@@ -26,7 +26,6 @@ public final class BloodMoonPlus extends JavaPlugin {
     private EventManager events;
     private BossManager bosses;
     private ScheduleManager schedule;
-    private ItemAbilities abilities;
 
     @Override
     public void onEnable() {
@@ -34,6 +33,19 @@ public final class BloodMoonPlus extends JavaPlugin {
         saveDefaultConfig();
         for (String f : new String[]{"items.yml", "loot.yml", "bosses.yml"}) {
             if (!new File(getDataFolder(), f).exists()) saveResource(f, false);
+        }
+        // Copia de seguridad de las configs de contenido antes de que la puesta al día de
+        // 1.0.3 las reescriba: el admin puede volver atrás copiando el .bak.
+        for (String f : new String[]{"items.yml", "bosses.yml"}) {
+            File cfg = new File(getDataFolder(), f);
+            File bak = new File(getDataFolder(), f + ".bak");
+            if (cfg.exists() && !bak.exists()) {
+                try {
+                    java.nio.file.Files.copy(cfg.toPath(), bak.toPath());
+                } catch (java.io.IOException ex) {
+                    getLogger().warning("No se pudo crear " + bak.getName() + ": " + ex.getMessage());
+                }
+            }
         }
         locales = new LocaleManager(this);
         locales.init();
@@ -48,17 +60,15 @@ public final class BloodMoonPlus extends JavaPlugin {
         events = new EventManager(this);
         bosses = new BossManager(this);
         schedule = new ScheduleManager(this);
-        abilities = new ItemAbilities(this);
         snapshots = new PlaceholderSnapshotService(this, stats);
         survivors = new SurvivorManager(this);
         mythic = new MythicBridge(this);
         reloadAll();
 
-        // Orden de tareas: eventos y boss antes que abilities y snapshots para
-        // garantizar que los placeholders lean un estado coherente.
+        // Orden de tareas: eventos y boss antes que los snapshots para garantizar que los
+        // placeholders lean un estado coherente.
         Bukkit.getScheduler().runTaskTimer(this, () -> { schedule.tick(); events.tick(); }, 40L, 20L);
         Bukkit.getScheduler().runTaskTimer(this, () -> bosses.tick(), 40L, 10L);
-        Bukkit.getScheduler().runTaskTimer(this, () -> abilities.tickPassives(), 60L, 40L);
         Bukkit.getScheduler().runTaskTimer(this, () -> snapshots.publish(), 40L, 10L);
         Bukkit.getScheduler().runTaskTimer(this, () -> data.flushIfDirty(), 200L, 200L);
 
@@ -69,7 +79,6 @@ public final class BloodMoonPlus extends JavaPlugin {
             luna.setTabCompleter(exec);
         }
         Bukkit.getPluginManager().registerEvents(new EventListener(this), this);
-        Bukkit.getPluginManager().registerEvents(abilities, this);
         // Blindaje de los objetos de la Luna (grindstone, yunque, herrería) y puesta al día
         // de los que ya tienen los jugadores al entrar.
         Bukkit.getPluginManager().registerEvents(new ItemProtection(this), this);
@@ -128,7 +137,6 @@ public final class BloodMoonPlus extends JavaPlugin {
     public ItemFactory items() { return items; }
     public LootManager loot() { return loot; }
     public EventManager events() { return events; }
-    public ItemAbilities abilities() { return abilities; }
     public BossManager bosses() { return bosses; }
     public ScheduleManager schedule() { return schedule; }
 }

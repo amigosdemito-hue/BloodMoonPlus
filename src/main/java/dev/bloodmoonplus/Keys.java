@@ -4,8 +4,8 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.Plugin;
 
 final class Keys {
-    static NamespacedKey MOB, BOSS, OWNER, SCALE, DIFF, TABLE, ITEM_ID, ITEM_ABILITIES, ITEM_PASSIVES,
-            ITEM_RARITY, ITEM_SERIAL, BLEED, BLEED_DMG, BLEED_SRC, HEAL_AURA;
+    static NamespacedKey MOB, BOSS, OWNER, SCALE, DIFF, TABLE, ITEM_ID,
+            ITEM_RARITY, ITEM_SERIAL;
 
     private Keys() {}
 
@@ -17,13 +17,7 @@ final class Keys {
         DIFF = new NamespacedKey(p, "difficulty");
         TABLE = new NamespacedKey(p, "table");
         ITEM_ID = new NamespacedKey(p, "item_id");
-        ITEM_ABILITIES = new NamespacedKey(p, "abilities");
-        ITEM_PASSIVES = new NamespacedKey(p, "passives");
         ITEM_RARITY = new NamespacedKey(p, "rarity");
         ITEM_SERIAL = new NamespacedKey(p, "serial");
-        BLEED = new NamespacedKey(p, "bleed_ticks");
-        BLEED_DMG = new NamespacedKey(p, "bleed_damage");
-        BLEED_SRC = new NamespacedKey(p, "bleed_source");
-        HEAL_AURA = new NamespacedKey(p, "heal_aura");
     }
 }

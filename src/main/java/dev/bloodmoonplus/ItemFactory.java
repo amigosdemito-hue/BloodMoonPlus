@@ -13,29 +13,35 @@ import org.bukkit.persistence.PersistentDataType;
 import java.io.File;
 import java.util.*;
 
-/** Definiciones de items (items.yml) y construcción de ItemStacks con habilidades y números de serie. */
+/** Definiciones de items (items.yml) y construcción de ItemStacks con encantamientos y números de serie. */
 public final class ItemFactory {
 
     public record ItemDef(String id, Material material, String name, List<String> lore, String rarity,
                           Map<String, Integer> enchants, boolean unbreakable, boolean glow, String itemModel,
-                          int limit, List<String> abilities, List<String> passives) {}
+                          int limit) {}
 
     private final BloodMoonPlus plugin;
     private final Map<String, ItemDef> defs = new LinkedHashMap<>();
     private boolean showRarityLine = true;
-    /** Nivel máximo de encantamiento en items (los que superen el límite se recortan al cargar). */
-    private int maxEnchantLevel = 7;
+    /** Si la puesta al día al entrar también migra items antiguos (niveles y habilidades). */
+    private boolean migrateOnJoin = true;
+    /** Claves heredadas de 1.0.2 y anteriores: sus datos ya no se usan y se borran al migrar. */
+    private final NamespacedKey legacyAbilities, legacyPassives;
     /** Rareza mínima (posición en loot.yml) que recibe Maldición de desaparición en armas,
      *  herramientas y armadura; -1 = desactivado. Por defecto RARO (posición 2). */
     private int vanishingMinRank = 2;
 
-    ItemFactory(BloodMoonPlus plugin) { this.plugin = plugin; }
+    ItemFactory(BloodMoonPlus plugin) {
+        this.plugin = plugin;
+        this.legacyAbilities = new NamespacedKey(plugin, "abilities");
+        this.legacyPassives = new NamespacedKey(plugin, "passives");
+    }
 
     void reload() {
         defs.clear();
         YamlConfiguration y = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "items.yml"));
         showRarityLine = y.getBoolean("settings.show-rarity-line", true);
-        maxEnchantLevel = Math.max(1, y.getInt("settings.max-enchant-level", 7));
+        migrateOnJoin = plugin.getConfig().getBoolean("items.migrate-on-join", true);
         // Maldición de desaparición automática desde cierta rareza (OFF/NONE la desactiva).
         String vanishFrom = y.getString("settings.vanishing-curse-min-rarity", "RARO");
         if (vanishFrom == null || vanishFrom.isBlank()
@@ -70,9 +76,9 @@ public final class ItemFactory {
             }
             defs.put(id, new ItemDef(id, m, s.getString("name"), s.getStringList("lore"),
                     rarity, ench, s.getBoolean("unbreakable"),
-                    s.getBoolean("glow"), s.getString("item-model"), s.getInt("limit", 0),
-                    s.getStringList("abilities"), s.getStringList("passives")));
+                    s.getBoolean("glow"), s.getString("item-model"), s.getInt("limit", 0)));
         }
+        warnUnknownEnchants();
         plugin.getLogger().info("Items cargados: " + defs.size());
     }
 
@@ -115,7 +121,7 @@ public final class ItemFactory {
         }
         var op = om.getPersistentDataContainer();
         var rp = rm.getPersistentDataContainer();
-        for (NamespacedKey k : new NamespacedKey[]{Keys.ITEM_ID, Keys.ITEM_ABILITIES, Keys.ITEM_PASSIVES}) {
+        for (NamespacedKey k : new NamespacedKey[]{Keys.ITEM_ID}) {
             String v = op.get(k, PersistentDataType.STRING);
             if (v == null || v.equals(rp.get(k, PersistentDataType.STRING))) continue;
             rp.set(k, PersistentDataType.STRING, v);
@@ -149,11 +155,15 @@ public final class ItemFactory {
         var pdc = meta.getPersistentDataContainer();
         boolean changed = false;
 
+        // Puesta al día de encantamientos: sube los que falten Y baja los que estén por encima
+        // del máximo del item (antes se recortaba a 7, así que "filo 7" o "protección 7"
+        // sobrevivían). En vanilla el máximo es el real o 5 en legendarios y míticos; en
+        // ExcellentEnchants, el que fije su plugin.
         for (Map.Entry<String, Integer> e : d.enchants().entrySet()) {
             Enchantment en = Reg.enchantment(e.getKey());
             if (en == null) continue;
-            int want = Math.min(maxEnchantLevel, Math.max(1, e.getValue()));
-            if (meta.getEnchantLevel(en) >= want) continue;
+            int want = cappedLevel(d, en, e.getValue());
+            if (meta.getEnchantLevel(en) == want) continue;
             try {
                 meta.addEnchant(en, want, true);
             } catch (IllegalArgumentException ex) {
@@ -172,8 +182,12 @@ public final class ItemFactory {
                 changed = true;
             } catch (IllegalArgumentException ignored) { }
         }
-        changed |= addMissing(pdc, Keys.ITEM_ABILITIES, d.abilities());
-        changed |= addMissing(pdc, Keys.ITEM_PASSIVES, d.passives());
+        // Migración: los datos de las viejas habilidades de item (1.0.2 y antes) ya no se usan.
+        for (NamespacedKey legacy : new NamespacedKey[]{legacyAbilities, legacyPassives}) {
+            if (!pdc.has(legacy, PersistentDataType.STRING)) continue;
+            pdc.remove(legacy);
+            changed = true;
+        }
         if (d.unbreakable() && !meta.isUnbreakable()) {
             meta.setUnbreakable(true);
             changed = true;
@@ -197,6 +211,22 @@ public final class ItemFactory {
     /** Pone al día TODOS los objetos de la Luna de un jugador: inventario, armadura, mano
      *  secundaria y cofre del End. Devuelve cuántos objetos cambiaron. Se usa al entrar y en
      *  /luna refresh. */
+    /** ¿La rareza es LEGENDARIO o MITICO? Se compara por posición en loot.yml para que una
+     *  rareza nueva por encima de leyenda también cuente. */
+    private boolean isHighRarity(String rarity) {
+        int legend = plugin.loot().rarityRank("LEGENDARIO");
+        return legend >= 0 && plugin.loot().rarityRank(rarity) >= legend;
+    }
+
+    /** Nivel máximo que puede llevar un encantamiento en este item: los vanilla de un legendario
+     *  o mítico llegan a 5 aunque el máximo de vanilla sea menor (protección 5, espinas 5...);
+     *  los de ExcellentEnchants se quedan en el que fija su plugin. */
+    private int cappedLevel(ItemDef d, Enchantment en, int want) {
+        int max = en.getMaxLevel();
+        if (!Reg.isCustom(en) && isHighRarity(d.rarity())) max = Math.max(max, 5);
+        return Math.max(1, Math.min(want, max));
+    }
+
     public int refreshPlayer(org.bukkit.entity.Player p) {
         int changed = 0;
         ItemStack[] contents = p.getInventory().getContents();
@@ -227,19 +257,26 @@ public final class ItemFactory {
         return changed;
     }
 
-    /** Une las habilidades que ya tiene el item con las de la definición (sin quitar ninguna). */
-    private static boolean addMissing(org.bukkit.persistence.PersistentDataContainer pdc,
-                                      NamespacedKey key, List<String> wanted) {
-        if (wanted.isEmpty()) return false;
-        String current = pdc.get(key, PersistentDataType.STRING);
-        Set<String> have = new LinkedHashSet<>();
-        if (current != null && !current.isBlank()) have.addAll(Arrays.asList(current.split(";")));
-        int before = have.size();
-        for (String w : wanted) if (!w.isBlank()) have.add(w);
-        if (have.size() == before) return false;
-        pdc.set(key, PersistentDataType.STRING, String.join(";", have));
-        return true;
+    /** Avisa UNA vez de los encantamientos de items.yml que el servidor no conoce: casi
+     *  siempre significa que falta ExcellentEnchants (o que el id no existe en su versión). */
+    private void warnUnknownEnchants() {
+        Set<String> unknown = new TreeSet<>();
+        for (ItemDef d : defs.values()) {
+            for (String key : d.enchants().keySet()) {
+                if (Reg.enchantment(key) == null) unknown.add(key);
+            }
+        }
+        if (unknown.isEmpty()) return;
+        plugin.getLogger().warning("items.yml: encantamientos que este servidor no conoce: " + unknown
+                + " (los encantamientos custom necesitan ExcellentEnchants instalado;"
+                + " el resto de encantamientos del item se aplica igual). ATENCIÓN: Minecraft borra los"
+                + " items con encantamientos inexistentes, así que los items ya repartidos con"
+                + " encantamientos de EE se perderán al entrar sus dueños. Reinstala ExcellentEnchants"
+                + " y ejecuta /luna refresh <jugador|all> antes de retirarlo.");
     }
+
+    /** ¿La puesta al día al entrar debe migrar items antiguos? (config items.migrate-on-join). */
+    public boolean migrateOnJoin() { return migrateOnJoin; }
 
     public Set<String> ids() { return defs.keySet(); }
 
@@ -279,12 +316,14 @@ public final class ItemFactory {
 
         for (Map.Entry<String, Integer> e : d.enchants().entrySet()) {
             Enchantment en = Reg.enchantment(e.getKey());
-            if (en == null) {
-                plugin.getLogger().warning("items.yml: encantamiento desconocido '" + e.getKey() + "' en " + d.id());
-                continue;
+            if (en == null) continue; // ya se avisó al recargar items.yml
+            try {
+                // Nunca por encima del máximo del item: el real de vanilla (5 en legendarios y
+                // míticos) o el que fije ExcellentEnchants para los suyos.
+                meta.addEnchant(en, cappedLevel(d, en, e.getValue()), true);
+            } catch (IllegalArgumentException ex) {
+                // Incompatible con el material: se salta ese encantamiento, no el item entero.
             }
-            // Nivel de encantamiento recortado al máximo permitido (7 por defecto)
-            meta.addEnchant(en, Math.min(maxEnchantLevel, Math.max(1, e.getValue())), true);
         }
         // Maldición de desaparición obligatoria en ARMAS, HERRAMIENTAS y ARMADURA de rareza
         // alta (Raro en adelante por defecto): si mueres con ellas se pierden, como corresponde
@@ -305,8 +344,6 @@ public final class ItemFactory {
         pdc.set(Keys.ITEM_ID, PersistentDataType.STRING, d.id());
         pdc.set(Keys.ITEM_RARITY, PersistentDataType.STRING, d.rarity());
         if (serial > 0) pdc.set(Keys.ITEM_SERIAL, PersistentDataType.INTEGER, serial);
-        if (!d.abilities().isEmpty()) pdc.set(Keys.ITEM_ABILITIES, PersistentDataType.STRING, String.join(";", d.abilities()));
-        if (!d.passives().isEmpty()) pdc.set(Keys.ITEM_PASSIVES, PersistentDataType.STRING, String.join(";", d.passives()));
         stack.setItemMeta(meta);
         return stack;
     }

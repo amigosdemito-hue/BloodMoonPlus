@@ -259,7 +259,6 @@ public final class EventListener implements Listener {
     public void onPlayerRespawn(org.bukkit.event.player.PlayerRespawnEvent e) {
         EventManager.Session s = plugin.events().session(e.getPlayer().getWorld());
         if (s != null) s.dead.remove(e.getPlayer().getUniqueId());
-        plugin.abilities().cleanStalePassives(e.getPlayer());
     }
 
     /** Al cambiar de mundo, oculta la barra del evento del que se aleja (evita recorrer
