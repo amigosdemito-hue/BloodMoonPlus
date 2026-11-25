@@ -153,7 +153,8 @@ public final class EventListener implements Listener {
     public void onDeath(EntityDeathEvent e) {
         LivingEntity ent = e.getEntity();
         if (!EventManager.isTagged(ent)) return;
-        // Descuenta el cupo de su dueño y, cada 50 % de bajas, le repone el otro 50 %.
+        // Devuelve el hueco al pozo compartido y descuenta el cupo de su dueño; el hueco lo
+        // repone la siguiente oleada, no un repoblado inmediato.
         plugin.events().onHordeMobKilled(ent);
 
         if (ent.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) {

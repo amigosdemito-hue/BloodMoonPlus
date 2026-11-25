@@ -62,13 +62,18 @@ cannot stall the server.
 - **A horde wave no longer sweeps the world twice per player.** `spawnWave` called
 `getNearbyEntities(48,48,48)` — a 97³ entity sweep that touches hundreds of entities with mods
 installed — twice for every eligible player, only to count live horde mobs. The cap
-(`horde.max-alive-per-player` × eligible players) now reads a per-world counter that
+(`horde.max-alive-total`) now reads a per-world counter that
 `countHordeAlive` already refreshed every ~2 s, so a wave does no entity sweeping at all.
-- **Hard cap of 70 horde mobs per player, bosses included.** The ceiling no longer grows with the
-wave number or the difficulty: every player owns at most `horde.max-alive-per-player` (70) horde
-mobs and bosses at once, counted through an owner tag and resynced from the world every ~2 s. When
-a player kills half of that quota, the plugin spawns the other half for them on the next tick, so
-the pressure stays constant without ever going over 70 per player.
+- **Shared pool of 1000 horde mobs across the worlds with the event running.** `horde.max-alive-total`
+is a single budget for every active event world, and only event worlds count towards it: a world
+without a session neither feeds the pool nor receives horde spawns. Within that pool each player
+has a ceiling of `horde.max-alive-per-player` (80), which keeps phones from drowning in mobs, and
+waves are spread across the eligible players of all event worlds so no player or world hoards the
+free room. Bosses and their minions count too.
+- **Dead mobs come back progressively, wave by wave.** Removing an instant refill means a kill only
+returns its slot to the pool; the next wave spends it, up to its normal size, so killing 500 at a
+time never produces a 500-mob burst. Bosses whose timer expires now wait for the next wave and
+spawn at its start with their room reserved.
 - **Spawn search stopped allocating thousands of blocks and strings.** `findSpawn` ran up to 12
 attempts × 17 vertical steps per mob, building three `Block`s and three `toString().contains(...)`
 per candidate. It now tries 8 positions, checks the cheap conditions first (feet passable, head

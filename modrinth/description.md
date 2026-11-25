@@ -159,7 +159,7 @@ The plugin already blocks the normal Wither on its own. If you also want a data-
 
 ## ⚡ Performance
 
-Designed for **~40 player** networks: local (not whole-world) entity scans, item-parse caching, one player lookup per boss per tick, capped particles and explosion work, and lock-free statistics reads. For very large servers you can tune `horde.wave-max-size` and `horde.max-alive-per-player` in the config.
+Designed for **~40 player** networks: local (not whole-world) entity scans, item-parse caching, one player lookup per boss per tick, capped particles and explosion work, and lock-free statistics reads. For very large servers you can tune `horde.wave-max-size`, the shared `horde.max-alive-total` pool (1000 horde mobs across the worlds with the event running, bosses and minions included) and the per-player ceiling `horde.max-alive-per-player` (80, useful when many players join from phones).
 
 ---
 

@@ -183,17 +183,18 @@ public final class BossManager {
         }
     }
 
+    /** Un jefe no aparece al vencer su horario: queda en la cola de la sesión y sale al inicio de
+     *  la siguiente oleada, que reserva su hueco en el pozo. Así jefes y esbirros se reparten en
+     *  las oleadas en lugar de caer a mitad de tick. */
     void tickSpawns(EventManager.Session s, long now) {
         if (s.pendingBosses.isEmpty()) return;
-        List<Pending> retry = new ArrayList<>();
         Iterator<Pending> it = s.pendingBosses.iterator();
         while (it.hasNext()) {
             Pending p = it.next();
             if (now < p.atMs()) continue;
             it.remove();
-            if (!spawn(s, p.bossId())) retry.add(new Pending(p.bossId(), now + 10_000L));
+            s.dueBosses.add(p.bossId());
         }
-        s.pendingBosses.addAll(retry);
     }
 
     /** Invoca el jefe sobre un jugador elegible al azar del mundo del evento. */
