@@ -2,6 +2,7 @@ package dev.bloodmoonplus;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Enemy;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -12,6 +13,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
@@ -40,6 +42,21 @@ public final class EventListener implements Listener {
         if (!(src instanceof LivingEntity le) || !EventManager.isTagged(le)) return;
         Double scale = le.getPersistentDataContainer().get(Keys.SCALE, PersistentDataType.DOUBLE);
         if (scale != null && scale != 1.0) e.setDamage(e.getDamage() * scale);
+    }
+
+    /**
+     * Los mobs de la Luna no reciben daño de mobs hostiles: ni de otro mob de la horda, ni del
+     * creeper que revienta al lado, ni de una flecha cruzada, ni del área de un jefe o de sus
+     * esbirros, ni de un zombi natural que se cruce. Sin esto la horda se diezmaba sola antes de
+     * llegar al jugador. Los jugadores y los mobs que no son hostiles (golem de hierro, golem de
+     * nieve, lobo, mascotas) sí les hacen daño, como el entorno: lava, caída, ahogo.
+     * Se mira la entidad que causó el daño (no la directa) para cubrir flechas y explosiones,
+     * donde la fuente directa es la flecha o la explosión y no un mob.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onHordeFriendlyFire(EntityDamageEvent e) {
+        if (!(e.getEntity() instanceof LivingEntity victim) || !EventManager.isTagged(victim)) return;
+        if (e.getDamageSource().getCausingEntity() instanceof Enemy) e.setCancelled(true);
     }
 
     /**

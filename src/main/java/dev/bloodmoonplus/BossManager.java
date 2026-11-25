@@ -38,7 +38,16 @@ public final class BossManager {
                    Map<EquipmentSlot, Material> equipment, List<Ability> abilities, String lootTable,
                    String topTable, boolean announce, int exp,
                    double enrageAt, double enrageCooldown, double enrageDamage,
-                   boolean powered) {}
+                   boolean powered) {
+        /** Jefe que invoca esbirros (SUMMON o SWARM). Solo estos frenan las oleadas mientras
+         *  vivan: son los únicos que necesitan el hueco del pozo para sus invocaciones. */
+        boolean summonsMinions() {
+            for (Ability a : abilities) {
+                if ("SUMMON".equals(a.type()) || "SWARM".equals(a.type())) return true;
+            }
+            return false;
+        }
+    }
 
     record Spawn(String boss, int delay, double chance, double minDifficulty, int count, boolean scaleCount) {}
 
@@ -243,6 +252,8 @@ public final class BossManager {
         if (loc == null) loc = base;
 
         LivingEntity le = null;
+        // El jefe de Mythic no pasa por EventManager.spawn, así que su hueco hay que sumarlo aquí.
+        boolean mythicSpawned = false;
 
         boolean mythicWanted = "MYTHICMOBS".equals(bossCfg.mode()) && bossCfg.mythicEnabled();
         // El mundo pide Mythic pero el plugin no está (o es incompatible): antes se caía
@@ -263,6 +274,7 @@ public final class BossManager {
                     spawningBoss = false;
                 }
                 if (le != null) {
+                    mythicSpawned = true;
                     String display = plugin.mythic().getDisplayName(mythicName);
                     le.customName(Util.mini(display));
                     world.strikeLightningEffect(loc);
@@ -331,8 +343,23 @@ public final class BossManager {
         // Etiqueta para que el datapack anti-Wither exima a los jefes de la Luna de Sangre.
         le.addScoreboardTag(EventManager.BOSS_TAG);
         le.addScoreboardTag(EventManager.HORDE_TAG);
+        // Ocupa su hueco en el pozo ya: el vanilla lo hizo dentro de spawn(); el de Mythic, aquí.
+        if (mythicSpawned) plugin.events().countInPool(le);
         alive.put(le.getUniqueId(), new Instance(le.getUniqueId(), d, difficulty, world));
         return true;
+    }
+
+    /** ¿Hay un jefe con esbirros vivo en ese mundo? Mientras lo haya no caen oleadas: el hueco
+     *  del pozo es para sus invocaciones. Un jefe que no invoca no frena la horda. */
+    boolean anySummonerAlive(World world) {
+        if (world == null) return false;
+        for (Instance bi : alive.values()) {
+            if (!bi.def.summonsMinions()) continue;
+            Entity ent = Bukkit.getEntity(bi.id);
+            if (ent instanceof LivingEntity le && !le.isDead() && le.isValid()
+                    && le.getWorld().equals(world)) return true;
+        }
+        return false;
     }
 
     // ------------------------------------------------------------------ tick de habilidades y barras

@@ -48,6 +48,19 @@ one burst, and at most **6 mini-bosses** can be alive per boss.
 - Net effect: a boss that keeps pressure on with pulls, slams and charges while periodically
 detonating in the middle of a farming spot, so afk mob farms inside the event world pay for it.
 
+### Balance — the horde stops killing itself and a boss owns the pool
+- **Hostile mobs no longer damage Blood Moon mobs.** A creeper exploding next to the pack, a stray
+arrow, a boss area attack or a natural zombie that wanders in could wipe half a wave before it
+reached a player. Damage to a horde mob, boss or minion is now cancelled whenever the attacker is
+a hostile mob — horde, boss, minion or a natural monster — whatever the source: melee, projectile
+or explosion. Players, iron golems, snow golems, wolves and pets still fight the horde, and the
+world (lava, fall, drowning) still kills it.
+- **No new wave while a boss with minions is alive.** Only bosses that summon (SUMMON/SWARM) take
+over the shared pool: waves pause until they die, so the minions they still have to summon always
+have room and are never crowded out by the horde. A boss without summons does not stop the waves.
+Minion summons respect `horde.max-alive-total` too, so a boss fight cannot push the pool over its
+limit either.
+
 ### Performance
 - **The main thread no longer waits on the statistics lock.** `PlaceholderSnapshotService.publish()`
 ran every 10 ticks and called `StatisticsStore.get()`, which took the same lock the asynchronous

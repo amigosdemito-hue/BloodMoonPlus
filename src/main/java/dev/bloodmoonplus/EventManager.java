@@ -716,6 +716,15 @@ public final class EventManager {
         return false;
     }
 
+    /** Suma al pozo un mob que no pasó por {@link #spawn}: los jefes de MythicMobs los invoca
+     *  Mythic por su cuenta. Así ocupan su hueco en el mismo instante en que aparecen y no hay
+     *  que esperar al resync de countHordeAlive. Un mundo sin sesión no suma nada. */
+    public void countInPool(Entity mob) {
+        if (mob == null) return;
+        Session s = session(mob.getWorld());
+        if (s != null) s.aliveTotal++;
+    }
+
     /** Mobs de la Luna vivos en TODOS los mundos con evento activo (horda + jefes + esbirros).
      *  Un mundo sin sesión no aporta nada: sus entidades no son del evento. */
     int poolAlive() {
@@ -764,6 +773,10 @@ public final class EventManager {
         List<Player> eligiblePlayers = new ArrayList<>(targets.size());
         for (Player p : targets) if (eligible(p, s)) eligiblePlayers.add(p);
         if (eligiblePlayers.isEmpty()) return 0;
+
+        // Un jefe que invoca esbirros se queda el pozo: ellos ocupan el techo y no caen oleadas
+        // hasta que muera, para que la oleada no le dispute el hueco a los que aún va a invocar.
+        if (plugin.bosses().anySummonerAlive(s.world)) return 0;
 
         // Los jefes que ya vencieron su horario salen al inicio de esta oleada, no a mitad de tick.
         spawnQueuedBosses(s);
@@ -846,8 +859,11 @@ public final class EventManager {
                 new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.2f));
     }
 
-    /** Mob de refuerzo (invocaciones de jefes): usa la definición de la horda si existe. */
+    /** Mob de refuerzo (invocaciones de jefes): usa la definición de la horda si existe.
+     *  Respeta el pozo: con el presupuesto lleno el jefe no invoca más, así los esbirros que ya
+     *  tiene ocupan el techo hasta que muera. */
     public LivingEntity spawnMinion(Location loc, EntityType type, double diff, Player target) {
+        if (poolAlive() >= maxAliveTotal) return null;
         for (MobDef d : mobs) {
             if (d.type() == type) {
                 return spawn(loc, type, d.health(), d.damage(), d.speed(), d.display(), d.equipment(), d.equipChance(), diff, d.table(), target);
