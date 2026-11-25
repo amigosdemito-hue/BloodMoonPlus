@@ -244,7 +244,11 @@ public final class LootManager {
 
     /** Suelta el item; los de rarezas altas brillan y no se destruyen. */
     public void dropAt(Location loc, ItemStack it) {
-        Item drop = loc.getWorld().dropItemNaturally(loc, it);
+        // Un mundo descargado deja getWorld() a null: sin esto, el drop de un mob que murió
+        // justo cuando se descargaba el mundo tiraba una NPE dentro del evento de muerte.
+        var world = loc.getWorld();
+        if (world == null) return;
+        Item drop = world.dropItemNaturally(loc, it);
         if (!it.hasItemMeta()) return;
         String rarity = it.getItemMeta().getPersistentDataContainer().get(Keys.ITEM_RARITY, PersistentDataType.STRING);
         if (rarity != null && plugin.getConfig().getStringList("loot.glow-rarities").stream().anyMatch(s -> Util.key(s).equals(rarity))) {

@@ -84,7 +84,7 @@ public final class PapiHook extends PlaceholderExpansion {
                     : plugin.locales().get("placeholder.none");
             case "time" -> switch (rest) {
                 case "remaining", "remainingseconds", "remaining_seconds" -> String.valueOf(active ? session.timeRemainingSeconds() : 0);
-                case "remainingformatted", "remaining_formatted" -> formatTime(active ? session.timeRemainingSeconds() : 0);
+                case "remainingformatted", "remaining_formatted" -> Util.dur(active ? session.timeRemainingSeconds() : 0);
                 default -> null;
             };
             case "boss" -> switch (rest) {
@@ -108,7 +108,7 @@ public final class PapiHook extends PlaceholderExpansion {
                 case "" -> String.valueOf(playerState != null && playerState.participating());
                 case "seconds" -> String.valueOf(playerState != null ? playerState.participationSeconds() : 0);
                 case "percent" -> String.valueOf(playerState != null ? playerState.participationPercent() : 0);
-                case "formatted" -> formatTime(playerState != null ? playerState.participationSeconds() : 0);
+                case "formatted" -> Util.dur(playerState != null ? playerState.participationSeconds() : 0);
                 default -> null;
             };
             case "survivor" -> switch (sub) {
@@ -142,7 +142,7 @@ public final class PapiHook extends PlaceholderExpansion {
             case "last" -> switch (rest) {
                 case "event_world" -> hist.lastEvent().world().isEmpty() ? plugin.locales().get("placeholder.none") : hist.lastEvent().world();
                 case "event_duration_seconds" -> String.valueOf(hist.lastEvent().durationSeconds());
-                case "event_duration_formatted" -> formatTime(hist.lastEvent().durationSeconds());
+                case "event_duration_formatted" -> Util.dur(hist.lastEvent().durationSeconds());
                 case "event_death_count" -> String.valueOf(hist.lastEvent().deathCount());
                 case "event_unique_deaths" -> String.valueOf(hist.lastEvent().uniqueDeaths());
                 case "event_participants" -> String.valueOf(hist.lastEvent().participants());
@@ -198,15 +198,10 @@ public final class PapiHook extends PlaceholderExpansion {
             }
             // Tiempo transcurrido real de la sesión (antes se asumían 20 min fijos).
             case "event" -> sub.equals("elapsed")
-                    ? formatTime(session != null ? session.elapsedSeconds() : 0)
+                    ? Util.dur(session != null ? session.elapsedSeconds() : 0)
                     : null;
             default -> null;
         };
-    }
-
-    private String formatTime(long sec) {
-        long h = sec / 3600, m = (sec % 3600) / 60, s = sec % 60;
-        return h > 0 ? String.format("%d:%02d:%02d", h, m, s) : String.format("%02d:%02d", m, s);
     }
 
     private String formatBossState(BossPlaceholderState s) {

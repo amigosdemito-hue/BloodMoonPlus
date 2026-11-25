@@ -51,11 +51,15 @@ public final class ItemProtection implements Listener {
     public void onGrindstone(PrepareGrindstoneEvent e) {
         ItemStack top = e.getInventory().getItem(0);
         ItemStack bottom = e.getInventory().getItem(1);
-        if (!plugin.items().isMoonItem(top) && !plugin.items().isMoonItem(bottom)) return;
-        // El resultado sería el objeto "limpio" (sin encantamientos ni maldiciones): se anula.
-        boolean wouldStrip = e.getResult() != null && !e.getResult().getType().isAir();
+        boolean topMoon = plugin.items().isMoonItem(top);
+        if (!topMoon && !plugin.items().isMoonItem(bottom)) return;
+        ItemStack moon = topMoon ? top : bottom;
+        ItemStack result = e.getResult();
+        // Solo se anula cuando el resultado PIERDE encantamientos (que es cuando el grindstone
+        // los quitaría). Antes se anulaba siempre, así que una pieza de la Luna sin
+        // encantamientos tampoco se podía reparar en el grindstone sin motivo.
+        if (result == null || result.getType().isAir() || !losesEnchants(moon, result)) return;
         e.setResult(null);
-        if (!wouldStrip) return;
         if (e.getView().getPlayer() instanceof Player p) {
             long now = System.currentTimeMillis();
             if (now - warned.getOrDefault(p.getUniqueId(), 0L) < 3000L) return;
@@ -63,6 +67,19 @@ public final class ItemProtection implements Listener {
             warned.put(p.getUniqueId(), now);
             plugin.messages().send(p, "item.no-disenchant");
         }
+    }
+
+    /** ¿El resultado tiene menos encantamientos (o de menos nivel) que el original? Es la
+     *  señal de que el grindstone los está quitando. */
+    private static boolean losesEnchants(ItemStack original, ItemStack result) {
+        if (original == null || result == null) return false;
+        var om = original.getItemMeta();
+        var rm = result.getItemMeta();
+        if (om == null || rm == null) return false;
+        for (var en : om.getEnchants().entrySet()) {
+            if (rm.getEnchantLevel(en.getKey()) < en.getValue()) return true;
+        }
+        return false;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

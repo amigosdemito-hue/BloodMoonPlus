@@ -2,6 +2,7 @@ package dev.bloodmoonplus.survivor;
 
 import dev.bloodmoonplus.BloodMoonPlus;
 import dev.bloodmoonplus.EventManager;
+import dev.bloodmoonplus.Util;
 import dev.bloodmoonplus.config.WorldConfig;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -93,7 +94,7 @@ public final class SurvivorManager {
             for (String msg : policy.messages()) {
                 String resolved = base.resolve(msg, p);
                 // Los mensajes del template usan colores legacy con '&' (estilo Reborn).
-                p.sendMessage(dev.bloodmoonplus.Util.mini(dev.bloodmoonplus.Util.ampToSection(resolved)));
+                p.sendMessage(Util.mini(Util.ampToSection(resolved)));
             }
         }
 

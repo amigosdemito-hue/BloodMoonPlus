@@ -9,6 +9,8 @@ jobs:
         with: { distribution: temurin, java-version: 25 }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: "9.1.0" }
-      - run: gradle build --no-daemon
+      # El wrapper fija la versión de Gradle del repositorio; `gradle` usaba la que instalara
+      # setup-gradle y podía compilar con otra distinta a la de desarrollo.
+      - run: ./gradlew build --no-daemon
       - uses: actions/upload-artifact@v4
         with: { name: BloodMoonPlus, path: build/libs/*.jar }

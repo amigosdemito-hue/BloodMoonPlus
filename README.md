@@ -564,7 +564,7 @@ auditoría de cada mob, pero miles de líneas por evento.
 
 ---
 
-## 🔄 Actualizar desde la 1.0.1 a la 1.0.2
+## 🔄 Actualizar desde la 1.0.1 (o anterior)
 
 **Solo hay que reemplazar el `.jar`.** No se migra nada y no se borra ningún dato.
 
@@ -572,7 +572,8 @@ auditoría de cada mob, pero miles de líneas por evento.
 2. **Borra el jar anterior** de `plugins/` (`BloodMoonPlus-1.0.1.jar`). Es lo único que sí debes
    eliminar: los dos jars declaran `name: BloodMoonPlus` y Bukkit rechaza el segundo con
    *«plugin name is already in use»* (o acaba cargando el que no quieres).
-3. Copia `BloodMoonPlus-1.0.2-beta.jar` en `plugins/` y arranca.
+3. Copia el jar actual (`BloodMoonPlus-1.0.3-beta.jar`) en `plugins/` y arranca. No hace falta
+   pasar antes por la 1.0.2.
 4. Comprueba la consola: `Idioma activo: es`, `Items cargados: 45`, `Jefes cargados: 10`.
 
 Los cinco idiomas nuevos (`pt`, `fr`, `de`, `it`, `ru`) se copian solos en el primer arranque.

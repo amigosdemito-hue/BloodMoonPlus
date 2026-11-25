@@ -6,7 +6,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import java.lang.reflect.Method;
-import java.util.UUID;
 import java.util.logging.Level;
 
 /**

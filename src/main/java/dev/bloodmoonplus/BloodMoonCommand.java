@@ -210,20 +210,16 @@ public final class BloodMoonCommand implements TabExecutor {
     }
 
     private void stop(CommandSender s, String[] a) {
-        if (a.length > 0 && a[0].equalsIgnoreCase("all")) {
+        // Sin argumentos o con "all": parada de TODOS los mundos del evento.
+        if (a.length == 0 || a[0].equalsIgnoreCase("all")) {
             if (!plugin.events().stop(null, false)) { m().send(s, "cmd.status-none"); return; }
             m().send(s, "cmd.stopped-all");
             return;
         }
-        if (a.length > 0) {
-            org.bukkit.World w = Bukkit.getWorld(a[0]);
-            if (w == null) { m().send(s, "unknown-world"); return; }
-            if (!plugin.events().stop(w, false)) { m().send(s, "event.not-active", "world", w.getName()); return; }
-            m().send(s, "cmd.stopped", "world", w.getName());
-            return;
-        }
-        if (!plugin.events().stop(null, false)) { m().send(s, "cmd.status-none"); return; }
-        m().send(s, "cmd.stopped-all");
+        org.bukkit.World w = Bukkit.getWorld(a[0]);
+        if (w == null) { m().send(s, "unknown-world"); return; }
+        if (!plugin.events().stop(w, false)) { m().send(s, "event.not-active", "world", w.getName()); return; }
+        m().send(s, "cmd.stopped", "world", w.getName());
     }
 
     private void difficulty(CommandSender s, String[] a) {

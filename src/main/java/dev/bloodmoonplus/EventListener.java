@@ -140,9 +140,10 @@ public final class EventListener implements Listener {
             // Una calavera disparada por el jefe puede romper bloques
             if (plugin.bosses().isBoss(shooter)) return;
         }
-        if (src instanceof LivingEntity le) {
-            // Si el origen es el propio jefe o su proyectil, permitimos romper bloques
-            if (plugin.bosses().isBoss(src)) return;
+        // Solo se tocan las explosiones con origen en una criatura (creeper, ghast, calavera de
+        // un mob...). TNT, camas o anclas son cosa del jugador y no se tocan. La comprobación de
+        // jefe ya se hizo arriba, así que aquí no se repite.
+        if (src instanceof LivingEntity) {
             e.blockList().clear();
             e.setYield(0f);
         }
@@ -231,7 +232,13 @@ public final class EventListener implements Listener {
             org.bukkit.World w = e.getEntity().getWorld();
             w.strikeLightningEffect(e.getEntity().getLocation());
             w.playSound(e.getEntity().getLocation(), org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 0.7f, 0.5f);
-            String cause = e.getDeathMessage() != null ? e.getDeathMessage() : plugin.locales().get("event.death-cause-unknown");
+            // deathMessage() (Component) en lugar del getDeathMessage() deprecado: se serializa
+            // con los códigos legacy de siempre, que Util.legacyToMini convierte al enviarlos.
+            var death = e.deathMessage();
+            String cause = death != null
+                    ? net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+                            .legacySection().serialize(death)
+                    : plugin.locales().get("event.death-cause-unknown");
             if (plugin.messages().announce("player-deaths", false))
                 plugin.messages().world(w, "event.player-died", "player", e.getEntity().getName(), "cause", cause);
         }

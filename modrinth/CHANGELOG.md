@@ -61,6 +61,11 @@ copy (Protection 4 and the removed ability lists). The refresh applies **that** 
   each world's start/stop is a single info line. Every other line in an event log is Paper logging
   each named-mob death (`settings.log-named-deaths` in `spigot.yml`); set it to `false` for a short
   log.
+- The grindstone now only cancels the result when it would really strip enchantments, so repairing
+  a Moon piece that has none works again.
+- `%bloodmoon_total_bosses_spawned%` counts every boss (it sat behind the `announce` gate and
+  skipped `announce: false` bosses) and `%bloodmoon_boss_type%` reports `MYTHICMOBS` for Mythic
+  bosses instead of always `VANILLA`.
 
 ### Removed
 - The item ability engine (`ItemAbilities`) and the `abilities`/`passives` fields of `items.yml`.

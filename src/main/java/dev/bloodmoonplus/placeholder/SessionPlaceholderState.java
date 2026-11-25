@@ -14,11 +14,4 @@ public record SessionPlaceholderState(
         long hordeAlive,
         long bossesDefeated,
         long elapsedSeconds
-) {
-    public static SessionPlaceholderState empty(String world) {
-        return new SessionPlaceholderState(
-                world,
-                0, 0, 0, 0, 0, 0, 0, 0
-        );
-    }
-}
+) {}

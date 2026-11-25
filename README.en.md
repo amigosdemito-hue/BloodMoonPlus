@@ -488,7 +488,7 @@ prefer controlling it with `/luna refresh`).
 
 ---
 
-## 🔄 Updating from 1.0.1 to 1.0.2
+## 🔄 Updating from 1.0.1 (or older)
 
 **Only the `.jar` needs to be replaced.** Nothing is migrated and no data is deleted.
 
@@ -496,7 +496,8 @@ prefer controlling it with `/luna refresh`).
 2. **Delete the old jar** from `plugins/` (`BloodMoonPlus-1.0.1.jar`). That is the one thing you
    must remove: both jars declare `name: BloodMoonPlus` and Bukkit rejects the second with
    *“plugin name is already in use”* (or loads the one you did not want).
-3. Copy `BloodMoonPlus-1.0.2-beta.jar` into `plugins/` and start the server.
+3. Copy the current `BloodMoonPlus-1.0.3-beta.jar` into `plugins/` and start the server. There is
+   no need to go through 1.0.2 first.
 4. Check the console: `Items cargados: 45`, `Jefes cargados: 10`.
 
 The five new languages (`pt`, `fr`, `de`, `it`, `ru`) are copied automatically on first start.

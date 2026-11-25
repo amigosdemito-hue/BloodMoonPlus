@@ -121,10 +121,9 @@ public final class ItemFactory {
         }
         var op = om.getPersistentDataContainer();
         var rp = rm.getPersistentDataContainer();
-        for (NamespacedKey k : new NamespacedKey[]{Keys.ITEM_ID}) {
-            String v = op.get(k, PersistentDataType.STRING);
-            if (v == null || v.equals(rp.get(k, PersistentDataType.STRING))) continue;
-            rp.set(k, PersistentDataType.STRING, v);
+        String id = op.get(Keys.ITEM_ID, PersistentDataType.STRING);
+        if (id != null && !id.equals(rp.get(Keys.ITEM_ID, PersistentDataType.STRING))) {
+            rp.set(Keys.ITEM_ID, PersistentDataType.STRING, id);
             changed = true;
         }
         Integer serial = op.get(Keys.ITEM_SERIAL, PersistentDataType.INTEGER);

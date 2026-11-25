@@ -15,8 +15,6 @@ import java.util.Locale;
  */
 public final class LocaleManager {
 
-    public static final String VERSION = "1.0.2-beta";
-
     /** Códigos empaquetados en el JAR, en orden de preferencia para el aviso de arranque. */
     public static final List<String> SUPPORTED = List.of("es", "en", "pt", "fr", "de", "it", "ru");
 
@@ -24,6 +22,12 @@ public final class LocaleManager {
     private final File localesDir;
     private YamlConfiguration active = new YamlConfiguration();
     private YamlConfiguration fallback = new YamlConfiguration();
+    /** Cadena de textos ya resuelta (activo -> en del disco -> jar del idioma -> jar en).
+     *  Los placeholders la consultan desde hilos async (TAB, holograms) mientras
+     *  `/luna reload` recarga los YAML, así que se publica como mapa INMUTABLE: antes cada
+     *  lectura recorría cuatro YamlConfiguration vivos y una recarga en paralelo podía
+     *  pisar la lectura a medias. Además es más rápido en el camino caliente de PAPI. */
+    private volatile java.util.Map<String, String> merged = java.util.Map.of();
     /** Copias DENTRO del jar: red de seguridad para claves nuevas en servidores que ya tienen
      *  un locales/*.yml de una versión anterior (el plugin no sobrescribe archivos del usuario). */
     private YamlConfiguration bundled = new YamlConfiguration();
@@ -71,6 +75,7 @@ public final class LocaleManager {
         fallback = YamlConfiguration.loadConfiguration(new File(localesDir, "en.yml"));
         bundled = loadBundled(language);
         bundledEn = loadBundled("en");
+        merged = merge();
         // Solo se anuncia cuando cambia de verdad: reloadAll carga el locale varias veces entre
         // managers y antes el arranque escupía "Idioma activo" tres veces seguidas.
         if (!language.equals(previous)) {
@@ -97,14 +102,29 @@ public final class LocaleManager {
 
     /** Obtiene la cadena localizada: archivo del servidor -> en.yml -> jar del idioma -> jar en. */
     public String get(String key) {
-        String v = active.getString(key);
-        if (v == null) v = fallback.getString(key);
-        if (v == null && useBundled) {
-            v = bundled.getString(key);
-            if (v == null) v = bundledEn.getString(key);
-        }
+        String v = merged.get(key);
         if (v != null) return v;
         return "<red>[i18n missing: " + key + "]</red>";
+    }
+
+    /** Resuelve las cuatro capas en un solo mapa (la última capa escrita gana). */
+    private java.util.Map<String, String> merge() {
+        java.util.Map<String, String> out = new java.util.HashMap<>();
+        if (useBundled) {
+            flatten(out, bundledEn);
+            flatten(out, bundled);
+        }
+        flatten(out, fallback);
+        flatten(out, active);
+        return java.util.Map.copyOf(out);
+    }
+
+    private static void flatten(java.util.Map<String, String> out, YamlConfiguration y) {
+        for (String k : y.getKeys(true)) {
+            if (y.isConfigurationSection(k)) continue;
+            String v = y.getString(k);
+            if (v != null) out.put(k, v);
+        }
     }
 
     public String get(String key, String... kv) {

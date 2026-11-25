@@ -48,15 +48,13 @@ public final class WorldConfigRegistry {
         if (!dir.exists()) dir.mkdirs();
         File cfgFile = new File(dir, "config.yml");
         if (!cfgFile.exists()) {
-            // Generar desde el template del JAR
-            plugin.saveResource("worlds-template/config.yml", false);
-            File template = new File(plugin.getDataFolder(), "worlds-template/config.yml");
-            if (template.exists()) {
-                try {
-                    Files.copy(template.toPath(), cfgFile.toPath());
-                } catch (IOException e) {
-                    plugin.getLogger().warning("No se pudo crear config para '" + worldName + "': " + e.getMessage());
-                }
+            // Copia directa desde el JAR: antes se extraía el template a
+            // plugins/BloodMoonPlus/worlds-template y esa carpeta se quedaba suelta en el
+            // servidor (una copia más por cada mundo nuevo que se cargara).
+            try (var in = plugin.getResource("worlds-template/config.yml")) {
+                if (in != null) Files.copy(in, cfgFile.toPath());
+            } catch (IOException e) {
+                plugin.getLogger().warning("No se pudo crear config para '" + worldName + "': " + e.getMessage());
             }
         }
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(cfgFile);

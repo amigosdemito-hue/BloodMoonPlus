@@ -65,16 +65,20 @@ public final class BossManager {
         final BossBar bar;
         final double diff;
         final World world;
+        /** De dónde salió el jefe: MYTHICMOBS o VANILLA. Lo usan los placeholders
+         *  (%bloodmoon_boss_type%); antes se informaba VANILLA incluso para los de Mythic. */
+        final String source;
         final Map<UUID, Double> damage = new HashMap<>();
         final long[] nextUse;
         /** Segunda fase: se activa una sola vez al bajar de enrage-at de vida. */
         boolean enraged = false;
 
-        Instance(UUID id, BossDef def, double diff, World world) {
+        Instance(UUID id, BossDef def, double diff, World world, boolean fromMythic) {
             this.id = id;
             this.def = def;
             this.diff = diff;
             this.world = world;
+            this.source = fromMythic ? "MYTHICMOBS" : "VANILLA";
             this.bar = BossBar.bossBar(Util.mini(def.name()), 1f, def.color(), def.overlay());
             this.nextUse = new long[def.abilities().size()];
             long now = System.currentTimeMillis();
@@ -325,11 +329,13 @@ public final class BossManager {
                 if (d.powered()) c.setPowered(true);
                 c.setExplosionRadius(0);
             }
+            // El contador sube SIEMPRE: antes vivía dentro del if de announce y un jefe con
+            // 'announce: false' no se contaba en %bloodmoon_total_bosses_spawned%.
+            plugin.stats().recordBossSpawned();
             if (d.announce() && plugin.messages().announce("bosses", true)) {
                 world.strikeLightningEffect(loc);
                 plugin.messages().world(world, "boss.spawn", "boss", d.name());
                 for (Player p : world.getPlayers()) p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 0.7f);
-                plugin.stats().recordBossSpawned();
             }
         } else {
             // Marcar también los Mythic como boss para que la BossBar y recompensas funcionen
@@ -342,7 +348,7 @@ public final class BossManager {
         le.addScoreboardTag(EventManager.HORDE_TAG);
         // Ocupa su hueco en el pozo ya: el vanilla lo hizo dentro de spawn(); el de Mythic, aquí.
         if (mythicSpawned) plugin.events().countInPool(le);
-        alive.put(le.getUniqueId(), new Instance(le.getUniqueId(), d, difficulty, world));
+        alive.put(le.getUniqueId(), new Instance(le.getUniqueId(), d, difficulty, world, mythicSpawned));
         return true;
     }
 
@@ -930,18 +936,6 @@ public final class BossManager {
         return n;
     }
 
-    /** Snapshot del primer boss vivo, opcionalmente restringido a un mundo concreto.
-     *  Antes siempre se devolvía el primero de todos los mundos, así que con dos eventos
-     *  simultáneos los placeholders mostraban el jefe que no era. */
-    public dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot aliveSnapshot(World only) {
-        for (Instance bi : alive.values()) {
-            if (only != null && !only.equals(bi.world)) continue;
-            var snap = snapshot(bi);
-            if (snap != null) return snap;
-        }
-        return null;
-    }
-
     /** Snapshot del primer jefe vivo de CADA mundo, haya o no un evento en curso. Un jefe
      *  invocado a mano con /luna boss también debe aparecer en los placeholders. */
     public java.util.Map<String, dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot> aliveSnapshots() {
@@ -963,7 +957,7 @@ public final class BossManager {
                 ? net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(le.customName())
                 : bi.def.name();
         return dev.bloodmoonplus.placeholder.BossPlaceholderSnapshot.fromEntity(
-                le, maxHp, name, "VANILLA",
+                le, maxHp, name, bi.source,
                 dev.bloodmoonplus.placeholder.BossPlaceholderState.ALIVE);
     }
 }
