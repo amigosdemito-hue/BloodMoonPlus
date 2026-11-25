@@ -49,8 +49,11 @@ public final class Messages {
         for (Player p : w.getPlayers()) p.sendMessage(c);
     }
 
+    /** Anuncio global SOLO para los jugadores conectados: antes usaba Bukkit.broadcast, que
+     *  duplicaba cada anuncio en la consola y la volvía ilegible durante un evento. */
     public void all(String key, String... kv) {
-        Bukkit.broadcast(prefixed(key, kv));
+        Component c = prefixed(key, kv);
+        for (Player p : Bukkit.getOnlinePlayers()) p.sendMessage(c);
     }
 
     /** ¿Está activa esta categoría de anuncio global? Lee announce.<categoría> de config.yml.

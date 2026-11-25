@@ -26,12 +26,41 @@ exactly as before.
 - **The 19 custom item abilities are gone** (crit, lifesteal, thunder guard, blast wave, levitate,
   bleed...) and are replaced by EE enchantments: `vampire`, `double_strike`, `venom`, `wither`,
   `ice_aspect`, `fire_shield`, `stopping_force`, `dragon_heart`, `hardened` and friends.
-- **Existing gear is migrated** on join (`items.migrate-on-join`): above-max levels are lowered and
-  the old ability data is removed. `/luna refresh <player|all>` forces it at any time.
+- **Existing gear is migrated** on join (`items.migrate-on-join`), **the moment it is picked up or
+  taken out of a chest**, and whenever you run `/luna refresh <player|all>`. Above-max levels are
+  lowered, missing enchantments are added and the old ability data is removed.
 - **ExcellentEnchants is optional to install, not to remove**: without it (and NightCore) the plugin
   still starts, **new** items get just the vanilla enchantments and the console warns once. Do not
   uninstall EE with gear already handed out: Minecraft deletes items whose enchantment is missing, so
   run `/luna refresh <player|all>` with EE installed first if you ever need to drop it.
+
+### Updating from 1.0.2 — your `items.yml` is NOT replaced
+
+The plugin only writes `items.yml` when the file does not exist, so an updated server keeps its old
+copy (Protection 4 and the removed ability lists). The refresh applies **that** file, so
+`/luna refresh` would leave Protection 4 in place.
+
+1. Stop the server and back up `plugins/BloodMoonPlus/items.yml` (the plugin also leaves
+   `items.yml.bak`).
+2. Replace it with the `items.yml` shipped inside the jar — or edit it by hand: at least
+   `protection: 5` (plus Thorns 5 and friends) on the `LEGENDARIO`/`MITICO` pieces and the
+   ExcellentEnchants entries.
+3. Start with **ExcellentEnchants and NightCore installed** and check the console:
+   `Items cargados: 45` and no unknown-enchantment warning.
+4. Run `/luna refresh all` (or let players reconnect/pick their gear up). That is the step that
+   turns an already-handed-out Protection 4 chestplate into Protection 5. Without EE installed,
+   Minecraft deletes items that carry `excellentenchants:*`, so refresh before removing it.
+
+`config.yml` only gains `items.migrate-on-join` (default `true`).
+
+### Fixed
+- Gear with `glow: true` no longer breaks the refresh: building/refreshing it threw
+  `IllegalStateException: We don't have enchantment_glint_override!` because
+  `hasEnchantmentGlintOverride()` was never checked. `/luna refresh` works on every item again.
+- Console noise during an event: global announcements no longer go through `Bukkit.broadcast`, and
+  each world's start/stop is a single info line. Every other line in an event log is Paper logging
+  each named-mob death (`settings.log-named-deaths` in `spigot.yml`); set it to `false` for a short
+  log.
 
 ### Removed
 - The item ability engine (`ItemAbilities`) and the `abilities`/`passives` fields of `items.yml`.

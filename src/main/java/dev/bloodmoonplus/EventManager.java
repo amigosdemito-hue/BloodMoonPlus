@@ -334,6 +334,8 @@ public final class EventManager {
         if (!resumed) {
             long minutes = Math.max(1, (endMs - startMs) / 60_000L);
             String d = Util.fmt(diff);
+            // Una sola línea por fase en consola: el resto son anuncios de chat para los jugadores.
+            plugin.getLogger().info("Luna de Sangre iniciada en '" + w.getName() + "' (x" + d + ", " + minutes + " min).");
             // Trueno ambiental (sin lluvia: clear-weather manda y tickSession la apaga)
             w.setThundering(true);
             Component title = plugin.messages().get("event.title", "difficulty", d);
@@ -413,6 +415,8 @@ public final class EventManager {
     }
 
     private void stopOne(Session s, boolean natural) {
+        plugin.getLogger().info("Luna de Sangre " + (natural ? "terminada" : "detenida") + " en '"
+                + s.world.getName() + "'.");
         plugin.data().clearActive(s.world.getName());
         for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(s.bar);
         plugin.bosses().removeAll(s.world);

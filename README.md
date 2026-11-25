@@ -493,12 +493,16 @@ Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) 
 - En el **yunque** y la **mesa de herrería** el resultado se repara automáticamente: si alguna
   combinación dejaba el objeto con menos encantamientos, niveles más bajos o sin sus habilidades,
   se le devuelven los del objeto original. El renombrado y los encantamientos añadidos se quedan.
-- **Puesta al día automática:** al entrar al servidor, los objetos que ya tenías (aunque estén
-  renombrados) reciben los encantamientos, la maldición de desaparición y las habilidades que se
-  hayan añadido a `items.yml` después de conseguirlos. Nunca se quita nada y no se pierde el
-  desgaste.
-- **`/luna refresh <jugador|all>`** (o `/luna actualizar`): aplica esa puesta al día al instante,
-  sin esperar a que el jugador reconecte. Requiere `bloodmoon.admin`.
+- **Puesta al día automática:** los objetos que ya tenías (aunque estén renombrados) se ajustan a
+  la definición actual de `items.yml` **al entrar al servidor, al recogerlos del suelo y al
+  sacarlos de un cofre o shulker**. Los encantamientos que falten se añaden, los que superen el
+  máximo del item **bajan** (Filo 7 → Filo 5; Protección 7 → Protección 5 en legendarios y
+  míticos), se pone la Maldición de desaparición y se borran los datos viejos de habilidades.
+  No se pierde el desgaste, ni el nombre que le pusiste, ni los encantamientos extra que añadiste
+  y que no figuran en el `items.yml`.
+- **`/luna refresh <jugador|all>`** (o `/luna actualizar`): aplica esa puesta al día al instante a
+  todo el inventario, la armadura, la mano secundaria y el cofre del End del jugador. Requiere
+  `bloodmoon.admin`.
 
 ---
 
@@ -513,7 +517,49 @@ Muestra los porcentajes reales de rareza y de cada item de la tabla.
 
 ---
 
-## 🔄 Actualizar desde la 1.0.1
+## 🔄 Actualizar de la 1.0.2 a la 1.0.3 (el `items.yml` SÍ cambia)
+
+La 1.0.3 quita las habilidades propias, las sustituye por encantamientos de ExcellentEnchants y
+sube a 5 el tope vanilla de las piezas legendarias y míticas. **Tu `items.yml` actual no se
+reemplaza solo**: el plugin únicamente escribe `items.yml` cuando no existe, así que un servidor
+que actualiza conserva el archivo viejo (Protección 4, listas de habilidades) y la puesta al día
+aplicará *ese* archivo, no el nuevo. Resultado: `/luna refresh all` no sube nada a 5.
+
+1. Detén el servidor y guarda una copia de `plugins/BloodMoonPlus/items.yml` (el plugin también
+   deja `items.yml.bak` antes de la primera actualización).
+2. Sustituye tu `items.yml` por el que viene dentro del `.jar` (o renómbralo y arranca una vez para
+   que se genere de cero) y vuelve a aplicar tus personalizaciones. Si prefieres editar el tuyo a
+   mano, lo mínimo es poner **`protection: 5`** (y espinas 5, etc.) en las piezas `LEGENDARIO` y
+   `MITICO` y añadir los encantamientos de EE.
+3. Arranca **con ExcellentEnchants y NightCore instalados** y comprueba la consola:
+   `Items cargados: 45` y ningún aviso de encantamientos desconocidos.
+4. Ejecuta `/luna refresh all` (o deja que cada jugador reconecte o recoja sus objetos): ahí es
+   cuando un peto con Protección 4 ya repartido pasa a Protección 5 y recibe los EE.
+
+> ⚠️ No quites ExcellentEnchants con objetos repartidos: Minecraft borra los objetos cuyo
+> encantamiento no existe. Primero `/luna refresh all` en un servidor donde EE haya cargado.
+
+`config.yml` solo gana `items.migrate-on-join: true` (puesta al día al entrar; ponlo en `false` si
+prefieres hacerlo solo con `/luna refresh`).
+
+### Consola limpia durante el evento
+
+El plugin ya no copia los anuncios de chat en la consola y escribe **una sola línea** al iniciar y
+al terminar cada mundo. Lo que llena el log durante un evento es Paper: registra la muerte de cada
+mob con nombre (`Named entity … died`). Como toda la horda lleva nombre, basta con poner en
+`spigot.yml`:
+
+```yaml
+settings:
+  log-named-deaths: false
+```
+
+y el log del evento se queda en unas pocas líneas. Si lo dejas en `true` tendrás un registro de
+auditoría de cada mob, pero miles de líneas por evento.
+
+---
+
+## 🔄 Actualizar desde la 1.0.1 a la 1.0.2
 
 **Solo hay que reemplazar el `.jar`.** No se migra nada y no se borra ningún dato.
 
@@ -554,9 +600,10 @@ el original, arranca una vez para que se genere el archivo nuevo y vuelve a apli
 
 ### `items.yml` y `messages.yml`
 
-- **`items.yml` no hace falta tocarlo.** Solo se añadieron comentarios y la clave
+- **Para la 1.0.2, `items.yml` no hacía falta tocarlo.** Solo se añadieron comentarios y la clave
   `settings.vanishing-curse-min-rarity`; el valor por defecto (`RARO`) está en el código, así que la
   maldición de desaparición ya se aplica. Añade la clave solo si quieres ponerla en `OFF` o subirla.
+  **En la 1.0.3 sí cambia: ver «Actualizar de la 1.0.2 a la 1.0.3».**
 - **`messages.yml`** ya no lo lee ningún código desde la 1.0.2: puedes borrarlo sin miedo.
 
 ---

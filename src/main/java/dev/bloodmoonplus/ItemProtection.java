@@ -5,6 +5,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareGrindstoneEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
@@ -12,7 +15,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -33,6 +38,8 @@ public final class ItemProtection implements Listener {
     private final BloodMoonPlus plugin;
     /** Aviso del grindstone con enfriamiento: el evento se dispara varias veces seguidas. */
     private final Map<UUID, Long> warned = new HashMap<>();
+    /** Jugadores con una puesta al día ya encolada: un solo clic dispara varios eventos. */
+    private final Set<UUID> refreshQueued = new HashSet<>();
 
     ItemProtection(BloodMoonPlus plugin) {
         this.plugin = plugin;
@@ -76,9 +83,47 @@ public final class ItemProtection implements Listener {
         if (fixed != null) e.setResult(fixed);
     }
 
-    /** Pone al día los objetos que el jugador ya tenía (incluso renombrados) con la definición
-     *  actual de items.yml: encantamientos, maldición de desaparición y habilidades que falten.
-     *  Nunca quita nada, así que es seguro repetirlo en cada entrada. */
+    /** Un objeto de la Luna recogido del suelo se pone al día en el mismo tick en que entra al
+     *  inventario: antes había que reconectar o esperar a `/luna refresh`. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPickup(EntityPickupItemEvent e) {
+        if (!(e.getEntity() instanceof Player p)) return;
+        if (!plugin.items().isMoonItem(e.getItem().getItemStack())) return;
+        refreshSoon(p);
+    }
+
+    /** Sacarlo de un cofre o shulker, o moverlo dentro del inventario, también cuenta: ese clic
+     *  deja el objeto en el cursor o en otra ranura y se refresca en el tick siguiente. */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onClick(InventoryClickEvent e) {
+        if (!(e.getWhoClicked() instanceof Player p)) return;
+        if (!plugin.items().isMoonItem(e.getCurrentItem()) && !plugin.items().isMoonItem(e.getCursor())) return;
+        refreshSoon(p);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onDrag(InventoryDragEvent e) {
+        if (!(e.getWhoClicked() instanceof Player p)) return;
+        for (ItemStack it : e.getNewItems().values()) {
+            if (!plugin.items().isMoonItem(it)) continue;
+            refreshSoon(p);
+            return;
+        }
+    }
+
+    /** Encola UNA puesta al día para el tick siguiente: tocar el inventario a mitad de un evento
+     *  de clic desincroniza la pantalla del cliente, y un clic genera varios eventos seguidos. */
+    private void refreshSoon(Player p) {
+        if (!refreshQueued.add(p.getUniqueId())) return;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            refreshQueued.remove(p.getUniqueId());
+            if (!p.isOnline()) return;
+            ItemStack cursor = p.getItemOnCursor();
+            if (plugin.items().refresh(cursor)) p.setItemOnCursor(cursor);
+            plugin.items().refreshPlayer(p);
+        });
+    }
+
     /** Efectos que aplicaban los viejos pasivos de item (1.0.2) con duración gigante. Ya no
      *  existe nada que los renueve, así que sin esta limpieza se quedarían pegados para
      *  siempre. Solo se quitan los de duración enorme: una poción o un faro legítimos duran
@@ -95,6 +140,9 @@ public final class ItemProtection implements Listener {
         }
     }
 
+    /** Pone al día los objetos que el jugador ya tenía (incluso renombrados) con la definición
+     *  actual de items.yml: encantamientos, maldición de desaparición y habilidades que falten.
+     *  También borra los pasivos viejos; es seguro repetirlo en cada entrada. */
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();

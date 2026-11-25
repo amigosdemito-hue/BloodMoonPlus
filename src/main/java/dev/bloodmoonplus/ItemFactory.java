@@ -142,9 +142,10 @@ public final class ItemFactory {
         return out;
     }
 
-    /** Pone al día un objeto ya existente con la definición ACTUAL de items.yml: añade los
-     *  encantamientos, la maldición de desaparición y las habilidades que le falten. Nunca
-     *  quita nada, no toca el nombre que le puso el jugador, ni el desgaste, ni el lore.
+    /** Pone al día un objeto ya existente con la definición ACTUAL de items.yml: ajusta los
+     *  encantamientos al nivel pedido (sube los que falten y baja los que superen el máximo del
+     *  item), pone la maldición de desaparición que falte y borra las claves de las viejas
+     *  habilidades. No toca el nombre que le puso el jugador, ni el desgaste, ni el lore.
      *  Devuelve true si modificó el stack (que se edita in situ). */
     public boolean refresh(ItemStack stack) {
         if (!isMoonItem(stack)) return false;
@@ -192,7 +193,7 @@ public final class ItemFactory {
             meta.setUnbreakable(true);
             changed = true;
         }
-        if (d.glow() && meta.getEnchantmentGlintOverride() == null) {
+        if (d.glow() && !meta.hasEnchantmentGlintOverride()) {
             meta.setEnchantmentGlintOverride(true);
             changed = true;
         }
@@ -208,9 +209,6 @@ public final class ItemFactory {
         return changed;
     }
 
-    /** Pone al día TODOS los objetos de la Luna de un jugador: inventario, armadura, mano
-     *  secundaria y cofre del End. Devuelve cuántos objetos cambiaron. Se usa al entrar y en
-     *  /luna refresh. */
     /** ¿La rareza es LEGENDARIO o MITICO? Se compara por posición en loot.yml para que una
      *  rareza nueva por encima de leyenda también cuente. */
     private boolean isHighRarity(String rarity) {
@@ -227,6 +225,9 @@ public final class ItemFactory {
         return Math.max(1, Math.min(want, max));
     }
 
+    /** Pone al día TODOS los objetos de la Luna de un jugador: inventario, armadura, mano
+     *  secundaria y cofre del End. Devuelve cuántos objetos cambiaron. Se usa al entrar y en
+     *  /luna refresh. */
     public int refreshPlayer(org.bukkit.entity.Player p) {
         int changed = 0;
         ItemStack[] contents = p.getInventory().getContents();

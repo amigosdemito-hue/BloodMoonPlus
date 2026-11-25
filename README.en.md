@@ -456,7 +456,34 @@ Shows the real rarity percentages and of each item in the table.
 
 ---
 
-## 🔄 Updating from 1.0.1
+## 🔄 Updating from 1.0.2 to 1.0.3 (the `items.yml` DOES change)
+
+1.0.3 drops the custom abilities, replaces them with ExcellentEnchants enchantments and raises the
+vanilla cap to 5 on legendary and mythic gear. **Your current `items.yml` is not replaced
+automatically**: the plugin only writes it when it does not exist, so an updated server keeps the
+old file (Protection 4, ability lists) and the refresh applies *that* file — `/luna refresh all`
+would leave Protection 4 in place.
+
+1. Stop the server and back up `plugins/BloodMoonPlus/items.yml` (the plugin also leaves
+   `items.yml.bak`).
+2. Replace it with the `items.yml` inside the jar (or rename it and start once so it is generated
+   again) and re-apply your customisations. If you prefer editing yours, at least set
+   **`protection: 5`** (plus Thorns 5…) on the `LEGENDARIO`/`MITICO` pieces and add the EE
+   enchantments.
+3. Start with **ExcellentEnchants and NightCore installed** and check the console:
+   `Items cargados: 45` and no unknown-enchantment warning.
+4. Run `/luna refresh all` (or let players reconnect or pick their gear up): that is when a
+   Protection 4 chestplate already handed out becomes Protection 5.
+
+> ⚠️ Never remove ExcellentEnchants while gear is out: Minecraft deletes items whose enchantment
+> does not exist. Run `/luna refresh all` on a server where EE loaded first.
+
+`config.yml` only gains `items.migrate-on-join: true` (refresh on join; set it to `false` if you
+prefer controlling it with `/luna refresh`).
+
+---
+
+## 🔄 Updating from 1.0.1 to 1.0.2
 
 **Only the `.jar` needs to be replaced.** Nothing is migrated and no data is deleted.
 
@@ -497,9 +524,10 @@ original, start once so the new file is generated, then re-apply your changes (o
 
 ### `items.yml` and `messages.yml`
 
-- **`items.yml` needs no changes.** Only comments and the `settings.vanishing-curse-min-rarity` key
-  were added; the default (`RARO`) lives in the code, so the Curse of Vanishing already applies.
-  Add the key only if you want `OFF` or a higher threshold.
+- **For 1.0.2, `items.yml` needed no changes.** Only comments and the
+  `settings.vanishing-curse-min-rarity` key were added; the default (`RARO`) lives in the code, so
+  the Curse of Vanishing already applies. Add the key only if you want `OFF` or a higher threshold.
+  **In 1.0.3 it does change: see "Updating from 1.0.2 to 1.0.3".**
 - **`messages.yml`** is no longer read by any code since 1.0.2: you can safely delete it.
 
 ---
