@@ -30,6 +30,7 @@ event:
   survivors-none: "<gray>Никто не получил права на награду выжившего в {world}."
   survivor-disqualified-death: "<red>Вы погибли и больше не можете получить награду за выживание."
   survivor-insufficient-participation: "<yellow>Вы участвовали слишком мало, чтобы получить награду за выживание."
+  survivor-disqualified-world-leave: "<red>Вы покинули мир события и больше не можете получить награду за выживание."
   already-active: "<red>В этом мире уже идёт событие."
   not-active: "<red>Нет активного события."
 

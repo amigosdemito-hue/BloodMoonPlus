@@ -11,7 +11,7 @@ import java.util.*;
  * Si el archivo no existe, se crea desde el template del JAR con la config global por defecto.
  *
  * Estructura (igual a Reborn para permitir migrar):
- *   SurvivorRewards: { Enabled, RequireOnlineAtEnd, MinimumParticipationSeconds, ... }
+ *   SurvivorRewards: { Enabled, MinimumParticipationSeconds, DisqualifyOnDeath, ... }
  *   Boss: { Mode, Rewards, MythicMobs }   (la barra se define en bosses.yml)
  *   CommandsOnStart: [ lista con sufijos ;s, ;f, ;p ]
  *   CommandsOnEnd:   [ lista con sufijos ;s, ;f, ;p ]
@@ -24,7 +24,6 @@ public final class WorldConfig {
 
     public record SurvivorPolicy(
             boolean enabled,
-            boolean requireOnlineAtEnd,
             int minParticipationSeconds,
             boolean disqualifyOnDeath,
             boolean disqualifyOnWorldLeave,
@@ -69,10 +68,9 @@ public final class WorldConfig {
     }
 
     private static SurvivorPolicy parseSurvivor(ConfigurationSection s) {
-        if (s == null) return new SurvivorPolicy(false, true, 60, true, false, List.of(), List.of());
+        if (s == null) return new SurvivorPolicy(false, 60, true, false, List.of(), List.of());
         return new SurvivorPolicy(
                 s.getBoolean("Enabled", false),
-                s.getBoolean("RequireOnlineAtEnd", true),
                 s.getInt("MinimumParticipationSeconds", 60),
                 s.getBoolean("DisqualifyOnDeath", true),
                 s.getBoolean("DisqualifyOnWorldLeave", false),

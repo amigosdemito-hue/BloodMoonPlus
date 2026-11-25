@@ -30,6 +30,7 @@ event:
   survivors-none: "<gray>Nessuno era idoneo alla ricompensa sopravvissuti in {world}."
   survivor-disqualified-death: "<red>Sei morto e non puoi più ricevere la ricompensa di sopravvivenza."
   survivor-insufficient-participation: "<yellow>Non hai partecipato abbastanza a lungo per ricevere la ricompensa di sopravvivenza."
+  survivor-disqualified-world-leave: "<red>Hai lasciato il mondo dell'evento e non puoi più ricevere la ricompensa di sopravvivenza."
   already-active: "<red>C'è già un evento attivo in quel mondo."
   not-active: "<red>Nessun evento attivo."
 

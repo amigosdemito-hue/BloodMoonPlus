@@ -121,6 +121,11 @@ and always changed the global difficulty. Passing a world now changes only that 
   cleaned, and an unknown world is reported instead of silently cleaning everything.
 - **Named horde mobs finally show their name.** `horde.mobs[].name` was applied with
   `customName()` but never `setCustomNameVisible(true)`, so the configured name was invisible.
+- **`SurvivorRewards.DisqualifyOnWorldLeave` did nothing.** The key was parsed into
+  `SurvivorPolicy` and then never read, so a player who left the event world mid-event still
+  collected the survivor reward at the end. The session now records who abandoned its world, and
+  with the option enabled that player is disqualified and told why
+  (`event.survivor-disqualified-world-leave`, translated into all 7 languages).
 - **Survivor reward messages can use the per-player placeholders.** `%participation_seconds%`,
   `%participation_percent%`, `%died%` and `%survived%` were documented as filled at runtime but
   no code ever filled them, so they always printed nothing; they now resolve from the session's
@@ -132,6 +137,10 @@ and always changed the global difficulty. Passing a world now changes only that 
   every 0.5 s for nothing), the unused `BossManager.aliveSnapshot()`, two `if` branches in
   `SurvivorManager` that checked a policy and then did exactly the same `continue`, and the
   `firstLoad` check in `LocaleManager.reload()` that could never be true.
+- `SurvivorRewards.RequireOnlineAtEnd`, which could never be honoured: survivor rewards are only
+  paid to players online in the event world (there is no mailbox for offline rewards), so `true`
+  and `false` behaved exactly the same. It is gone from `SurvivorPolicy` and from
+  `worlds-template/config.yml`; existing per-world files may keep the key, it is simply ignored.
 - Dead code left over from earlier refactors: `EventManager.hasGlobalSession()`,
 `LootManager.hasTable()`, `DataStore.syncReload()`, `BloodMoonPlus.keys()`,
 `Keys.instance()`, `ScheduleManager.zone()`, `ScheduleManager.intervalHours()`, an unused

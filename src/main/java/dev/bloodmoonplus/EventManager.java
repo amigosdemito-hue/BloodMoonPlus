@@ -43,6 +43,9 @@ public final class EventManager {
         /** Murió al menos una vez: descalifica de supervivientes/estadísticas, pero NO
          *  deja de recibir hordas (dead solo marca mientras está muerto y se limpia al reaparecer). */
         public final Set<UUID> died = new HashSet<>();
+        /** Abandonó el mundo del evento a mitad del evento. Lo usa
+         *  SurvivorRewards.DisqualifyOnWorldLeave para descalificar de la recompensa. */
+        public final Set<UUID> leftWorld = new HashSet<>();
         public final Set<UUID> participants = new HashSet<>();
         /** Primera vez que cada jugador participó: tiempo real de participación. */
         public final Map<UUID, Long> joinedAtMs = new HashMap<>();

@@ -245,7 +245,12 @@ public final class EventListener implements Listener {
     @EventHandler
     public void onWorldChange(org.bukkit.event.player.PlayerChangedWorldEvent e) {
         EventManager.Session s = plugin.events().session(e.getFrom());
-        if (s != null) e.getPlayer().hideBossBar(s.bar);
+        if (s != null) {
+            e.getPlayer().hideBossBar(s.bar);
+            // SurvivorRewards.DisqualifyOnWorldLeave: abandonar el mundo del evento descalifica
+            // de la recompensa de superviviente. La opción se leía pero nunca se aplicaba.
+            s.leftWorld.add(e.getPlayer().getUniqueId());
+        }
     }
 
     @EventHandler

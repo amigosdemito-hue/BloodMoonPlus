@@ -10,8 +10,9 @@ import java.util.*;
 
 /**
  * Orquesta las recompensas de superviviente al final de un evento.
- * Respeta SurvivorPolicy del WorldConfig: RequireOnlineAtEnd, MinParticipationSeconds,
- * DisqualifyOnDeath, RewardOncePerSession, etc.
+ * Respeta SurvivorPolicy del WorldConfig: MinimumParticipationSeconds, DisqualifyOnDeath y
+ * DisqualifyOnWorldLeave. Solo se paga a jugadores online en el mundo del evento: no hay
+ * buzón para entregar recompensas a quien está desconectado.
  */
 public final class SurvivorManager {
 
@@ -51,6 +52,10 @@ public final class SurvivorManager {
                 // Estas dos traducciones existían pero no se enviaban nunca: el jugador se
                 // quedaba sin recompensa y sin saber por qué.
                 plugin.messages().send(p, "event.survivor-disqualified-death");
+                continue;
+            }
+            if (policy.disqualifyOnWorldLeave() && s.leftWorld.contains(id)) {
+                plugin.messages().send(p, "event.survivor-disqualified-world-leave");
                 continue;
             }
             // Participación real: desde que el jugador entró al evento hasta que terminó.

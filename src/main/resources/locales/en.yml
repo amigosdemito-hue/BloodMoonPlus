@@ -30,6 +30,7 @@ event:
   survivors-none: "<gray>No players were eligible for survivor rewards in {world}."
   survivor-disqualified-death: "<red>You died and are no longer eligible for the survivor reward."
   survivor-insufficient-participation: "<yellow>You did not participate long enough to receive the survivor reward."
+  survivor-disqualified-world-leave: "<red>You left the event world and are no longer eligible for the survivor reward."
   already-active: "<red>A Blood Moon is already active in that world."
   not-active: "<red>There is no active Blood Moon."
 

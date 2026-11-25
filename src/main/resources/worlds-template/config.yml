@@ -29,7 +29,6 @@ CommandsOnEnd: []
 # ---------------- Recompensa de supervivientes ----------------
 SurvivorRewards:
   Enabled: false
-  RequireOnlineAtEnd: true
   MinimumParticipationSeconds: 60
   DisqualifyOnDeath: true
   DisqualifyOnWorldLeave: false
