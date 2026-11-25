@@ -490,25 +490,20 @@ public final class BossManager {
         if (sc != null) sc.setBaseValue(1.3);
         c.setPowered(true);
         c.setExplosionRadius((int) Math.max(1, Math.round(power)));
-        // Paper rechaza una mecha mayor que maxFuseTicks (30 por defecto) con
-        // "IllegalArgumentException: ticks > maxFuseTicks": con las crías de 3 s (60 ticks)
-        // la habilidad SWARM fallaba y, al no devolver nada, se reintentaba dos veces por
-        // segundo. Se amplía el máximo y, aun así, se recorta al límite de la entidad.
+        // La mecha de Paper se mide por HINCHAZÓN: el creeper detona cuando su swell llega a
+        // maxFuseTicks, no cuando baja a cero. Arrancarla en maxFuseTicks la dejaba ya
+        // detonada y la cría reventaba en el tick siguiente en vez de aguantar sus 3 s (y
+        // Paper lanza "IllegalArgumentException: ticks > maxFuseTicks" si se pasa). Se
+        // amplía el máximo y la hinchazón arranca en 0: la mecha dura fuseSec segundos.
         int wantedFuse = Math.max(20, fuseSec * 20);
         c.setMaxFuseTicks(wantedFuse);
-        c.setFuseTicks(fuseWithinLimits(wantedFuse, c.getMaxFuseTicks()));
+        c.setFuseTicks(0);
         c.setIgnited(true);
         c.addScoreboardTag(EventManager.HORDE_TAG);
         c.addScoreboardTag(MINION_TAG);
         // Ocupa su hueco al nacer, sin esperar al resync de countHordeAlive.
         plugin.events().countInPool(c);
         return true;
-    }
-
-    /** Ticks de mecha válidos para un creeper: nunca por encima de maxFuseTicks (Paper lanza
-     *  IllegalArgumentException) ni por debajo de 1. */
-    static int fuseWithinLimits(int fuseTicks, int maxFuseTicks) {
-        return Math.max(1, Math.min(fuseTicks, Math.max(1, maxFuseTicks)));
     }
 
     private static double arg(Ability a, int i, double def) {
