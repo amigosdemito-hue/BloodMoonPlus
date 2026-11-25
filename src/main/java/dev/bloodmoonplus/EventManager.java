@@ -716,9 +716,14 @@ public final class EventManager {
         return false;
     }
 
+    /** ¿El pozo compartido está lleno? Lo consultan los esbirros de jefe antes de invocar, para
+     *  no pasarse del techo ni siquiera entre dos resyncs. */
+    public boolean poolFull() { return poolAlive() >= maxAliveTotal; }
+
     /** Suma al pozo un mob que no pasó por {@link #spawn}: los jefes de MythicMobs los invoca
-     *  Mythic por su cuenta. Así ocupan su hueco en el mismo instante en que aparecen y no hay
-     *  que esperar al resync de countHordeAlive. Un mundo sin sesión no suma nada. */
+     *  Mythic por su cuenta, y los mini-jefes de SWARM los crea BossManager. Así ocupan su hueco
+     *  en el mismo instante en que aparecen y no hay que esperar al resync de countHordeAlive.
+     *  Un mundo sin sesión no suma nada. */
     public void countInPool(Entity mob) {
         if (mob == null) return;
         Session s = session(mob.getWorld());
@@ -863,7 +868,7 @@ public final class EventManager {
      *  Respeta el pozo: con el presupuesto lleno el jefe no invoca más, así los esbirros que ya
      *  tiene ocupan el techo hasta que muera. */
     public LivingEntity spawnMinion(Location loc, EntityType type, double diff, Player target) {
-        if (poolAlive() >= maxAliveTotal) return null;
+        if (poolFull()) return null;
         for (MobDef d : mobs) {
             if (d.type() == type) {
                 return spawn(loc, type, d.health(), d.damage(), d.speed(), d.display(), d.equipment(), d.equipChance(), diff, d.table(), target);

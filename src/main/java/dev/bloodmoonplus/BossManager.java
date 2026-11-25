@@ -479,6 +479,8 @@ public final class BossManager {
     private boolean spawnMini(Location loc, int fuseSec, double power) {
         World w = loc.getWorld();
         if (w == null) return false;
+        // El pozo manda también aquí: con el presupuesto lleno no nace otra cría.
+        if (plugin.events().poolFull()) return false;
         org.bukkit.entity.Creeper c = w.spawn(loc, org.bukkit.entity.Creeper.class);
         c.customName(Util.mini("<green><bold>Cría del Cataclismo"));
         c.setCustomNameVisible(true);
@@ -498,6 +500,8 @@ public final class BossManager {
         c.setIgnited(true);
         c.addScoreboardTag(EventManager.HORDE_TAG);
         c.addScoreboardTag(MINION_TAG);
+        // Ocupa su hueco al nacer, sin esperar al resync de countHordeAlive.
+        plugin.events().countInPool(c);
         return true;
     }
 
@@ -749,6 +753,9 @@ public final class BossManager {
                 // decenas de creepers cargados y cada uno explota con su propio barrido.
                 int room = MAX_MINIONS - minionsAlive(boss);
                 if (room <= 0) return true; // ya está a tope: se reinicia la recarga sin spamear
+                // Sin hueco en el pozo tampoco se invoca: se espera a la próxima recarga en vez
+                // de reintentar cada tick con su búsqueda de suelo.
+                if (plugin.events().poolFull()) return true;
                 count = Math.min(count, room);
                 int spawned = 0;
                 for (int i = 0; i < count; i++) {
