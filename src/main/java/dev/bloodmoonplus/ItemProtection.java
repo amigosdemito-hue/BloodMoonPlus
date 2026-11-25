@@ -96,16 +96,39 @@ public final class ItemProtection implements Listener {
         if (plugin.items().refresh(stack)) e.getItem().setItemStack(stack);
     }
 
-    /** Sacar el objeto de un cofre o shulker, soltarlo o moverlo dentro del inventario: se pone
-     *  al día SOLO la ranura en la que queda, en el tick siguiente. El cursor no se toca
-     *  (escribirlo a mitad de un clic desincroniza la pantalla del cliente) y no se recorre el
-     *  inventario entero, así que el resto de ranuras no se reescribe nunca. */
+    /** Clic que deja el objeto en el inventario del jugador: se pone al día SOLO la ranura en la
+     *  que queda, en el tick siguiente. El cursor no se toca (escribirlo a mitad de un clic
+     *  desincroniza la pantalla del cliente) y no se recorre el inventario entero, así que el
+     *  resto de ranuras no se reescribe nunca. */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onClick(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player p)) return;
-        if (!(e.getClickedInventory() instanceof PlayerInventory)) return;
-        if (!plugin.items().isMoonItem(e.getCurrentItem()) && !plugin.items().isMoonItem(e.getCursor())) return;
-        refreshSlotsSoon(p, e.getView(), List.of(e.getRawSlot()));
+        boolean moonCurrent = plugin.items().isMoonItem(e.getCurrentItem());
+        if (!moonCurrent && !plugin.items().isMoonItem(e.getCursor())) return;
+        if (e.getClickedInventory() instanceof PlayerInventory) {
+            refreshSlotsSoon(p, e.getView(), List.of(e.getRawSlot()));
+            return;
+        }
+        // Clic en un cofre, Shulker o cofre del End: con un clic normal el objeto se queda en el
+        // cursor (y ahí no se reescribe nada), pero con shift-clic o con la tecla de hotbar salta
+        // al inventario del jugador y no hay forma barata de saber a qué ranura, así que en ese
+        // caso se pone al día el inventario una vez. Es una acción suelta, no el clic de cada día.
+        if (!moonCurrent) return;
+        switch (e.getAction()) {
+            case MOVE_TO_OTHER_INVENTORY, HOTBAR_SWAP, HOTBAR_MOVE_AND_READD -> refreshPlayerSoon(p);
+            default -> { }
+        }
+    }
+
+    /** Encola UNA puesta al día completa (inventario, armadura, mano secundaria y cofre del End)
+     *  para el tick siguiente: el shift-clic desde un cofre ya ha terminado y así no se escribe
+     *  inventario a mitad de un clic. */
+    private void refreshPlayerSoon(Player p) {
+        if (!refreshQueued.add(p.getUniqueId().toString())) return;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            refreshQueued.remove(p.getUniqueId().toString());
+            if (p.isOnline()) plugin.items().refreshPlayer(p);
+        });
     }
 
     /** Encola UNA puesta al día por ranura (slots crudos de la vista) para el tick siguiente:

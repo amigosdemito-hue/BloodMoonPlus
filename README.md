@@ -499,7 +499,12 @@ Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) 
   máximo del item **bajan** (Filo 7 → Filo 5; Protección 7 → Protección 5 en legendarios y
   míticos), se pone la Maldición de desaparición y se borran los datos viejos de habilidades.
   No se pierde el desgaste, ni el nombre que le pusiste, ni los encantamientos extra que añadiste
-  y que no figuran en el `items.yml`.
+  y que no figuran en el `items.yml`. Funciona también con **shift-clic o la tecla de hotbar** al
+  sacar el objeto de un cofre, Shulker o Cofre del End: se pone al día al caer en tu inventario.
+- **Dos casos se quedan fuera a propósito:** un objeto **arrastrado** con el ratón no se toca en
+  ese momento (se pone al día en el siguiente clic sobre él) y lo que sigue **guardado** en un
+  cofre o en el Cofre del End no se reescribe al abrirlo; ahí actúan la entrada al servidor y
+  `/luna refresh`.
 - **`/luna refresh <jugador|all>`** (o `/luna actualizar`): aplica esa puesta al día al instante a
   todo el inventario, la armadura, la mano secundaria y el cofre del End del jugador. Requiere
   `bloodmoon.admin`.

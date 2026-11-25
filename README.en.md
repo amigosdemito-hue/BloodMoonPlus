@@ -475,6 +475,11 @@ would leave Protection 4 in place.
 4. Run `/luna refresh all` (or let players reconnect or pick their gear up): that is when a
    Protection 4 chestplate already handed out becomes Protection 5.
 
+> Shift-clicking (or using a hotbar key) to pull gear out of a chest, shulker or the ender chest
+> refreshes it as it lands in your inventory. Two cases stay out on purpose: gear **dragged** with
+> the mouse is refreshed on the next click on it, and gear still **stored** in a chest or in the
+> ender chest is only refreshed on join or with `/luna refresh`.
+
 > ⚠️ Never remove ExcellentEnchants while gear is out: Minecraft deletes items whose enchantment
 > does not exist. Run `/luna refresh all` on a server where EE loaded first.
 
