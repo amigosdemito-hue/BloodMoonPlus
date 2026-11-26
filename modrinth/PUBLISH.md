@@ -55,7 +55,7 @@ Adicionales (`additional_categories`): `equipment`, `magic`, `utility`
 | **Loader(s)** | `Paper` (opcional: `Purpur`) |
 | **Game version(s)** | La(s) versión(es) de Minecraft correspondientes a Paper **26.2 / 26.3** |
 | **File** | `BloodMoonPlus-<versión>.jar` |
-| **Dependencies** | Ninguna obligatoria. Opcional: `PlaceholderAPI` (Required=false) |
+| **Dependencies** | Paper 26.2+ (obligatoria). Opcionales: `ExcellentEnchants` + `NightCore` (encantamientos custom), `PlaceholderAPI` (placeholders), `MythicMobs` (jefes Mythic). Todas con *Required=false* |
 
 > ⚠️ Verifica en la lista de Modrinth qué versión de Minecraft corresponde a tu
 > Paper 26.2/26.3 y marca solo esas. Si no aparece, marca la más cercana y

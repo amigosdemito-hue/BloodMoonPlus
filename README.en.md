@@ -6,6 +6,23 @@ Everything you need to know about the **10 bosses** of the Blood Moon and the **
 
 ---
 
+## 🔌 Dependencies
+
+**Required: Paper 26.2 or newer with Java 25.** No other plugin is needed to start.
+
+| Plugin | Tested version | Type | What it adds | If missing |
+|---|---|---|---|---|
+| **Paper** | 26.2 / 26.3 (tested on 26.1.2 and 26.3) | Required | Server | The plugin does not load |
+| **ExcellentEnchants** + **NightCore** | EE 5.4.3 · NightCore 2.16.7 | Optional, strongly recommended | The custom enchantments (`vampire`, `thunder`, `tunnel`, `veinminer`, `dragon_heart`…) on the 104 items | Items are created with vanilla enchantments only and the console warns; items already handed out with EE enchantments are lost on join (Minecraft deletes unknown enchantments) |
+| **PlaceholderAPI** | 2.11.6 | Optional | The `%bloodmoon_*%` placeholders | Everything else works; there are simply no placeholders |
+| **MythicMobs** | 5.12+ | Optional | Bosses with `mode: MYTHICMOBS` in `bosses.yml` | The vanilla boss is used when `mythic-fallback: true`; with the fallback disabled that boss does not appear |
+
+- They are declared as `softdepend` in `plugin.yml`: load order is correct without forcing you to install them (no hard dependencies).
+- **NightCore is not used directly**: it is a dependency of ExcellentEnchants, not of this plugin.
+- The MythicMobs bridge uses reflection (5.x): on another major version the plugin warns and keeps running with the vanilla bosses.
+
+---
+
 # 🩸 PART 1 — BOSSES
 
 ## How bosses work

@@ -5,7 +5,7 @@ api-version: '26.2'
 load: POSTWORLD
 description: Luna de Sangre con horarios fijos (hora de México), loot por rareza, items legendarios/míticos, jefes y dificultad escalable.
 authors: [BloodMoonPlus]
-softdepend: [PlaceholderAPI, Multiverse-Core, WorldGuard, ExcellentEnchants, nightcore]
+softdepend: [ExcellentEnchants, PlaceholderAPI, MythicMobs]
 commands:
   luna:
     description: Control de la Luna de Sangre
