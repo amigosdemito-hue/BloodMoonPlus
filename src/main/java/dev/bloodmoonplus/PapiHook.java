@@ -166,7 +166,7 @@ public final class PapiHook extends PlaceholderExpansion {
                     var pid = player != null ? player.getUniqueId() : null;
                     // Las rarezas se guardan con Util.key (mayúsculas y sin acentos): usar la
                     // misma normalización evita que %bloodmoon_pity_mítico% devuelva 0.
-                    if (pid != null) yield String.valueOf(plugin.data().pity(pid, Util.key(sub)));
+                    if (pid != null) yield String.valueOf(plugin.data().pityBest(pid, Util.key(sub)));
                 }
                 yield null;
             }
@@ -243,8 +243,9 @@ public final class PapiHook extends PlaceholderExpansion {
         return "100%";
     }
 
-    /** Objetos únicos que lleva el jugador. Recorre también armadura y mano secundaria: antes
-     *  solo miraba el inventario principal y un mítico puesto no contaba. */
+    /** Objetos de la Luna de rareza Épico o superior que lleva el jugador (los "únicos" ya no
+     *  existen: este contador mide piezas especiales). Recorre también armadura y mano secundaria:
+     *  antes solo miraba el inventario principal y un mítico puesto no contaba. */
     private int countUniqueItems(Player p) {
         int n = 0;
         java.util.List<org.bukkit.inventory.ItemStack> all = new java.util.ArrayList<>(
@@ -254,7 +255,11 @@ public final class PapiHook extends PlaceholderExpansion {
         for (var item : all) {
             if (item == null || !item.hasItemMeta()) continue;
             var pdc = item.getItemMeta().getPersistentDataContainer();
-            if (pdc.has(dev.bloodmoonplus.Keys.ITEM_SERIAL, org.bukkit.persistence.PersistentDataType.INTEGER)) n++;
+            String rarity = pdc.get(dev.bloodmoonplus.Keys.ITEM_RARITY,
+                    org.bukkit.persistence.PersistentDataType.STRING);
+            int rank = plugin.loot().rarityRank(rarity);
+            int epic = plugin.loot().rarityRank("EPICO");
+            if (rank >= 0 && epic >= 0 && rank >= epic) n++;
         }
         return n;
     }

@@ -58,7 +58,6 @@ loot:
 # ==================== Items ====================
 item:
   rarity-line: "<gray>Seltenheit: {rarity}"
-  serial-line: "<dark_red>Einzelstück <white>#{serial}<gray>/{limit}"
   owner-line: "<dark_gray>Gejagt von <white>{owner}"
   owner-unknown: "<dark_gray>Jäger unbekannt"
   no-disenchant: "<red>Blutmond-Gegenstände verlieren niemals Verzauberungen oder Flüche."
@@ -95,7 +94,6 @@ cmd:
   usage-give: "<yellow>Benutzung: /luna give <spieler> <item> [menge]"
   player-unknown: "<red>Spieler {player} nicht gefunden."
   item-unknown: "<red>Der Gegenstand {item} existiert nicht (nutze /luna items)."
-  item-limit: "<red>Der Gegenstand {item} hat das Limit von {limit} Einzelstücken erreicht."
   target-unknown: "<red>Es gibt keinen Spieler und keine Welt namens {target}."
   boss-spawned-world: "<green>Boss {boss} in {world} beschworen."
   boss-usage-no-event: "<red>Ohne aktives Event nutze /luna boss <id> <spieler|welt>."

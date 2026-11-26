@@ -13,12 +13,11 @@ import org.bukkit.persistence.PersistentDataType;
 import java.io.File;
 import java.util.*;
 
-/** Definiciones de items (items.yml) y construcción de ItemStacks con encantamientos y números de serie. */
+/** Definiciones de items (items.yml) y construcción de ItemStacks con encantamientos, rareza y dueño. */
 public final class ItemFactory {
 
     public record ItemDef(String id, Material material, String name, List<String> lore, String rarity,
-                          Map<String, Integer> enchants, boolean unbreakable, boolean glow, String itemModel,
-                          int limit) {}
+                          Map<String, Integer> enchants, boolean unbreakable, boolean glow, String itemModel) {}
 
     private final BloodMoonPlus plugin;
     private final Map<String, ItemDef> defs = new LinkedHashMap<>();
@@ -60,7 +59,7 @@ public final class ItemFactory {
             }
             defs.put(id, new ItemDef(id, m, s.getString("name"), s.getStringList("lore"),
                     rarity, ench, s.getBoolean("unbreakable"),
-                    s.getBoolean("glow"), s.getString("item-model"), s.getInt("limit", 0)));
+                    s.getBoolean("glow"), s.getString("item-model")));
         }
         warnUnknownEnchants();
         warnUnsupportedEnchants();
@@ -97,14 +96,9 @@ public final class ItemFactory {
             rp.set(Keys.ITEM_ID, PersistentDataType.STRING, id);
             changed = true;
         }
-        Integer serial = op.get(Keys.ITEM_SERIAL, PersistentDataType.INTEGER);
-        if (serial != null && !rp.has(Keys.ITEM_SERIAL, PersistentDataType.INTEGER)) {
-            rp.set(Keys.ITEM_SERIAL, PersistentDataType.INTEGER, serial);
-            changed = true;
-        }
         // La rareza y el cazador viajaban en el PDC del objeto original: si el yunque o la
         // herrería los perdían, el objeto dejaba de brillar, de ir directo al inventario y de
-        // mostrar su dueño. Se restauran junto al id y el número de serie.
+        // mostrar su dueño. Se restauran junto al id.
         String rarity = op.get(Keys.ITEM_RARITY, PersistentDataType.STRING);
         if (rarity != null && !rarity.equals(rp.get(Keys.ITEM_RARITY, PersistentDataType.STRING))) {
             rp.set(Keys.ITEM_RARITY, PersistentDataType.STRING, rarity);
@@ -208,8 +202,7 @@ public final class ItemFactory {
         // recupera su descripción, su línea de rareza y su cazador en vez de quedarse con una
         // lore vieja e incompleta para siempre.
         if (d.name() != null) {
-            Integer serial = pdc.get(Keys.ITEM_SERIAL, PersistentDataType.INTEGER);
-            List<Component> lore = loreFor(d, owner, serial == null ? 0 : serial);
+            List<Component> lore = loreFor(d, owner);
             if (!lore.equals(meta.lore())) {
                 meta.lore(lore);
                 changed = true;
@@ -309,25 +302,18 @@ public final class ItemFactory {
 
     public Set<String> ids() { return defs.keySet(); }
 
-    public boolean available(ItemDef d) { return d.limit() <= 0 || plugin.data().created(d.id()) < d.limit(); }
-
-    /** Crea un item respetando el límite global (items únicos). Devuelve null si ya se agotó. */
+    /** Crea un item del catálogo con su rareza y su dueño. */
     public ItemStack create(ItemDef d, int amount, String owner) {
-        int serial = 0;
-        if (d.limit() > 0) {
-            if (plugin.data().created(d.id()) >= d.limit()) return null;
-            serial = plugin.data().nextSerial(d.id());
-        }
-        return build(d, amount, owner, serial);
+        return build(d, amount, owner);
     }
 
-    public ItemStack build(ItemDef d, int amount, String owner, int serial) {
+    public ItemStack build(ItemDef d, int amount, String owner) {
         ItemStack stack = new ItemStack(d.material(), Math.max(1, amount));
         ItemMeta meta = stack.getItemMeta();
         if (meta == null) return stack;
         if (d.name() != null) meta.displayName(Util.item(d.name()));
 
-        List<Component> lore = loreFor(d, owner, serial);
+        List<Component> lore = loreFor(d, owner);
         if (!lore.isEmpty()) meta.lore(lore);
 
         for (Map.Entry<String, Integer> e : d.enchants().entrySet()) {
@@ -351,16 +337,15 @@ public final class ItemFactory {
         var pdc = meta.getPersistentDataContainer();
         pdc.set(Keys.ITEM_ID, PersistentDataType.STRING, d.id());
         pdc.set(Keys.ITEM_RARITY, PersistentDataType.STRING, d.rarity());
-        if (serial > 0) pdc.set(Keys.ITEM_SERIAL, PersistentDataType.INTEGER, serial);
         if (owner != null && !owner.isBlank()) pdc.set(Keys.ITEM_OWNER, PersistentDataType.STRING, owner);
         stack.setItemMeta(meta);
         return stack;
     }
 
-    /** Lore completa del objeto: descripción de items.yml, línea de rareza y cazador (y número
-     *  de serie si es único). Se genera en un único sitio para que build() y refresh() nunca
-     *  produzcan objetos distintos y para que los repartidos antes recuperen lo que les faltaba. */
-    private List<Component> loreFor(ItemDef d, String owner, int serial) {
+    /** Lore completa del objeto: descripción de items.yml, línea de rareza y cazador. Se genera
+     *  en un único sitio para que build() y refresh() nunca produzcan objetos distintos y para
+     *  que los repartidos antes recuperen lo que les faltaba. */
+    private List<Component> loreFor(ItemDef d, String owner) {
         if (d.name() == null) return List.of();
         String rarityDisp = plugin.loot().rarityDisplay(d.rarity());
         String hunter = owner == null || owner.isBlank() || owner.equals("?") ? null : owner;
@@ -377,10 +362,6 @@ public final class ItemFactory {
         lore.add(Util.item(hunter == null
                 ? msg.raw("item.owner-unknown")
                 : msg.fill(msg.raw("item.owner-line"), "owner", hunter)));
-        if (d.limit() > 0 && serial > 0) {
-            lore.add(Util.item(msg.fill(msg.raw("item.serial-line"), "serial", String.valueOf(serial),
-                    "limit", String.valueOf(d.limit()))));
-        }
         return lore;
     }
 }

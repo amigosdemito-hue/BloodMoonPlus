@@ -162,6 +162,60 @@ class ResourceYamlTest {
         assertTrue(missing.isEmpty(), "Entradas de loot sin item definido: " + missing);
     }
 
+    /** Todo objeto del catálogo debe aparecer en alguna tabla: un item que no está en ninguna
+     *  entrada existe, se puede dar con /luna give, pero no cae nunca y nadie lo nota. Pasó con
+     *  el tridente de la tormenta, que se quedó fuera de la tabla de la horda. */
+    @Test
+    void everyItemDropsSomewhere() {
+        YamlConfiguration items = YamlConfiguration.loadConfiguration(res("items.yml"));
+        YamlConfiguration loot = YamlConfiguration.loadConfiguration(res("loot.yml"));
+        Set<String> referenced = new HashSet<>();
+        for (String tableId : loot.getConfigurationSection("tables").getKeys(false)) {
+            for (String listKey : List.of("entries", "guaranteed")) {
+                for (Map<?, ?> entry : loot.getMapList("tables." + tableId + "." + listKey)) {
+                    Object item = entry.get("item");
+                    if (item != null) referenced.add(String.valueOf(item));
+                }
+            }
+        }
+        List<String> orphans = new ArrayList<>();
+        for (String id : items.getConfigurationSection("items").getKeys(false)) {
+            if (!referenced.contains(id)) orphans.add(id);
+        }
+        assertTrue(orphans.isEmpty(), "Items que no caen en ninguna tabla de loot: " + orphans);
+    }
+
+    /** Pesos y probabilidades deben ser números válidos: un peso negativo o un drop-chance >1
+     *  desviaba el sorteo (LootManager los ignora y avisa al cargar, pero mejor no publicarlos). */
+    @Test
+    void lootNumbersAreValid() {
+        YamlConfiguration loot = YamlConfiguration.loadConfiguration(res("loot.yml"));
+        List<String> bad = new ArrayList<>();
+        for (String tableId : loot.getConfigurationSection("tables").getKeys(false)) {
+            String base = "tables." + tableId;
+            double chance = loot.getDouble(base + ".drop-chance", 1.0);
+            if (chance < 0 || chance > 1) bad.add(tableId + ".drop-chance=" + chance);
+            var weights = loot.getConfigurationSection(base + ".rarity-weights");
+            if (weights != null) {
+                for (String r : weights.getKeys(false)) {
+                    double w = weights.getDouble(r);
+                    if (w < 0 || Double.isNaN(w)) bad.add(tableId + ".rarity-weights." + r + "=" + w);
+                }
+            }
+            for (Map<?, ?> entry : loot.getMapList(base + ".entries")) {
+                Object raw = entry.get("drop-chance");
+                if (raw instanceof Number n && (n.doubleValue() < 0 || n.doubleValue() > 1)) {
+                    bad.add(tableId + " -> " + entry.get("item") + " drop-chance=" + n.doubleValue());
+                }
+                Object w = entry.get("weight");
+                if (w instanceof Number n && n.doubleValue() <= 0) {
+                    bad.add(tableId + " -> " + entry.get("item") + " weight=" + n.doubleValue());
+                }
+            }
+        }
+        assertTrue(bad.isEmpty(), "Valores de loot fuera de rango: " + bad);
+    }
+
     @Test
     void everyItemUsesAKnownRarity() {
         YamlConfiguration items = YamlConfiguration.loadConfiguration(res("items.yml"));

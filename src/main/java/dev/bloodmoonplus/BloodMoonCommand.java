@@ -67,13 +67,13 @@ public final class BloodMoonCommand implements TabExecutor {
                 m().send(s, "cmd.items-header");
                 for (String id : plugin.items().ids()) {
                     ItemFactory.ItemDef d = plugin.items().get(id);
-                    s.sendMessage(Util.mini("<dark_gray>- <white>" + id + " <gray>" + plugin.loot().rarityDisplay(d.rarity())
-                            + (d.limit() > 0 ? " <red>(" + plugin.data().created(id) + "/" + d.limit() + ")" : "")));
+                    s.sendMessage(Util.mini("<dark_gray>- <white>" + id + " <gray>"
+                            + plugin.loot().rarityDisplay(d.rarity())));
                 }
             }
             case "chances" -> {
                 if (a.length < 1) { m().send(s, "cmd.usage-chances"); return true; }
-                List<String> lines = plugin.loot().describe(a[0]);
+                List<String> lines = plugin.loot().describe(a[0], s instanceof Player p ? p : null);
                 if (lines == null) { m().send(s, "cmd.table-unknown", "table", a[0]); return true; }
                 for (String l : lines) s.sendMessage(Util.mini(l));
             }
@@ -360,21 +360,8 @@ public final class BloodMoonCommand implements TabExecutor {
         if (d == null) { m().send(s, "cmd.item-unknown", "item", a[1]); return; }
         int n = 1;
         if (a.length > 2) { try { n = Math.max(1, Math.min(64, Integer.parseInt(a[2]))); } catch (NumberFormatException ignored) { } }
-        // Antes el bucle esperaba hasta 2 s de reloj por si el límite de ejemplares frenaba la
-        // creación; create() ya devuelve null en cuanto se agota, así que sobraba esa espera.
         List<ItemStack> created = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            ItemStack ci = plugin.items().create(d, 1, p.getName());
-            if (ci == null) break;
-            created.add(ci);
-        }
-        if (created.isEmpty()) {
-            // El item existe pero ya no quedan ejemplares únicos: antes se avisaba de que el
-            // item no existía, que es falso y despista al administrador.
-            if (d.limit() > 0) m().send(s, "cmd.item-limit", "item", a[1], "limit", String.valueOf(d.limit()));
-            else m().send(s, "cmd.item-unknown", "item", a[1]);
-            return;
-        }
+        for (int i = 0; i < n; i++) created.add(plugin.items().create(d, 1, p.getName()));
         for (ItemStack it : created) {
             plugin.loot().giveOrDrop(p, it);
         }

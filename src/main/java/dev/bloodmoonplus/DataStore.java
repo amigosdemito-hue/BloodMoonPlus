@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
 
-/** Persistencia en data.yml: slots ya disparados, contadores de items únicos, pity y evento activo.
+/** Persistencia en data.yml: slots ya disparados, pity por tabla/rareza y evento activo.
  *  Usa un lock simple para serializar lecturas/escrituras del YAML en memoria y del archivo.
  *  El hilo principal es el único que escribe en la mayoría de casos, pero los placeholders
  *  (que pueden llegar desde un hilo async) leen el archivo, así que protegemos ambas operaciones.
@@ -70,41 +70,40 @@ public final class DataStore {
         }
     }
 
-    int created(String itemId) {
+    /** Pity acumulado de una rareza en una tabla concreta. La tabla forma parte de la clave: la
+     *  mala suerte matando mobs de la horda ya no infla las tiradas de los jefes. */
+    int pity(UUID u, String table, String rarity) {
         lock.lock();
         try {
-            return cfg.getInt("created." + itemId, 0);
+            return cfg.getInt("pity." + u + "." + table + "." + rarity, 0);
         } finally {
             lock.unlock();
         }
     }
 
-    int nextSerial(String itemId) {
+    void setPity(UUID u, String table, String rarity, int v) {
         lock.lock();
         try {
-            int n = created(itemId) + 1;
-            cfg.set("created." + itemId, n);
+            cfg.set("pity." + u + "." + table + "." + rarity, v <= 0 ? null : v);
             dirty = true;
-            return n;
         } finally {
             lock.unlock();
         }
     }
 
-    int pity(UUID u, String rarity) {
+    /** Mayor pity de una rareza entre todas las tablas (para el placeholder %bloodmoon_pity_x%). */
+    int pityBest(UUID u, String rarity) {
         lock.lock();
         try {
-            return cfg.getInt("pity." + u + "." + rarity, 0);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    void setPity(UUID u, String rarity, int v) {
-        lock.lock();
-        try {
-            cfg.set("pity." + u + "." + rarity, v < 0 ? null : v);
-            dirty = true;
+            ConfigurationSection root = cfg.getConfigurationSection("pity." + u);
+            if (root == null) return 0;
+            int best = 0;
+            for (String table : root.getKeys(false)) {
+                ConfigurationSection t = root.getConfigurationSection(table);
+                if (t == null) continue; // claves antiguas pity.<uuid>.<rareza> (formato 1.0.3)
+                best = Math.max(best, t.getInt(rarity, 0));
+            }
+            return best;
         } finally {
             lock.unlock();
         }

@@ -1,7 +1,7 @@
 # ============================================================
 #  ITEMS (vanilla y custom). La rareza decide cuándo caen (ver loot.yml).
 #  Campos: material, name, lore, rarity, enchants, unbreakable, glow,
-#          item-model, limit (máx. ejemplares en TODO el servidor, con número de serie).
+#          item-model.
 #
 #  CATÁLOGO: cada clase de arma, herramienta y armadura tiene una versión de CADA rareza
 #  (COMUN, POCO_COMUN, RARO, EPICO, LEGENDARIO y MITICO). Los materiales suben con la
@@ -27,6 +27,7 @@
 #               la 1.0.2 trae vanishing_curse, se le quita solo al entrar al servidor, al
 #               recogerlo del suelo y con /luna refresh <jugador|all>.
 #
+#  NO hay límite de ejemplares: un mítico puede caer tantas veces como salga.
 #  Placeholders de lore: {owner} {rarity}
 #  La linea de rareza y la de cazador se anaden SOLAS a cualquier objeto con nombre (el dueno
 #  sale de quien lo consiguio); no hace falta escribirlas en el lore de cada item.
@@ -100,7 +101,6 @@ items:
       - "<gray>Forjada en el instante en que la luna sangró."
       - "<red>Vampírico III · Trueno V · Parálisis III · Golpe doble II"
     rarity: MITICO
-    limit: 3
     enchants: { sharpness: 5, unbreaking: 3, mending: 1, fire_aspect: 2, looting: 3, sweeping_edge: 3, vampire: 3, thunder: 5, wither: 2, double_strike: 2, paralyze: 3 }
     unbreakable: true
     glow: true
@@ -152,7 +152,6 @@ items:
       - "<gray>El último sonido que oyeron."
       - "<red>Trueno V · Golpe doble II · Vampírico III · Leñador"
     rarity: MITICO
-    limit: 3
     enchants: { sharpness: 5, efficiency: 5, unbreaking: 3, mending: 1, double_strike: 2, vampire: 3, thunder: 5, decapitator: 2, treefeller: 1 }
     unbreakable: true
     glow: true
@@ -198,7 +197,6 @@ items:
       - "<gray>La montaña se rinde a su paso."
       - "<red>Túnel III · Minero de vetas III · Fundidor V · Telequinesis"
     rarity: MITICO
-    limit: 3
     enchants: { efficiency: 5, fortune: 3, unbreaking: 3, mending: 1, tunnel: 3, veinminer: 3, blast_mining: 2, smelter: 5, telekinesis: 1 }
     unbreakable: true
     glow: true
@@ -244,7 +242,6 @@ items:
       - "<gray>Donde cava, ya no hay nada."
       - "<red>Túnel III · Prisa III · Fundidor V · Telequinesis"
     rarity: MITICO
-    limit: 3
     enchants: { efficiency: 5, fortune: 3, unbreaking: 3, mending: 1, tunnel: 3, haste: 3, smelter: 5, telekinesis: 1 }
     unbreakable: true
     glow: true
@@ -290,7 +287,6 @@ items:
       - "<gray>La noche cosecha a los vivos."
       - "<red>Prisa III · Fundidor V · Telequinesis · Replantador"
     rarity: MITICO
-    limit: 3
     enchants: { efficiency: 5, unbreaking: 3, mending: 1, haste: 3, smelter: 5, telekinesis: 1, replanter: 1 }
     unbreakable: true
     glow: true
@@ -342,7 +338,6 @@ items:
       - "<gray>La noche entera cabe en una flecha."
       - "<red>Flechas vampíricas III · Explosivas III · De dragón III · Electrizadas II"
     rarity: MITICO
-    limit: 3
     enchants: { power: 5, punch: 2, flame: 1, infinity: 1, unbreaking: 3, mending: 1, vampiric_arrows: 3, explosive_arrows: 3, dragonfire_arrows: 3, sniper: 2, electrified_arrows: 2 }
     unbreakable: true
     glow: true
@@ -388,7 +383,6 @@ items:
       - "<gray>Tres virotes y tres finales distintos."
       - "<red>Explosivas III · Vampíricas III · De dragón III · Electrizadas III"
     rarity: MITICO
-    limit: 3
     enchants: { multishot: 1, quick_charge: 3, piercing: 4, unbreaking: 3, mending: 1, electrified_arrows: 3, explosive_arrows: 3, vampiric_arrows: 3, dragonfire_arrows: 3, sniper: 2 }
     unbreakable: true
     glow: true
@@ -434,7 +428,6 @@ items:
       - "<gray>Llama a la tormenta carmesí."
       - "<red>Infernal III · Canalización · Empalador V · Alma ligada"
     rarity: MITICO
-    limit: 3
     enchants: { impaling: 5, loyalty: 3, channeling: 1, unbreaking: 3, mending: 1, infernus: 3, soulbound: 1, restore: 3 }
     unbreakable: true
     glow: true
@@ -480,7 +473,6 @@ items:
       - "<gray>Cada golpe sacude la tierra."
       - "<red>Densidad V · Brecha IV · Reparación automática · Alma ligada"
     rarity: MITICO
-    limit: 3
     enchants: { density: 5, breach: 4, wind_burst: 3, unbreaking: 3, mending: 1, soulbound: 1, restore: 3 }
     unbreakable: true
     glow: true
@@ -526,7 +518,6 @@ items:
       - "<gray>Quien la porta ve en la oscuridad."
       - "<red>Protección elemental IV · Visión nocturna · Saturación II · Respiración acuática"
     rarity: MITICO
-    limit: 3
     enchants: { protection: 5, unbreaking: 3, mending: 1, thorns: 3, respiration: 3, elemental_protection: 4, night_vision: 1, saturation: 2, water_breathing: 1 }
     unbreakable: true
     glow: true
@@ -572,7 +563,6 @@ items:
       - "<gray>Forjado con la ceniza de una estrella."
       - "<red>Corazón de dragón V · Escudo ígneo IV · Acero frío III · Protección elemental IV"
     rarity: MITICO
-    limit: 3
     enchants: { protection: 5, unbreaking: 3, mending: 1, thorns: 3, fire_shield: 4, hardened: 2, dragon_heart: 5, cold_steel: 3, elemental_protection: 4 }
     unbreakable: true
     glow: true
@@ -618,7 +608,6 @@ items:
       - "<gray>El suelo nunca las alcanza."
       - "<red>Protección elemental IV · Fuerza de frenado III · Sigilo III · Espinas III"
     rarity: MITICO
-    limit: 3
     enchants: { protection: 5, unbreaking: 3, mending: 1, thorns: 3, elemental_protection: 4, stopping_force: 3, swift_sneak: 3 }
     unbreakable: true
     glow: true
@@ -670,7 +659,6 @@ items:
       - "<gray>Pisas la noche y no dejas huella."
       - "<red>Velocidad II · Salto II · Caminafuego II · Rebote · Protección elemental IV"
     rarity: MITICO
-    limit: 3
     enchants: { protection: 5, unbreaking: 3, mending: 1, feather_falling: 4, depth_strider: 3, soul_speed: 3, elemental_protection: 4, speed: 2, jumping: 2, flame_walker: 2, rebound: 1 }
     unbreakable: true
     glow: true
@@ -716,7 +704,6 @@ items:
       - "<gray>El último muro antes de la noche."
       - "<red>Restauración III · Alma ligada · Irrompible"
     rarity: MITICO
-    limit: 3
     enchants: { unbreaking: 3, mending: 1, restore: 3, soulbound: 1 }
     unbreakable: true
     glow: true

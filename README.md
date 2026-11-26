@@ -2,7 +2,7 @@
 
 🌐 **Español** · [English](README.en.md)
 
-Todo lo que necesitas saber sobre los **10 jefes** de la Luna de Sangre y el **sistema de drops** (45 items).
+Todo lo que necesitas saber sobre los **10 jefes** de la Luna de Sangre y el **sistema de drops** (104 objetos), más el catálogo completo y cómo se calculan las probabilidades.
 
 ---
 
@@ -162,18 +162,18 @@ Al activarse (una sola vez por jefe):
 
 ## Loot por jefe
 
-Los jefes usan tablas propias con **peso 0 en Común y Poco común**: solo sueltan **Raro o superior**, y siempre tienen drops **garantizados** además de las tiradas.
+Los jefes usan tablas propias con **peso 0 en Común y Poco común**: solo sueltan **Raro o
+superior**, y siempre tienen drops **garantizados** además de las tiradas.
 
 | Tabla | La usan | Garantizado | Tiradas | Raro | Épico | Leg. | Mítico |
-|-------|---------|-------------|---------|------|-------|------|--------|
-| `boss_rey_zombi` | Rey Zombi, Nigromante | Botella XP 8-16, Diamante 3-6 | 4-5 | 48.7% | 36.5% | 13.4% | 1.5% |
-| `boss_arquera` | Arquera, Cazador, Centinela | Flechas 32-64, Diamante 2-5 | 4-5 | 48.0% | 36.0% | 14.4% | 1.7% |
-| `boss_verdugo` | Verdugo, Devastador, Guardián, **Azote** | Fragmento de netherita 3-6, Botella XP 6-12 | 5-6 | 31.7% | 45.2% | 20.4% | 2.7% |
-| `boss_top_damage` | Mayor daño contra cualquier jefe | — | 1 | — | 38.2% | 47.8% | 14.0% |
+|---|---|---|---|---|---|---|---|
+| `boss_rey_zombi` | Rey Zombi, Nigromante | Botella de XP ×8-16, Diamante ×3-6 | 4-5 | 48.7% | 36.5% | 13.4% | 1.5% |
+| `boss_arquera` | Arquera, Cazador, Centinela | Flechas ×32-64, Diamante ×2-5 | 4-5 | 48.0% | 36.0% | 14.4% | 1.7% |
+| `boss_verdugo` | Verdugo, Devastador, Guardián, Fauces, **Azote** | Fragmento de netherita ×3-6, Botella de XP ×6-12 | 5-6 | 31.7% | 45.2% | 20.4% | 2.7% |
+| `boss_top_damage` | Mayor daño contra cualquier jefe | — | 1 | 0.0% | 38.2% | 47.8% | 14.0% |
 
-> Los porcentajes son el sorteo de rareza **antes** del drop-chance individual de cada item
-> (los míticos aún aplican su 0.5-0.8%). Cuanto más fuerte el jefe, mejor la tabla:
-> el **Azote Carmesí** usa la mejor (`boss_verdugo`).
+> Los porcentajes son el sorteo de rareza **antes** del drop-chance propio de cada objeto.
+> Cuanto más fuerte el jefe, mejor la tabla: el **Azote Carmesí** usa la mejor (`boss_verdugo`).
 
 ---
 
@@ -181,267 +181,133 @@ Los jefes usan tablas propias con **peso 0 en Común y Poco común**: solo suelt
 
 ## Cómo funciona la probabilidad de drop
 
-Cada muerte de un mob de la horda recorre **5 pasos**. Si entiendes estos 5, entiendes todo el loot:
+Cada muerte de un mob de la horda recorre **5 pasos**:
 
 ```
- kill del mob
-      │
-      ▼
- [1] ¿SUELTA ALGO?  ── No (90% en x1) ──▶ nada
-      │ Sí (10%)
-      ▼
- [2] ¿CUÁNTAS TIRADAS?  ── se sortea 1 o 2
-      │
-      ▼
- [3] ¿QUÉ RAREZA?  ── sorteo por pesos (Común 59.6% ... Mítico 0.05%)
-      │
-      ▼
- [4] ¿QUÉ ITEM?  ── sorteo por peso dentro de esa rareza
-      │
-      ▼
- [5] ¿SALE?  ── drop-chance individual del item
-      │               │
-     Sí             No ──▶ la tirada NO da nada
-      ▼
-    🎁 item
+ [1] ¿suelta algo?      drop-chance de la tabla × dificultad
+ [2] ¿cuántas tiradas?  rolls (1-2 en la horda, 4-6 en jefes)
+ [3] ¿qué rareza?       peso de la rareza (+ suerte + pity)
+ [4] ¿qué objeto?       peso del objeto dentro de la rareza
+ [5] ¿sale?             drop-chance propio del objeto
 ```
 
-### Paso 1 — ¿Suelta algo el mob? (probabilidad de la tabla)
+### Paso 1 — ¿Suelta algo el mob?
 
-Cada tabla de loot tiene una probabilidad base que se multiplica por la dificultad del evento:
+`probabilidad real = drop-chance × (1 + (dificultad − 1) × 0.25)`
 
-```
-probabilidad real = tabla × (1 + (dificultad − 1) × 0.25)
-```
-
-| Dificultad | Multiplicador | `mob_horde` (10%) | `mob_elite` (45%) |
-|------------|---------------|-------------------|-------------------|
-| x1 | ×1.00 | 10% | 45% |
-| x2 | ×1.25 | 12.5% | 56% |
-| x3 | ×1.50 | 15% | 67.5% |
-| x5 | ×2.00 | 20% | 90% |
-| x10 | ×3.25 | 32.5% | 100% |
-
-> Un evento programado con `difficulty: 3` da **media vez más** loot que uno normal.
+Con `mob_horde` al 60%: **x1 → 60%**, x2 → 75%, x3 → 90%, x10 → 100%.
 
 ### Paso 2 — ¿Cuántas tiradas?
 
-Si el paso 1 pasó, se tira la tabla: en `mob_horde` es `1-2`, es decir, se sortea **un número al azar entre 1 y 2** items (promedio 1.5). Cada tirada es **independiente** y recorre los pasos 3-5 por su cuenta. Mobs élite y supervivientes tiran 2-3; los jefes 4-6.
+`mob_horde` tira **1-2** objetos (promedio 1.5); los élites y los supervivientes 2-3; los jefes
+4-6. Cada tirada es independiente y no repite el mismo objeto que otra tirada del mismo lote.
 
-### Paso 3 — Sorteo de la rareza (pesos relativos)
+### Paso 3 — Sorteo de la rareza
 
-No todos los colores pesan lo mismo. Este es el sorteo real de `mob_horde`:
+| Rareza | Peso en `mob_horde` | % real por tirada | Aviso global |
+|---|---|---|---|
+| Común | 600 | **59.55%** | — |
+| Poco común | 260 | **25.81%** | — |
+| Raro | 110 | **10.92%** | — |
+| Épico | 32 | **3.18%** | — |
+| Legendario | 5 | **0.50%** | sí |
+| Mítico | 0.5 | **0.05%** | sí |
 
-| Rareza | Peso | **% real por tirada** |
-|--------|------|----------------------|
-| Común | 600 | **59.6%** |
-| Poco común | 260 | **25.8%** |
-| Raro | 110 | **10.9%** |
-| Épico | 32 | **3.2%** |
-| Legendario | 5 | **0.50%** |
-| Mítico | 0.5 | **0.05%** |
+**Suerte:** Raro, Épico, Legendario y Mítico multiplican su peso por `1 + (dificultad − 1) × 0.50`.
+En x3 pesan el doble.
 
-**Suerte (luck):** las rarezas marcadas como `luck-affected` (Raro en adelante) multiplican su peso por `1 + (dificultad − 1) × 0.5`. En un evento x3, Raro+ **duplican** su peso: cuanto más duro el evento, mejor el botín.
+### Paso 4 — Sorteo del objeto dentro de la rareza
 
-### Paso 4 — Sorteo del item dentro de la rareza
+Todos los objetos de esa rareza compiten por peso. La probabilidad de cada uno está en
+[`DROPS.md`](DROPS.md), con la columna **%% real** ya multiplicada por su drop-chance.
 
-Todos los items de esa rareza compiten por peso. Ejemplo, si sale **Raro** (pesos 40/30/15/15/14/14/12):
+### Paso 5 — Drop-chance propio del objeto
 
-- Diamante: 28.6% · Perla de ender: 21.4% · Espada Sanguinaria: 10.7% · Arco Carmesí: 10.7% · Daga: 10% · Arco Tormenta: 10% · Pico Umbrío: 8.6%
+Si el objeto sorteado falla su propio `drop-chance`, **esa tirada no da nada**. Los comunes caen
+siempre; las armas rotas raras bajan al 5%%; los míticos al 0.5-0.8%%.
 
-### Paso 5 — Drop-chance individual del item (¡clave!)
+### Pity por tabla y rareza
 
-El item sorteado tiene su **propia** probabilidad de drop. **Si falla, esa tirada no da nada** (no se reemplaza por otro item):
+Cada tirada fallida de una rareza suma 1 punto **en esa tabla**; el peso se multiplica por
+`1 + puntos × pity-per-roll` y se reinicia al obtenerla.
 
-| Drop-chance | Items | Resultado |
-|-------------|-------|-----------|
-| 100% | Comunes y materiales simples | El item sorteado **siempre cae** |
-| 25-50% | Diamante, perlas, obsidiana | Cae la mayoría de veces |
-| **5%** | **Armas rotas Raro/Legendario** | Capado a propósito |
-| 10-20% | Épicos | Baja probabilidad |
-| 0.5-0.8% | Míticos | "Oveja rosa" |
+| Rareza | Pity por tirada | Máx. puntos | Multiplicador máximo |
+|---|---|---|---|
+| Común | — | — | — |
+| Poco común | — | — | — |
+| Raro | — | — | — |
+| Épico | +0.02 | 150 | ×4.0 |
+| Legendario | +0.05 | 200 | ×11.0 |
+| Mítico | +0.08 | 300 | ×25.0 |
 
-> Por eso los comunes son 100%: si el sorteo te dio un Común, no hay segunda oportunidad de fallar.
-> Y por eso una Espada Sanguinaria al 5% es **mucho** más rara de lo que sugiere su peso del 10.7%:
-> 10.7% × 5% = **0.54% real** cuando ya te salió Raro.
+> Antes el pity era global por rareza: farmear mobs de la horda acababa regalando míticos en los
+> jefes. Ahora cada tabla mide su propia racha.
 
-### Suerte (luck) y pity (protección contra mala suerte)
+### Reglas de balance
 
-- **Luck:** peso de Raro+ × `1 + (dificultad − 1) × 0.5` (solo rinde en eventos duros).
-- **Pity:** cada tirada que **no** te da una rareza alta suma 1 punto *para ti*. Multiplicador: `1 + puntos × pity-per-roll`. Al obtenerla, **se reinicia a 0**.
-
-| Rareza | Pity por tirada fallida | Máx. puntos | Multiplicador máximo |
-|--------|------------------------|-------------|----------------------|
-| Épico | +0.02 | 150 | ×4 |
-| Legendario | +0.05 | 200 | ×11 |
-| Mítico | +0.08 | 300 | ×25 |
-
-> El pity es **por jugador y por rareza**: si llevas 300 tiradas sin mítico, tu probabilidad de mítico es 25 veces la base. Los jefes y la recompensa de supervivientes aceleran esto muchísimo.
-
-### Ejemplo real: 100 kills en un evento x1
-
-1. ~10 kills pasan el paso 1 (10%).
-2. Esos 10 generan **~15 tiradas** (promedio 1.5 por kill).
-3. Resultado esperado de esas 15 tiradas:
-
-| Sale... | Tiradas | Items reales (tras su drop-chance) |
-|---------|---------|-------------------------------------|
-| Común | 8.9 | ~8.9 items (siempre caen) |
-| Poco común | 3.9 | ~3.1 items |
-| Raro | 1.6 | ~0.45 items (diamantes y perlas casi siempre) |
-| Épico | 0.48 | ~0.06 items |
-| Legendario | 0.075 | ~0.004 items |
-| Mítico | 0.0075 | casi nada (los míticos se consiguen en jefes) |
-
-> Traducción: **~12 items por cada 100 kills**, en su mayoría comida y materiales, de vez en cuando un diamante.
-> El botín de verdad está en los **jefes** (tablas Raro+ garantizado), en la **recompensa de superviviente**
-> (100%, 2-3 tiradas) y en el **premio al mayor daño** (solo Épico+).
-
-### Reglas globales de balance
-
-- **Míticos:** máximo **3 ejemplares en todo el servidor** (número de serie en el lore); al agotarse, dejan de caer.
-- **Armas rotas Raro/Legendario capadas al 5%**: Espada Sanguinaria, Arco Carmesí, Daga de las Sombras, Arco de la Tormenta y Colmillo Vampírico.
-- **Sin maldiciones**: ninguna pieza de la Luna lleva Maldición de desaparición ni de vínculo; si mueres con una encima, cae al suelo y cualquiera puede recogerla. *(La maldición automática de la 1.0.2 se retiró en la 1.0.3.)*
-- **Encantamientos:** el nivel nunca supera **7** (se recorta al cargar).
-- Solo cuenta matar a mobs de la horda con un jugador cerca (`require-player-kill`).
-- Los items Legendario y Mítico **brillan** al caer e ignoran lava y explosiones.
-
-### Distribución de rareza por tabla
-
-Porcentajes del paso 3 en cada tabla (antes del drop-chance individual):
-
-| Tabla | Común | Poco común | Raro | Épico | Leg. | Mítico |
-|-------|-------|-----------|------|-------|------|--------|
-| `mob_horde` (10%, 1-2 tiradas) | 59.6% | 25.8% | 10.9% | 3.2% | 0.50% | 0.05% |
-| `mob_elite` (45%, 2-3 tiradas) | 26.5% | 33.1% | 26.5% | 11.9% | 1.85% | 0.16% |
-| `supervivientes` (100%, 2-3 tiradas) | 33.1% | 33.1% | 22.1% | 9.9% | 1.55% | 0.13% |
-| `boss_rey_zombi` (100%, 4-5) | — | — | 48.7% | 36.5% | 13.4% | 1.5% |
-| `boss_arquera` (100%, 4-5) | — | — | 48.0% | 36.0% | 14.4% | 1.7% |
-| `boss_verdugo` (100%, 5-6) | — | — | 31.7% | 45.2% | 20.4% | 2.7% |
-| `boss_top_damage` (100%, 1) | — | — | — | 38.2% | 47.8% | 14.0% |
-
-### Referencia de rarezas
-
-| Rareza | Suerte | Pity | Aviso global | Brilla al caer |
-|--------|--------|------|--------------|----------------|
-| Común | — | — | — | — |
-| Poco común | — | — | — | — |
-| Raro | ✅ | — | — | — |
-| Épico | ✅ | 0.02/tirada | — | — |
-| Legendario | ✅ | 0.05/tirada | ✅ | ✅ |
-| Mítico | ✅ | 0.08/tirada | ✅ | ✅ |
+- **Sin límite de ejemplares**: no hay tope de copias ni número de serie. Si cae, es tuyo.
+- **Sin maldiciones**: al morir cae al suelo (también el equipo Mítico) y cualquiera lo recoge.
+- **Un mismo lote no repite objeto** si la tabla tiene alternativas.
+- **Pesos validados al cargar**: valores negativos, `NaN` o `drop-chance > 1` se avisan y corrigen.
+- **Todos los objetos caen en alguna tabla**: un test lo comprueba (antes el tridente de la
+  tormenta existía pero no aparecía en ninguna).
+- Los **Legendario y Mítico brillan** al caer e ignoran lava y explosiones.
 
 ---
 
-## 📦 Lista completa de items (45)
+## 📦 Catálogo completo (104 objetos)
 
-### Comunes (siempre caen)
+**88 piezas de equipo** (14 clases × 6 rarezas) + **16 materiales apilables**.
 
-| Item | Material | Cantidad |
-|------|----------|----------|
-| Carne | COOKED_BEEF | 3-8 |
-| Flechas | ARROW | 6-16 |
-| Pólvora | GUNPOWDER | 2-6 |
-| Hierro | IRON_INGOT | 2-5 |
-| Hueso | BONE | 2-6 |
-| Cuerda | STRING | 1-4 |
+| Rareza | Objetos | Qué lleva |
+|---|---|---|
+| Común | 20 | materiales básicos y equipo de madera/cuero |
+| Poco común | 19 | materiales útiles y equipo de piedra/cadena |
+| Raro | 18 | diamantes, perlas y armas con 1-2 encantamientos custom |
+| Épico | 19 | tótem, netherita y piezas con 2-3 custom |
+| Legendario | 14 | una pieza por clase, 3-4 custom y anuncio global |
+| Mítico | 14 | una pieza por clase, 5-6 custom, brillo y anuncio global |
 
-### Poco comunes
+### Versiones por clase
 
-| Item | Material | Cantidad | Drop |
-|------|----------|----------|------|
-| Oro | GOLD_INGOT | 2-4 | 90% |
-| Manzana dorada | GOLDEN_APPLE | 1 | 85% |
-| Botella XP | EXPERIENCE_BOTTLE | 3-9 | 85% |
-| Ojo de ender | ENDER_EYE | 1-2 | 70% |
-| Obsidiana | OBSIDIAN | 1-3 | 60% |
+| Clase | Común | Poco común | Raro | Épico | Legendario | Mítico |
+|---|---|---|---|---|---|---|
+| **Espada** | Espada Oxidada | Espada de Piedra Lunar | Espada Sanguinaria, Daga de las Sombras | Espada de la Ruina | Colmillo Vampírico | Hoja del Eclipse Carmesí |
+| **Hacha** | Hacha Oxidada | Hacha de Piedra Lunar | Hacha Sangrienta | Hacha de la Ventisca, Hacha del Verdugo | Hacha del Abismo | Hacha del Apocalipsis |
+| **Pico** | Pico Oxidado | Pico de Piedra Lunar | Pico Umbrío | Pico del Abismo | Pico Espectral | Pico del Eclipse |
+| **Pala** | Pala Oxidada | Pala de Piedra Lunar | Pala Sangrienta | Pala del Abismo | Pala Espectral | Pala del Eclipse |
+| **Azada** | Azada Oxidada | Azada de Piedra Lunar | Azada Sangrienta | Azada del Abismo | Azada Espectral | Guadaña del Segador |
+| **Arco** | Arco Astillado | Arco de Hueso Lunar | Arco Carmesí, Arco de la Tormenta | Arco del Abismo | Arco Lunar | Arco del Eclipse |
+| **Ballesta** | Ballesta Astillada | Ballesta de Hueso Lunar | Ballesta Carmesí | Ballesta del Abismo | Ballesta del Alba | Ballesta del Eclipse |
+| **Tridente** | Tridente Oxidado | Tridente de los Mares | Tridente Sangriento | Tridente Profundo | Tridente de la Tormenta | Tridente del Abismo Rojo |
+| **Maza** | Maza Oxidada | Maza Pesada | Maza de Hueso | Maza Carmesí | Martillo del Trueno | Maza del Coloso |
+| **Casco** | Casco de Cuero | Casco de Cadena Lunar | Casco de Hierro Carmesí | Yelmo del Cazador de Sangre | Yelmo del Eclipse | Corona de la Luna de Sangre |
+| **Peto** | Peto de Cuero | Peto de Cadena Lunar | Peto de Hierro Carmesí | Peto del Cazador de Sangre | Peto del Guardián Carmesí | Peto del Eclipse Carmesí |
+| **Grebas** | Grebas de Cuero | Grebas de Cadena Lunar | Grebas de Hierro Carmesí | Grebas del Cazador de Sangre | Grebas del Titán | Grebas del Eclipse |
+| **Botas** | Botas de Cuero | Botas de Cadena Lunar | Botas de Hierro Carmesí | Botas del Cazador de Sangre, Botas del Estrondo | Botas del Noctámbulo | Botas del Eclipse |
+| **Escudo** | Escudo Astillado | Escudo Reforzado | Escudo Carmesí | Escudo del Guardián | Égida Carmesí | Égida del Eclipse |
 
-### Raros
+### Los 14 míticos
 
-> **Nota de balance:** las **armas** Raro/Legendario rotas están capadas al **5%** de drop
-> (Espada Sanguinaria, Arco Carmesí, Daga de las Sombras, Arco de la Tormenta, Colmillo Vampírico).
-> Los míticos ya eran más raros de por sí (0.5-0.8%).
+| Objeto | Clase | Encantamientos |
+|---|---|---|
+| Hoja del Eclipse Carmesí | Espada | sharpness V · thunder V · looting III · paralyze III · sweeping_edge III · unbreaking III · vampire III · double_strike II · fire_aspect II · wither II · mending I |
+| Hacha del Apocalipsis | Hacha | efficiency V · sharpness V · thunder V · unbreaking III · vampire III · decapitator II · double_strike II · mending I · treefeller I |
+| Pico del Eclipse | Pico | efficiency V · smelter V · fortune III · tunnel III · unbreaking III · veinminer III · blast_mining II · mending I · telekinesis I |
+| Pala del Eclipse | Pala | efficiency V · smelter V · fortune III · haste III · tunnel III · unbreaking III · mending I · telekinesis I |
+| Guadaña del Segador | Azada | efficiency V · smelter V · haste III · unbreaking III · mending I · replanter I · telekinesis I |
+| Arco del Eclipse | Arco | power V · dragonfire_arrows III · explosive_arrows III · unbreaking III · vampiric_arrows III · electrified_arrows II · punch II · sniper II · flame I · infinity I · mending I |
+| Ballesta del Eclipse | Ballesta | piercing IV · dragonfire_arrows III · electrified_arrows III · explosive_arrows III · quick_charge III · unbreaking III · vampiric_arrows III · sniper II · mending I · multishot I |
+| Tridente del Abismo Rojo | Tridente | impaling V · infernus III · loyalty III · restore III · unbreaking III · channeling I · mending I · soulbound I |
+| Maza del Coloso | Maza | density V · breach IV · restore III · unbreaking III · wind_burst III · mending I · soulbound I |
+| Corona de la Luna de Sangre | Casco | protection V · elemental_protection IV · respiration III · thorns III · unbreaking III · saturation II · mending I · night_vision I · water_breathing I |
+| Peto del Eclipse Carmesí | Peto | dragon_heart V · protection V · elemental_protection IV · fire_shield IV · cold_steel III · thorns III · unbreaking III · hardened II · mending I |
+| Grebas del Eclipse | Grebas | protection V · elemental_protection IV · stopping_force III · swift_sneak III · thorns III · unbreaking III · mending I |
+| Botas del Eclipse | Botas | protection V · elemental_protection IV · feather_falling IV · depth_strider III · soul_speed III · unbreaking III · flame_walker II · jumping II · speed II · mending I · rebound I |
+| Égida del Eclipse | Escudo | restore III · unbreaking III · mending I · soulbound I |
 
-| Item | Material | Drop | Encantamientos |
-|------|----------|------|-------------|
-| Diamante | DIAMOND (1-3) | 50% | — |
-| Perla de ender | ENDER_PEARL (1-2) | 45% | — |
-| Espada Sanguinaria | DIAMOND_SWORD | **5%** | Vampírico II · Veneno I (Filo V · Botín II) |
-| Arco Carmesí | BOW | **5%** | Francotirador I (Poder V · Empuje II) |
-| **Daga de las Sombras** | IRON_SWORD | **5%** | Golpe doble I · Aspecto de hielo II (Filo IV · Botín III) |
-| **Arco de la Tormenta** | BOW | **5%** | Flechas electrizadas II (Poder V · Llama) |
-| **Pico Umbrío** | DIAMOND_PICKAXE | 25% | Prisa II · Fundidor I (Fortuna III · Eficiencia V) |
-
-### Épicos
-
-| Item | Material | Drop | Encantamientos |
-|------|----------|------|-------------|
-| Manzana encantada | ENCHANTED_GOLDEN_APPLE | 20% | — |
-| Tótem | TOTEM_OF_UNDYING | 15% | — |
-| Fragmento de netherita | NETHERITE_SCRAP (1-2) | 18% | — |
-| Hacha del Verdugo | NETHERITE_AXE | 12% | Cortador II · Decapitador I (Filo V · Eficiencia V) |
-| Yelmo del Cazador | NETHERITE_HELMET | 10% | Endurecido II (Protección IV · Respiración III) |
-| Peto del Cazador | NETHERITE_CHESTPLATE | 10% | Endurecido II · Corazón de dragón II (Protección IV) |
-| Pantalón del Cazador | NETHERITE_LEGGINGS | 10% | Endurecido II · Regeneración II (Protección IV) |
-| Botas del Cazador | NETHERITE_BOOTS | 10% | Velocidad I (Protección IV · Caída de pluma IV) |
-| **Espada de la Ruina** | NETHERITE_SWORD | 14% | Vampírico I · Marchitar II (Filo V · Botín III) |
-| **Ballesta del Abismo** | CROSSBOW | 12% | Flechas electrizadas I (Multidisparo · Perfora IV) |
-| **Botas del Estrondo** | NETHERITE_BOOTS | 10% | Salto II · Fuerza de frenado I (Velocidad del alma III) |
-| **Hacha de la Ventisca** | DIAMOND_AXE | 12% | Aspecto de hielo III · Parálisis II (Filo V) |
-
-### Legendarios
-
-> ✅ **Ninguna pieza de la Luna lleva maldiciones**: ni Maldición de desaparición ni de vínculo.
-> Si mueres con una encima, cae al suelo como cualquier objeto y cualquiera puede recogerla,
-> también el equipo Mítico. *(La maldición automática de la 1.0.2 se retiró en la 1.0.3: a los
-> objetos ya repartidos se les quita sola al entrar, al recogerlos del suelo o con `/luna refresh`.)*
-
-| Item | Material | Drop | Encantamientos |
-|------|----------|------|-------------|
-| Colmillo Vampírico | NETHERITE_SWORD | **5%** | Vampírico III · Marchitar II (Filo V · Aspecto ígneo II) |
-| Arco Lunar | BOW | 5% | Flechas vampíricas II · Francotirador II (Poder V · Infinidad) |
-| Botas del Noctámbulo | NETHERITE_BOOTS | 5% | Velocidad II · Visión nocturna I (Caída de pluma IV) |
-| Égida de Espinas | SHIELD | 4% | Irrompible III · Reparación |
-| **Martillo del Trueno** | MACE | 5% | **Trueno II** · Golpe doble I (Densidad V · Brecha IV) |
-| **Peto del Guardián Carmesí** | NETHERITE_CHESTPLATE | 4.5% | Endurecido II · **Escudo ígneo II** · Espinas III |
-| **Ballesta del Alba** | CROSSBOW | 5% | **Flechas electrizadas III** (Perfora IV) |
-
-### Míticos (máx. 3 por servidor, con número de serie)
-
-| Item | Material | Drop | Encantamientos |
-|------|----------|------|-------------|
-| Hoja del Eclipse Carmesí | NETHERITE_SWORD | 0.8% | Vampírico III · **Trueno II** · Marchitar II (Filo V) |
-| Corona de la Luna de Sangre | NETHERITE_HELMET | 0.6% | Corazón de dragón III · Visión nocturna I (Protección V) |
-| Guadaña del Segador | NETHERITE_HOE | 0.5% | Marchitar II · Vampírico II (Filo V · Fortuna III) |
-| Tridente del Abismo Rojo | TRIDENT | 0.7% | Infernal III · **Trueno I** (Empalador V) |
-| Maza del Coloso | MACE | 0.6% | **Trueno I** · Parálisis I (Densidad V · Brecha IV) |
-| **Hacha del Apocalipsis** | NETHERITE_AXE | 0.6% | Golpe doble II · Vampírico II (Filo V · Eficiencia V) |
-| **Peto del Eclipse Carmesí** | NETHERITE_CHESTPLATE | 0.5% | Endurecido II · **Escudo ígneo II** · Fuerza de frenado I |
-| **Grebas del Eclipse** | NETHERITE_LEGGINGS | 0.5% | Velocidad II · Ligero I (Sigilo III) |
-
----
-
-## ⚔️ Encantamientos de los items
-
-Los items de la Luna ya no traen habilidades propias ni niveles por encima de vanilla. Llevan:
-
-- **Encantamientos vanilla al máximo**: filo 5, irrompible 3, botín 3, etc. En los **legendarios y
-  míticos** el tope sube a **5** aunque vanilla no llegue (protección 5, espinas 5...). Un nivel
-  mayor en `items.yml` se recorta automáticamente al cargar el item.
-- **Encantamientos de [ExcellentEnchants](https://nightexpressdev.com/excellentenchants/)**: `vampire`,
-  `thunder`, `electrified_arrows`, `dragon_heart`, `hardened`, `haste`… con el nivel que fija ese
-  plugin.
-
-> ⚠️ **No quites ExcellentEnchants de un servidor con items repartidos**: Minecraft borra cualquier
-> item cuyo encantamiento no exista, así que esos items desaparecerían al cargar el jugador. Si el
-> servidor arranca sin EE (por ejemplo en una versión aún no soportada) los items **nuevos** se crean
-> solo con los vanilla, la consola avisa una vez, y los que ya tenían EE se pierden al entrar. Antes
-> de retirar EE, instálalo de nuevo y limpia los items con `/luna refresh <jugador|all>` en una
-> versión con EE cargado.
-
-La probabilidad de cada encantamiento (incluido el rayo de `thunder`) se ajusta en
-`plugins/ExcellentEnchants/enchants/<id>.yml`, no en BloodMoon. Para que el trueno caiga sin tormenta:
-`thunderstorm_only: false`.
+La lista completa con cantidades, drop-chance y probabilidad final está en
+[`DROPS.md`](DROPS.md).
 
 ---
 
@@ -450,7 +316,7 @@ La probabilidad de cada encantamiento (incluido el rayo de `thunder`) se ajusta 
 El plugin trae **7 idiomas completos** y se elige en `plugins/BloodMoonPlus/locales/locales.yml`:
 
 | Código | Idioma |
-|--------|--------|
+|---|---|
 | `es` | Español |
 | `en` | English |
 | `pt` | Português |
@@ -464,49 +330,32 @@ Language: es            # código de la tabla
 UseBundledLocales: true # claves que falten caen al inglés
 ```
 
-- Los 7 archivos se copian a `plugins/BloodMoonPlus/locales/` en el primer arranque; puedes editar
-  cualquiera sin que el plugin lo sobrescriba.
-- Si `Language` no existe, el plugin avisa en consola y usa inglés.
+- Los 7 archivos se copian a `plugins/BloodMoonPlus/locales/` en el primer arranque.
 - `/luna reload` aplica el cambio en caliente.
-- Los tests verifican que los 7 idiomas tengan **las mismas claves y los mismos
-  placeholders**: una traducción incompleta rompe la compilación, no el servidor.
+- Un test verifica que los 7 idiomas tengan las mismas claves y los mismos placeholders.
 
 ---
 
 ## 🛡️ Protección de los objetos de la Luna
 
-Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) están blindados:
-
 | Acción | ¿Permitida? |
-|--------|-------------|
-| Añadir encantamientos (mesa, yunques con libros, herrería) | ✅ Sí |
+|---|---|
+| Añadir encantamientos (mesa, libros, herrería) | ✅ Sí |
 | Renombrar en el yunque | ✅ Sí |
 | Reparar / mejorar | ✅ Sí |
 | **Quitarlos del grindstone** (desencantar) | ❌ No |
-| **Perder encantamientos, efectos o habilidades** | ❌ No |
+| **Perder encantamientos, rareza o dueño** | ❌ No |
 
-- El **grindstone** es el único método vanilla para *quitar* encantamientos: con un objeto de la
-  Luna dentro, el resultado se anula y el jugador recibe un aviso. Sí se puede **reparar** una
-  pieza que no tenga encantamientos: el resultado se conserva.
-- En el **yunque** y la **mesa de herrería** el resultado se repara automáticamente: si alguna
-  combinación dejaba el objeto con menos encantamientos, niveles más bajos o sin sus habilidades,
-  se le devuelven los del objeto original. El renombrado y los encantamientos añadidos se quedan.
-- **Puesta al día automática:** los objetos que ya tenías (aunque estén renombrados) se ajustan a
-  la definición actual de `items.yml` **al entrar al servidor, al recogerlos del suelo y al
-  sacarlos de un cofre o shulker**. Los encantamientos que falten se añaden, los que superen el
-  máximo del item **bajan** (Filo 7 → Filo 5; Protección 7 → Protección 5 en legendarios y
-  míticos), se quita la Maldición de desaparición si el objeto la trae y se borran los datos
-  viejos de habilidades.
-  No se pierde el desgaste, ni el nombre que le pusiste, ni los encantamientos extra que añadiste
-  y que no figuran en el `items.yml`. Funciona también con **shift-clic o la tecla de hotbar** al
-  sacar el objeto de un cofre, Shulker o Cofre del End: se pone al día al caer en tu inventario.
-- **Dos casos se quedan fuera a propósito:** un objeto **arrastrado** con el ratón no se toca en
-  ese momento (se pone al día en el siguiente clic sobre él) y lo que sigue **guardado** en un
-  cofre o en el Cofre del End no se reescribe al abrirlo; ahí actúan la entrada al servidor y
-  `/luna refresh`.
-- **`/luna refresh <jugador|all>`** (o `/luna actualizar`): aplica esa puesta al día al instante a
-  todo el inventario, la armadura, la mano secundaria y el cofre del End del jugador. Requiere
-  `bloodmoon.admin`.
+- El **grindstone** anula el resultado y avisa al jugador; una pieza sin encantamientos sí se
+  puede reparar.
+- En **yunque** y **mesa de herrería** se conservan encantamientos, rareza, dueño e
+  indestructibilidad aunque la combinación los perdiera.
+- **Puesta al día automática**: al entrar, al recoger el objeto del suelo y al sacarlo de un
+  cofre o shulker se aplican los encantamientos de `items.yml`, se corrigen los niveles y se
+  regenera la lore (descripción, rareza y cazador). No se pierde el desgaste ni el nombre
+  personalizado ni los encantamientos extra.
+- **`/luna refresh <jugador|all>`** lo aplica al instante a inventario, armadura, mano secundaria
+  y cofre del End. Requiere `bloodmoon.admin`.
 
 ---
 
@@ -517,114 +366,54 @@ Los objetos creados por el plugin (armas, herramientas, armaduras y materiales) 
 /luna chances boss_verdugo
 ```
 
-Muestra los porcentajes reales de rareza y de cada item de la tabla.
+Muestra la probabilidad **final** de cada objeto (rareza × peso × drop-chance), lo garantizado
+y tu pity actual en esa tabla.
 
 ---
 
-## 🔄 Actualizar de la 1.0.2 a la 1.0.3 (el `items.yml` SÍ cambia)
+## 🔄 Actualizar de la 1.0.2 a la 1.0.3
 
-La 1.0.3 quita las habilidades propias, las sustituye por encantamientos de ExcellentEnchants y
-sube a 5 el tope vanilla de las piezas legendarias y míticas. **Tu `items.yml` actual no se
-reemplaza solo**: el plugin únicamente escribe `items.yml` cuando no existe, así que un servidor
-que actualiza conserva el archivo viejo (Protección 4, listas de habilidades) y la puesta al día
-aplicará *ese* archivo, no el nuevo. Resultado: `/luna refresh all` no sube nada a 5.
+La 1.0.3 sustituye las habilidades propias por encantamientos de ExcellentEnchants, sube a 5 el
+tope vanilla en legendarios y míticos, y el catálogo pasa a **104 objetos**. El `items.yml` de tu
+servidor **no se reemplaza solo**: el plugin solo lo escribe si no existe.
 
-1. Detén el servidor y guarda una copia de `plugins/BloodMoonPlus/items.yml` (el plugin también
-   deja `items.yml.bak` antes de la primera actualización).
-2. Sustituye tu `items.yml` por el que viene dentro del `.jar` (o renómbralo y arranca una vez para
-   que se genere de cero) y vuelve a aplicar tus personalizaciones. Si prefieres editar el tuyo a
-   mano, lo mínimo es poner **`protection: 5`** (y espinas 5, etc.) en las piezas `LEGENDARIO` y
-   `MITICO` y añadir los encantamientos de EE.
-3. Arranca **con ExcellentEnchants y NightCore instalados** y comprueba la consola:
-   `Items cargados: 45` y ningún aviso de encantamientos desconocidos.
-4. Ejecuta `/luna refresh all` (o deja que cada jugador reconecte o recoja sus objetos): ahí es
-   cuando un peto con Protección 4 ya repartido pasa a Protección 5 y recibe los EE.
+1. Detén el servidor y guarda una copia de `plugins/BloodMoonPlus/items.yml`.
+2. Sustituye tu `items.yml` por el del `.jar` (o renómbralo y arranca una vez) y vuelve a aplicar
+   tus personalizaciones.
+3. Arranca **con ExcellentEnchants y NightCore** y comprueba la consola: `Items cargados: 104` y
+   ningún aviso de encantamientos desconocidos o no aplicables.
+4. Ejecuta `/luna refresh all` (o deja que cada jugador reconecte o recoja sus objetos).
+
+### Cambios en `data.yml` y `loot.yml`
+
+- Ya no se guardan contadores de ejemplares ni números de serie: las claves `created.*` que
+  queden en `data.yml` se ignoran y puedes borrarlas.
+- El **pity** ahora se guarda por tabla (`pity.<uuid>.<tabla>.<rareza>`). Los valores del formato
+  anterior (`pity.<uuid>.<rareza>`) se ignoran: cada jugador empieza con el pity a 0.
+- Los objetos repartidos con número de serie conservan su lore hasta la siguiente puesta al día,
+  que quita esa línea (ya no se usa).
+- `loot.yml` añade el tridente de la tormenta a la tabla de la horda y documenta el nuevo pity.
 
 > ⚠️ No quites ExcellentEnchants con objetos repartidos: Minecraft borra los objetos cuyo
 > encantamiento no existe. Primero `/luna refresh all` en un servidor donde EE haya cargado.
 
-`config.yml` solo gana `items.migrate-on-join: true` (puesta al día al entrar; ponlo en `false` si
-prefieres hacerlo solo con `/luna refresh`).
-
 ### Consola limpia durante el evento
-
-El plugin ya no copia los anuncios de chat en la consola y escribe **una sola línea** al iniciar y
-al terminar cada mundo. Lo que llena el log durante un evento es Paper: registra la muerte de cada
-mob con nombre (`Named entity … died`). Como toda la horda lleva nombre, basta con poner en
-`spigot.yml`:
 
 ```yaml
 settings:
   log-named-deaths: false
 ```
 
-y el log del evento se queda en unas pocas líneas. Si lo dejas en `true` tendrás un registro de
-auditoría de cada mob, pero miles de líneas por evento.
-
----
-
-## 🔄 Actualizar desde la 1.0.1 (o anterior)
-
-**Solo hay que reemplazar el `.jar`.** No se migra nada y no se borra ningún dato.
-
-1. Si hay un evento en marcha, ejecuta `/luna stop` y **detén el servidor**.
-2. **Borra el jar anterior** de `plugins/` (`BloodMoonPlus-1.0.1.jar`). Es lo único que sí debes
-   eliminar: los dos jars declaran `name: BloodMoonPlus` y Bukkit rechaza el segundo con
-   *«plugin name is already in use»* (o acaba cargando el que no quieres).
-3. Copia el jar actual (`BloodMoonPlus-1.0.3-beta.jar`) en `plugins/` y arranca. No hace falta
-   pasar antes por la 1.0.2.
-4. Comprueba la consola: `Idioma activo: es`, `Items cargados: 45`, `Jefes cargados: 10`.
-
-Los cinco idiomas nuevos (`pt`, `fr`, `de`, `it`, `ru`) se copian solos en el primer arranque.
-
-### Qué NO se debe borrar
-
-| Archivo | Qué se pierde si lo borras |
-|---|---|
-| `data.yml` | El evento en curso, los números de serie de los objetos únicos y el *pity*. **Los míticos limitados volverían a estar disponibles.** |
-| `statistics.yml` | El histórico de eventos, muertes y jefes. |
-| `config.yml` | Toda tu configuración. No cambió entre 1.0.1 y 1.0.2, así que no hay nada que migrar. |
-| `locales/*.yml` | Tus traducciones personalizadas: el plugin nunca las sobrescribe. |
-| `worlds/<mundo>/config.yml` | La configuración por mundo. Las claves retiradas (`IncludeLateJoiners`, `VanillaBossBar`, `UseMythicMobsRewards`…) se ignoran sin dar error. |
-
-### Qué pasa con `bosses.yml` si no lo actualizas
-
-El `bosses.yml` de tu servidor **nunca se sobrescribe**. Si conservas el tuyo:
-
-- Sigues teniendo tus jefes y tus ajustes, pero **no existirá el jefe nuevo `creeper_cargado`**
-  (Fauces del Cataclismo, con absorción `VORTEX`, crías `SWARM` y detonación `EXPLODE`).
-- El `bar-color: BLACK` de `cazador_sombras` **ya no borra el jefe**: cada campo se valida por
-  separado y cae a `RED` con un aviso que indica campo, valor y opciones válidas. Antes ese valor
-  eliminaba al cazador y solo cargaban 8 de 9 jefes.
-- El archivo incluido en el jar cambia ese color a `PURPLE`, así que al actualizarlo el cazador
-  pasará a tener la barra morada.
-
-Para tener el jefe nuevo **sin perder tus ajustes**: haz copia de tu `bosses.yml`, borra o renombra
-el original, arranca una vez para que se genere el archivo nuevo y vuelve a aplicar tus cambios
-(alternativa: copia a mano solo el bloque `creeper_cargado:` desde el jar).
-
-### `items.yml` y `messages.yml`
-
-- **Para la 1.0.2, `items.yml` no hacía falta tocarlo.** Solo se añadieron comentarios y la clave
-  `settings.vanishing-curse-min-rarity`, que **ya no existe**: la 1.0.3 retiró la maldición de
-  desaparición, así que esa clave se ignora y puedes borrarla del archivo.
-  **En la 1.0.3 sí cambia: ver «Actualizar de la 1.0.2 a la 1.0.3».**
-- **`messages.yml`** ya no lo lee ningún código desde la 1.0.2: puedes borrarlo sin miedo.
-
 ---
 
 ## 📜 Licencia
 
-**Todos los derechos reservados.**
-El código de este proyecto es público **únicamente para lectura y auditoría de
-seguridad**. No se permite copiarlo, modificarlo, reutilizarlo ni
-redistribuirlo. Sí puedes descargar y **ejecutar** el plugin compilado en tu
-servidor. Consulta el archivo [`LICENSE`](LICENSE) para los detalles.
+**Todos los derechos reservados.** El código es público únicamente para lectura y auditoría de
+seguridad. Consulta [`LICENSE`](LICENSE).
 
 ---
 
 ## 📤 Publicación en Modrinth
 
-Los materiales listos para publicar (descripción, changelog, icono y guía paso a
-paso) están en la carpeta [`modrinth/`](modrinth/). Empieza por
+Los materiales listos para publicar están en [`modrinth/`](modrinth/). Empieza por
 [`modrinth/PUBLISH.md`](modrinth/PUBLISH.md).

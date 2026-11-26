@@ -1,188 +1,319 @@
-# Drops de la Luna de Sangre (v1.0.1)
+# Drops de la Luna de Sangre (v1.0.3-beta)
 
 🌐 **Español** · [English](DROPS.en.md)
 
-> Documento generado a partir de `loot.yml` + `items.yml` + `config.yml` actuales.
+> Generado a partir de `loot.yml`, `items.yml` y `config.yml`. Todos los porcentajes son los
+> reales del archivo: no hay números escritos a mano.
 
-## Cómo funciona el sistema
+## Lo que cambia en esta versión
 
-1. Al morir un mob de la horda, se tira la **drop-chance de la tabla**: en `mob_horde` es **60%** (sube con la dificultad).
-2. Si suelta algo, la tabla tira **1-2 items** (`rolls`).
-3. Por cada tirada se elige una **RAREZA** según su peso y luego un **ITEM** dentro de esa rareza.
-4. Cada item tiene además su propio **drop-chance**: los comunes caen siempre; los poderosos son muy raros.
-5. El resultado se entrega así:
-   - Items **Raro, Épico, Legendario y Mítico → directo al inventario** del que lo mató (no caen al suelo).
-   - Comunes y Poco comunes caen al suelo (si `loot.direct-to-inventory: false`).
-   - Los LEGENDARIO/MITICO brillan e ignoran lava y explosiones (`loot.glow-rarities`).
+- **Sin límite de ejemplares.** Se quitó el tope de 3 copias y el número de serie: si un objeto
+  se puede perder, duplicar o romper, limitarlo solo castigaba al que jugaba. Cada mítico puede
+  caer tantas veces como el sorteo decida.
+- **Pity por tabla.** El acumulador de mala suerte ya no es global por rareza: se guarda por
+  **tabla y rareza**, así que matar mobs de la horda no regala suerte en las tablas de jefe.
+- **Sin repeticiones en una misma tirada.** Un jefe que tira 5 veces no puede soltar dos veces
+  el mismo objeto si su tabla tiene alternativas.
+- **Validación al cargar.** Pesos negativos, `NaN` o `drop-chance` fuera de 0..1 se avisan en
+  consola y se corrigen, en vez de desviar el sorteo en silencio.
+- **`/luna chances` con la probabilidad final** de cada objeto (rareza × peso × drop-chance) y tu
+  pity actual en esa tabla.
 
-**Protecciones anti-mala-suerte (pity):** cada tirada sin obtener una rareza Épico/Legendario/Mítico suma 1 "stack" por jugador; el peso se multiplica por `(1 + stacks × pity-per-roll)`. Al obtenerla, se reinicia.
+## Cómo funciona el sorteo
 
-**Suerte por dificultad (luck):** las rarezas Raro en adelante son `luck-affected`: su peso sube con `difficulty.scaling.rarity-luck` (0.5 → en x3 pesan un 50% más).
+```
+ muerte del mob
+      │
+      ▼
+ [1] ¿SUELTA ALGO?  ── drop-chance de la tabla × dificultad
+      │ sí
+      ▼
+ [2] ¿CUÁNTAS TIRADAS?  ── rolls (1-2 en la horda, 4-6 en jefes)
+      │
+      ▼
+ [3] ¿QUÉ RAREZA?  ── peso de la rareza en esa tabla (+ suerte + pity)
+      │
+      ▼
+ [4] ¿QUÉ OBJETO?  ── peso del objeto dentro de la rareza
+      │
+      ▼
+ [5] ¿SALE?  ── drop-chance propio del objeto
+      │
+      ▼
+    🎁 objeto con rareza, cazador y encantamientos
+```
 
----
+## Paso 1 — ¿Suelta algo el mob?
 
-## Resumen por rareza (tabla `mob_horde`)
+```
+probabilidad real = drop-chance de la tabla × (1 + (dificultad − 1) × loot-chance)
+```
 
-| Rareza | Peso | Drop típico por item | Broadcast | Pity |
-|--------|------|----------------------|-----------|------|
-| Común | 600 | 100% (siempre) | no | — |
-| Poco común | 250 | 65-95% (casi siempre) | no | — |
-| Raro | 100 | 5-55% | no | — |
-| Épico | 40 | 12-45% | no | 0.02/tirada (máx 150) |
-| Legendario | 10 | 4,5-6% | **sí** | 0.05/tirada (máx 200) |
-| Mítico | 1,5 | 0,5-0,8% ("oveja rosa") | **sí** | 0.08/tirada (máx 300) |
+`difficulty.scaling.loot-chance` vale **0.25** por defecto.
 
-> Los pesos de arriba son los globales de `rarities:`; la tabla `mob_horde` usa sus propios pesos
-> (COMUN 600 · POCO_COMUN 260 · RARO 110 · EPICO 32 · LEGENDARIO 5 · MITICO 0.5) que equivalen a
-> ≈ **59,6% / 25,8% / 10,9% / 3,2% / 0,5% / 0,05%** de probabilidad por tirada.
+| Dificultad | Multiplicador | `mob_horde` (60%) | `mob_elite` (45%) |
+|---|---|---|---|
+| x1 | ×1.00 | 60.0% | 45.0% |
+| x2 | ×1.25 | 75.0% | 56.2% |
+| x3 | ×1.50 | 90.0% | 67.5% |
+| x5 | ×2.00 | 100.0% | 90.0% |
+| x10 | ×3.25 | 100.0% | 100.0% |
 
-> **Encantamientos:** vanilla al máximo de cada uno (filo 5, irrompible 3...) y hasta 5 en los
-> legendarios y míticos (protección 5), más encantamientos de **ExcellentEnchants** (`vampire`,
-> `thunder`, `electrified_arrows`...). Ya no hay efectos pasivos de poción.
+## Paso 2 — ¿Cuántas tiradas?
 
----
+`rolls` admite rango y se sortea un número entero entre los dos valores.
 
-## Lista completa de drops (45 items)
+| Tabla | Tiradas |
+|---|---|
+| `mob_horde` | 1-2 |
+| `mob_elite` | 2-3 |
+| `survivors` | 2-3 |
+| `boss_rey_zombi` | 4-5 |
+| `boss_arquera` | 4-5 |
+| `boss_verdugo` | 5-6 |
+| `boss_top_damage` | 1 |
 
-### Comunes — 100% (siempre caen)
+## Paso 3 — Sorteo de la rareza
 
-| Item | Material | Cantidad |
-|------|----------|----------|
-| Carne | COOKED_BEEF | 3-8 |
-| Flechas | ARROW | 6-16 |
-| Pólvora | GUNPOWDER | 2-6 |
-| Hierro | IRON_INGOT | 3-7 |
-| Hueso | BONE | 3-7 |
-| Cuerda | STRING | 2-5 |
+Cada tabla declara sus propios pesos; si una rareza no aparece, se usa el peso global de
+`rarities:`. Estos son los porcentajes **reales** por tirada (sin suerte ni pity):
 
-### Poco comunes — 65-95%
+| Tabla | Común | Poco común | Raro | Épico | Legendario | Mítico |
+|---|---|---|---|---|---|---|
+| `mob_horde` | 59.55% | 25.81% | 10.92% | 3.18% | 0.50% | 0.05% |
+| `mob_elite` | 26.48% | 33.10% | 26.48% | 11.92% | 1.85% | 0.16% |
+| `survivors` | 33.14% | 33.14% | 22.09% | 9.94% | 1.55% | 0.13% |
+| `boss_rey_zombi` | — | — | 48.66% | 36.50% | 13.38% | 1.46% |
+| `boss_arquera` | — | — | 47.96% | 35.97% | 14.39% | 1.68% |
+| `boss_verdugo` | — | — | 31.67% | 45.25% | 20.36% | 2.71% |
+| `boss_top_damage` | — | — | — | 38.22% | 47.77% | 14.01% |
 
-| Item | Material | Cantidad | Drop |
-|------|----------|----------|------|
-| Oro | GOLD_INGOT | 2-5 | 95% |
-| Manzana dorada | GOLDEN_APPLE | 1 | 90% |
-| Botella XP | EXPERIENCE_BOTTLE | 3-9 | 90% |
-| Ojo de ender | ENDER_EYE | 1-2 | 75% |
-| Obsidiana | OBSIDIAN | 1-3 | 65% |
+### Suerte por dificultad
 
-### Raros — 5-55%
+Las rarezas con `luck-affected: true` (Raro, Épico, Legendario y Mítico) multiplican su peso por
+`1 + (dificultad − 1) × 0.50`. En un evento x3 pesan ×2.0; en x5, ×3.0.
 
-> **Balance:** las armas rotas (Espada Sanguinaria, Arco Carmesí, Daga de las Sombras,
-> Arco de la Tormenta) están capadas al **5%**; los materiales comunes son frecuentes.
+### Pity (protección contra la mala suerte)
 
-| Item | Material | Drop | Encantamientos |
-|------|----------|------|-------------|
-| Diamante | DIAMOND (1-3) | 55% | — |
-| Perla de ender | ENDER_PEARL (1-2) | 50% | — |
-| Pico Umbrío | DIAMOND_PICKAXE | 30% | Prisa II · Fundidor I (Fortuna III · Eficiencia V) |
-| Espada Sanguinaria | DIAMOND_SWORD | **5%** | Vampírico II · Veneno I (Filo V · Botín II) |
-| Arco Carmesí | BOW | **5%** | Francotirador I (Poder V · Empuje II) |
-| Daga de las Sombras | IRON_SWORD | **5%** | Golpe doble I · Aspecto de hielo II (Filo IV · Botín III) |
-| Arco de la Tormenta | BOW | **5%** | Flechas electrizadas II (Poder V · Llama) |
+Cada tirada de una tabla que **no** da la rareza suma 1 punto para ese jugador **en esa tabla**;
+el peso se multiplica por `1 + puntos × pity-per-roll` y al obtenerla se reinicia.
 
-### Épicos — 12-45%
+| Rareza | Pity por tirada | Máx. puntos | Multiplicador máximo |
+|---|---|---|---|
+| Común | — | — | — |
+| Poco común | — | — | — |
+| Raro | — | — | — |
+| Épico | +0.02 | 150 | ×4.0 |
+| Legendario | +0.05 | 200 | ×11.0 |
+| Mítico | +0.08 | 300 | ×25.0 |
 
-> Subida respecto a la versión anterior: **tótem al 45%** y **fragmento de netherita al 40%** (estaban 15%/18%).
+> El tope se aplica por tabla: 200 puntos de legendario en `boss_verdugo` no se suman a los de
+> `mob_horde`. Así el pity de los jefes mide la suerte real contra los jefes.
 
-| Item | Material | Cantidad | Drop | Encantamientos |
-|------|----------|----------|------|-------------|
-| Tótem | TOTEM_OF_UNDYING | 1 | **45%** | — |
-| Fragmento de netherita | NETHERITE_SCRAP | 1-2 | **40%** | — |
-| Manzana encantada | ENCHANTED_GOLDEN_APPLE | 1 | 25% | — |
-| Espada de la Ruina | NETHERITE_SWORD | 1 | 16% | Vampírico I · Marchitar II (Filo V · Botín III) |
-| Hacha del Verdugo | NETHERITE_AXE | 1 | 15% | Cortador II · Decapitador I (Filo V · Eficiencia V) |
-| Ballesta del Abismo | CROSSBOW | 1 | 15% | Flechas electrizadas I (Multidisparo · Perfora IV) |
-| Hacha de la Ventisca | DIAMOND_AXE | 1 | 15% | Aspecto de hielo III · Parálisis II (Filo V) |
-| Yelmo del Cazador | NETHERITE_HELMET | 1 | 12% | Endurecido II (Protección IV · Respiración III) |
-| Peto del Cazador | NETHERITE_CHESTPLATE | 1 | 12% | Endurecido II · Corazón de dragón II (Protección IV) |
-| Grebas del Cazador | NETHERITE_LEGGINGS | 1 | 12% | Endurecido II · Regeneración II (Protección IV) |
-| Botas del Cazador | NETHERITE_BOOTS | 1 | 12% | Velocidad I (Protección IV · Caída de pluma IV) |
-| Botas del Estrondo | NETHERITE_BOOTS | 1 | 12% | Salto II · Fuerza de frenado I (Velocidad del alma III) |
+## Paso 4 y 5 — Objeto y drop-chance propio
 
-### Legendarios — 4,5-6% (con anuncio global)
+Dentro de la rareza elegida, los objetos compiten por peso. Después cada uno aplica su
+`drop-chance`; si falla, **esa tirada no da nada** (no se sustituye por otro objeto).
 
-> ✅ **Ninguna pieza lleva maldiciones**: ni Maldición de desaparición ni de vínculo. Al morir caen
-> al suelo como cualquier objeto y cualquiera puede recogerlas, también el equipo Mítico. La
-> maldición automática de la 1.0.2 se retiró en la 1.0.3.
-
-| Item | Material | Drop | Encantamientos |
-|------|----------|------|-------------|
-| Colmillo Vampírico | NETHERITE_SWORD | 6% | Vampírico III · Marchitar II (Filo V · Aspecto ígneo II) |
-| Arco Lunar | BOW | 6% | Flechas vampíricas II · Francotirador II (Poder V · Infinidad) |
-| Botas del Noctámbulo | NETHERITE_BOOTS | 6% | Velocidad II · Visión nocturna I (Caída de pluma IV) |
-| Égida de Espinas | SHIELD | 5% | Irrompible III · Reparación |
-| Martillo del Trueno | MACE | 5% | **Trueno II** · Golpe doble I (Densidad V · Brecha IV) |
-| Ballesta del Alba | CROSSBOW | 5% | **Flechas electrizadas III** (Perfora IV) |
-| Peto del Guardián Carmesí | NETHERITE_CHESTPLATE | 4,5% | Endurecido II · **Escudo ígneo II** · Espinas III |
-
-### Míticos — 0,5-0,8% (limitados a 3 ejemplares, con anuncio global)
-
-| Item | Material | Drop | Encantamientos |
-|------|----------|------|-------------|
-| Hoja del Eclipse Carmesí | NETHERITE_SWORD | 0,8% | Vampírico III · **Trueno II** · Marchitar II (Filo V) |
-| Tridente del Abismo Rojo | TRIDENT | 0,7% | Infernal III · **Trueno I** (Empalador V) |
-| Corona de la Luna de Sangre | NETHERITE_HELMET | 0,6% | Corazón de dragón III · Visión nocturna I (Protección V) |
-| Maza del Coloso | MACE | 0,6% | **Trueno I** · Parálisis I (Densidad V · Brecha IV) |
-| Hacha del Apocalipsis | NETHERITE_AXE | 0,6% | Golpe doble II · Vampírico II (Filo V · Eficiencia V) |
-| Guadaña del Segador | NETHERITE_HOE | 0,5% | Marchitar II · Vampírico II (Filo V · Fortuna III) |
-| Peto del Eclipse Carmesí | NETHERITE_CHESTPLATE | 0,5% | Endurecido II · **Escudo ígneo II** · Fuerza de frenado I |
-| Grebas del Eclipse | NETHERITE_LEGGINGS | 0,5% | Velocidad II · Ligero I (Sigilo III) |
-
-> Cada mítico tiene **número de serie** grabado; al agotarse los 3 ejemplares, deja de caer por completo.
-
----
+Ese doble filtro es lo que hace que un mítico sea un mítico: 0.05% de rareza por tirada y, encima,
+un 0.5-0.8% propio de cada uno de los 14 objetos.
 
 ## Tablas de loot
 
-| Tabla | Drop chance | Tiradas | Notas |
-|-------|-------------|---------|-------|
-| `mob_horde` | **60%** | 1-2 | Base de la horda (todos los mobs etiquetados) |
-| `mob_elite` | **45%** | 2-3 | Verdugo Menor (WITHER_SKELETON de la horda); pesos sesgados a rarezas altas |
-| `survivors` | **100%** | 2-3 | Premio a cada superviviente al terminar el evento |
-| `boss_rey_zombi` | 100% | 4-5 | Garantizado: Botella XP (8-16) + Diamante (3-6). Sin comunes/poco comunes (mín. Raro) |
-| `boss_arquera` | 100% | 4-5 | Garantizado: Flechas (32-64) + Diamante (2-5). Mín. Raro |
-| `boss_verdugo` | 100% | 5-6 | Garantizado: Fragmento de netherita (3-6) + Botella XP (6-12). Mín. Raro |
-| `boss_top_damage` | 100% | 1 | Premio al mayor daño: solo Épico / Legendario / Mítico |
+| Tabla | Drop | Tiradas | Garantizado |
+|---|---|---|---|
+| `mob_horde` | 60% | 1-2 | — |
+| `mob_elite` | 45% | 2-3 | — |
+| `survivors` | 100% | 2-3 | — |
+| `boss_rey_zombi` | 100% | 4-5 | Botella de XP ×8-16, Diamante ×3-6 |
+| `boss_arquera` | 100% | 4-5 | Flechas ×32-64, Diamante ×2-5 |
+| `boss_verdugo` | 100% | 5-6 | Fragmento de netherita ×3-6, Botella de XP ×6-12 |
+| `boss_top_damage` | 100% | 1 | — |
 
----
+## Catálogo completo (104 objetos)
 
-## Cómo escala con la dificultad
+Materiales apilables: **16**. Equipo con nombre y lore: **88** (14 clases × 6 rarezas).
 
-Fórmula: `valor = base × (1 + (N − 1) × factor)`
+Los porcentajes de la columna **% real** son la probabilidad de ese objeto concreto por tirada de
+`mob_horde` a dificultad 1, contando rareza, peso del objeto y su propio drop-chance.
 
-| Parámetro | Factor | x1 | x2 | x3 |
-|-----------|--------|----|----|----|
-| Suerte de loot (`loot-chance`) | 0.25 | 60% | 75% | 90% |
-| Peso de rarezas altas (`rarity-luck`) | 0.5 | ×1 | ×1.5 | ×2 |
+> Un mítico en la horda está en el orden de **1 entre millones de tiradas**: es un premio
+> testimonial. La vía real son los jefes, donde el sorteo de rareza ya parte de Raro y el
+> mítico vale 1.5-2.7% por tirada (y el jefe tira 4-6 veces). `boss_top_damage` es la mejor
+> tabla del juego para un mítico: 14% por tirada.
 
----
+### Común (20)
 
-## Configuración relacionada (`config.yml`)
+| Objeto | Material | Cantidad | Drop | % real | Encantamientos |
+|---|---|---|---|---|---|
+| Carne | `COOKED_BEEF` | 3-8 | 100% | 6.14% | — |
+| Flechas | `ARROW` | 6-16 | 100% | 4.60% | — |
+| Pólvora | `GUNPOWDER` | 2-6 | 100% | 4.60% | — |
+| Hierro | `IRON_INGOT` | 3-7 | 100% | 3.84% | — |
+| Hueso | `BONE` | 3-7 | 100% | 3.84% | — |
+| Cuerda | `STRING` | 2-5 | 100% | 3.07% | — |
+| Espada Oxidada | `WOODEN_SWORD` | 1 | 50% | 1.53% | sharpness II · unbreaking I |
+| Hacha Oxidada | `WOODEN_AXE` | 1 | 50% | 1.53% | efficiency II · sharpness II · unbreaking I |
+| Pico Oxidado | `WOODEN_PICKAXE` | 1 | 50% | 1.53% | efficiency II · unbreaking I |
+| Pala Oxidada | `WOODEN_SHOVEL` | 1 | 50% | 1.38% | efficiency II · unbreaking I |
+| Azada Oxidada | `WOODEN_HOE` | 1 | 45% | 1.11% | efficiency II · unbreaking I |
+| Arco Astillado | `BOW` | 1 | 45% | 1.24% | power II · unbreaking II |
+| Ballesta Astillada | `CROSSBOW` | 1 | 45% | 1.11% | unbreaking II · quick_charge I |
+| Tridente Oxidado | `TRIDENT` | 1 | 35% | 0.537% | impaling II · unbreaking II · loyalty I |
+| Maza Oxidada | `MACE` | 1 | 35% | 0.645% | unbreaking II · density I |
+| Casco de Cuero | `LEATHER_HELMET` | 1 | 45% | 0.967% | protection I · unbreaking I |
+| Peto de Cuero | `LEATHER_CHESTPLATE` | 1 | 45% | 0.967% | protection I · unbreaking I |
+| Grebas de Cuero | `LEATHER_LEGGINGS` | 1 | 45% | 0.967% | protection I · unbreaking I |
+| Botas de Cuero | `LEATHER_BOOTS` | 1 | 45% | 0.967% | protection I · unbreaking I |
+| Escudo Astillado | `SHIELD` | 1 | 40% | 0.737% | unbreaking I |
+
+### Poco común (19)
+
+| Objeto | Material | Cantidad | Drop | % real | Encantamientos |
+|---|---|---|---|---|---|
+| Oro | `GOLD_INGOT` | 2-5 | 95% | 2.24% | — |
+| Manzana dorada | `GOLDEN_APPLE` | 1 | 90% | 1.42% | — |
+| Botella de XP | `EXPERIENCE_BOTTLE` | 3-9 | 90% | 2.12% | — |
+| Ojo de ender | `ENDER_EYE` | 1-2 | 75% | 0.885% | — |
+| Obsidiana | `OBSIDIAN` | 1-3 | 65% | 0.767% | — |
+| Espada de Piedra Lunar | `STONE_SWORD` | 1 | 45% | 0.708% | sharpness III · unbreaking II · looting I |
+| Hacha de Piedra Lunar | `STONE_AXE` | 1 | 45% | 0.708% | efficiency III · sharpness III · unbreaking II |
+| Pico de Piedra Lunar | `STONE_PICKAXE` | 1 | 45% | 0.708% | efficiency III · unbreaking II · fortune I |
+| Pala de Piedra Lunar | `STONE_SHOVEL` | 1 | 45% | 0.637% | efficiency III · unbreaking II · fortune I |
+| Azada de Piedra Lunar | `STONE_HOE` | 1 | 40% | 0.504% | efficiency III · unbreaking II · replanter I |
+| Arco de Hueso Lunar | `BOW` | 1 | 40% | 0.566% | power III · unbreaking III · punch I |
+| Ballesta de Hueso Lunar | `CROSSBOW` | 1 | 40% | 0.504% | unbreaking III · piercing II · quick_charge II |
+| Tridente de los Mares | `TRIDENT` | 1 | 30% | 0.236% | impaling III · unbreaking III · loyalty II · +1 |
+| Maza Pesada | `MACE` | 1 | 30% | 0.283% | unbreaking III · density II · breach I |
+| Casco de Cadena Lunar | `CHAINMAIL_HELMET` | 1 | 40% | 0.441% | protection II · unbreaking II · respiration I |
+| Peto de Cadena Lunar | `CHAINMAIL_CHESTPLATE` | 1 | 40% | 0.441% | protection II · unbreaking II |
+| Grebas de Cadena Lunar | `CHAINMAIL_LEGGINGS` | 1 | 40% | 0.441% | protection II · unbreaking II |
+| Botas de Cadena Lunar | `CHAINMAIL_BOOTS` | 1 | 40% | 0.441% | protection II · unbreaking II · feather_falling I |
+| Escudo Reforzado | `SHIELD` | 1 | 35% | 0.330% | unbreaking II |
+
+### Raro (18)
+
+| Objeto | Material | Cantidad | Drop | % real | Encantamientos |
+|---|---|---|---|---|---|
+| Diamante | `DIAMOND` | 1-3 | 55% | 0.890% | — |
+| Perla de ender | `ENDER_PEARL` | 1-2 | 50% | 0.607% | — |
+| Espada Sanguinaria | `DIAMOND_SWORD` | 1 | 5% | 0.030% (1 entre 3.297) | sharpness V · unbreaking III · looting II · vampire II · venom II · mending I |
+| Daga de las Sombras | `IRON_SWORD` | 1 | 5% | 0.028% (1 entre 3.533) | sharpness IV · ice_aspect III · looting III · unbreaking III · double_strike II · sweeping_edge II · nimble I |
+| Hacha Sangrienta | `IRON_AXE` | 1 | 20% | 0.113% | efficiency IV · sharpness IV · unbreaking III · decapitator I · vampire I |
+| Pico Umbrío | `DIAMOND_PICKAXE` | 1 | 30% | 0.146% | efficiency V · fortune III · unbreaking III · smelter II · mending I · veinminer I |
+| Pala Sangrienta | `IRON_SHOVEL` | 1 | 20% | 0.097% (1 entre 1.030) | efficiency IV · unbreaking III · smelter II |
+| Azada Sangrienta | `IRON_HOE` | 1 | 20% | 0.081% (1 entre 1.236) | efficiency IV · unbreaking III · smelter II · replanter I |
+| Arco Carmesí | `BOW` | 1 | 5% | 0.030% (1 entre 3.297) | power V · unbreaking III · punch II · sniper II · mending I |
+| Arco de la Tormenta | `BOW` | 1 | 5% | 0.028% (1 entre 3.533) | power V · electrified_arrows III · unbreaking III · punch II · flame I |
+| Ballesta Carmesí | `CROSSBOW` | 1 | 15% | 0.085% (1 entre 1.178) | piercing III · quick_charge III · unbreaking III · multishot I · sniper I |
+| Tridente Sangriento | `TRIDENT` | 1 | 12% | 0.049% (1 entre 2.061) | impaling IV · loyalty III · unbreaking III · infernus I · mending I |
+| Maza de Hueso | `MACE` | 1 | 15% | 0.073% (1 entre 1.374) | density III · unbreaking III · breach II · mending I |
+| Casco de Hierro Carmesí | `IRON_HELMET` | 1 | 15% | 0.073% (1 entre 1.374) | protection III · unbreaking III · elemental_protection II · respiration II |
+| Peto de Hierro Carmesí | `IRON_CHESTPLATE` | 1 | 15% | 0.073% (1 entre 1.374) | protection III · unbreaking III · elemental_protection II · fire_shield I |
+| Grebas de Hierro Carmesí | `IRON_LEGGINGS` | 1 | 15% | 0.073% (1 entre 1.374) | protection III · unbreaking III · stopping_force I |
+| Botas de Hierro Carmesí | `IRON_BOOTS` | 1 | 15% | 0.073% (1 entre 1.374) | protection III · unbreaking III · feather_falling II · speed I |
+| Escudo Carmesí | `SHIELD` | 1 | 12% | 0.049% (1 entre 2.061) | unbreaking III · restore I |
+
+### Épico (19)
+
+| Objeto | Material | Cantidad | Drop | % real | Encantamientos |
+|---|---|---|---|---|---|
+| Manzana encantada | `ENCHANTED_GOLDEN_APPLE` | 1 | 25% | 0.067% (1 entre 1.486) | — |
+| Tótem | `TOTEM_OF_UNDYING` | 1 | 45% | 0.182% | — |
+| Fragmento de netherita | `NETHERITE_SCRAP` | 1-2 | 40% | 0.162% | — |
+| Espada de la Ruina | `NETHERITE_SWORD` | 1 | 16% | 0.026% (1 entre 3.870) | sharpness V · cutter III · looting III · unbreaking III · decapitator II · vampire II · wither II · mending I |
+| Hacha de la Ventisca | `DIAMOND_AXE` | 1 | 15% | 0.022% (1 entre 4.503) | efficiency V · sharpness V · ice_aspect III · unbreaking III · double_strike II · paralyze II |
+| Hacha del Verdugo | `NETHERITE_AXE` | 1 | 15% | 0.020% (1 entre 4.954) | efficiency V · sharpness V · cutter III · unbreaking III · decapitator II · vampire II · mending I |
+| Pico del Abismo | `DIAMOND_PICKAXE` | 1 | 12% | 0.016% (1 entre 6.192) | efficiency V · fortune III · smelter III · unbreaking III · veinminer II · mending I · telekinesis I |
+| Pala del Abismo | `DIAMOND_SHOVEL` | 1 | 12% | 0.015% (1 entre 6.880) | efficiency V · fortune III · unbreaking III · mending I · telekinesis I · tunnel I |
+| Azada del Abismo | `DIAMOND_HOE` | 1 | 10% | 0.011% (1 entre 9.288) | efficiency V · unbreaking III · mending I · replanter I · telekinesis I |
+| Arco del Abismo | `BOW` | 1 | 12% | 0.016% (1 entre 6.192) | power V · unbreaking III · explosive_arrows II · poisoned_arrows II · punch II · sniper II · flame I · infinity I · mending I |
+| Ballesta del Abismo | `CROSSBOW` | 1 | 15% | 0.020% (1 entre 4.954) | piercing IV · electrified_arrows III · quick_charge III · unbreaking III · mending I · multishot I |
+| Tridente Profundo | `TRIDENT` | 1 | 10% | 0.012% (1 entre 8.256) | impaling V · loyalty III · unbreaking III · infernus II · channeling I · mending I |
+| Maza Carmesí | `MACE` | 1 | 10% | 0.012% (1 entre 8.256) | density IV · breach III · unbreaking III · wind_burst II · mending I · soulbound I |
+| Yelmo del Cazador de Sangre | `NETHERITE_HELMET` | 1 | 12% | 0.016% (1 entre 6.192) | protection IV · elemental_protection III · respiration III · unbreaking III · saturation II · mending I · water_breathing I |
+| Peto del Cazador de Sangre | `NETHERITE_CHESTPLATE` | 1 | 12% | 0.016% (1 entre 6.192) | protection IV · elemental_protection III · unbreaking III · dragon_heart II · hardened II · mending I |
+| Grebas del Cazador de Sangre | `NETHERITE_LEGGINGS` | 1 | 12% | 0.016% (1 entre 6.192) | protection IV · elemental_protection III · unbreaking III · stopping_force II · mending I |
+| Botas del Cazador de Sangre | `NETHERITE_BOOTS` | 1 | 12% | 0.016% (1 entre 6.192) | feather_falling IV · protection IV · unbreaking III · jumping I · mending I · speed I |
+| Botas del Estrondo | `NETHERITE_BOOTS` | 1 | 12% | 0.016% (1 entre 6.192) | protection IV · soul_speed III · unbreaking III · jumping II · flame_walker I · mending I · rebound I |
+| Escudo del Guardián | `SHIELD` | 1 | 10% | 0.011% (1 entre 9.288) | unbreaking III · restore II · mending I · soulbound I |
+
+### Legendario (14)
+
+| Objeto | Material | Cantidad | Drop | % real | Encantamientos |
+|---|---|---|---|---|---|
+| Colmillo Vampírico | `NETHERITE_SWORD` | 1 | 6% | 0.0023% (1 entre 42.651) | sharpness V · looting III · sweeping_edge III · thunder III · unbreaking III · vampire III · fire_aspect II · rocket II · wither II · mending I |
+| Hacha del Abismo | `NETHERITE_AXE` | 1 | 6% | 0.0021% (1 entre 47.390) | efficiency V · sharpness V · thunder IV · unbreaking III · decapitator II · vampire II · mending I · treefeller I |
+| Pico Espectral | `NETHERITE_PICKAXE` | 1 | 6% | 0.0021% (1 entre 47.390) | efficiency V · smelter IV · fortune III · haste III · unbreaking III · veinminer III · tunnel II · mending I · telekinesis I |
+| Pala Espectral | `NETHERITE_SHOVEL` | 1 | 5% | 0.0016% (1 entre 63.976) | efficiency V · fortune III · smelter III · tunnel III · unbreaking III · mending I · telekinesis I |
+| Azada Espectral | `NETHERITE_HOE` | 1 | 5% | 0.0014% (1 entre 73.116) | efficiency V · smelter III · unbreaking III · haste II · mending I · replanter I · telekinesis I |
+| Arco Lunar | `BOW` | 1 | 6% | 0.0023% (1 entre 42.651) | power V · unbreaking III · vampiric_arrows III · dragonfire_arrows II · explosive_arrows II · punch II · sniper II · flame I · infinity I · mending I |
+| Ballesta del Alba | `CROSSBOW` | 1 | 5% | 0.0018% (1 entre 56.868) | piercing IV · electrified_arrows III · quick_charge III · unbreaking III · explosive_arrows II · sniper II · vampiric_arrows II · mending I · multishot I |
+| Tridente de la Tormenta | `TRIDENT` | 1 | 5% | 0.0018% (1 entre 56.868) | impaling V · infernus III · loyalty III · unbreaking III · channeling I · mending I · soulbound I |
+| Martillo del Trueno | `MACE` | 1 | 5% | 0.0018% (1 entre 56.868) | density V · breach IV · unbreaking III · wind_burst III · restore II · mending I · soulbound I |
+| Yelmo del Eclipse | `NETHERITE_HELMET` | 1 | 5% | 0.0018% (1 entre 56.868) | protection V · elemental_protection IV · respiration III · thorns III · unbreaking III · saturation II · mending I · night_vision I |
+| Peto del Guardián Carmesí | `NETHERITE_CHESTPLATE` | 1 | 4.5% | 0.0016% (1 entre 63.186) | protection V · dragon_heart III · fire_shield III · thorns III · unbreaking III · cold_steel II · hardened II · mending I |
+| Grebas del Titán | `NETHERITE_LEGGINGS` | 1 | 5% | 0.0018% (1 entre 56.868) | protection V · elemental_protection IV · stopping_force III · unbreaking III · thorns II · mending I |
+| Botas del Noctámbulo | `NETHERITE_BOOTS` | 1 | 6% | 0.0023% (1 entre 42.651) | protection V · feather_falling IV · depth_strider III · soul_speed III · unbreaking III · flame_walker II · jumping II · speed II · mending I |
+| Égida Carmesí | `SHIELD` | 1 | 5% | 0.0020% (1 entre 51.181) | restore III · unbreaking III · mending I · soulbound I |
+
+### Mítico (14)
+
+| Objeto | Material | Cantidad | Drop | % real | Encantamientos |
+|---|---|---|---|---|---|
+| Hoja del Eclipse Carmesí | `NETHERITE_SWORD` | 1 | 0.8% | 0.000029% (1 entre 3.425.500) | sharpness V · thunder V · looting III · paralyze III · sweeping_edge III · unbreaking III · vampire III · double_strike II · fire_aspect II · wither II · mending I |
+| Hacha del Apocalipsis | `NETHERITE_AXE` | 1 | 0.6% | 0.000022% (1 entre 4.567.333) | efficiency V · sharpness V · thunder V · unbreaking III · vampire III · decapitator II · double_strike II · mending I · treefeller I |
+| Pico del Eclipse | `NETHERITE_PICKAXE` | 1 | 0.6% | 0.000022% (1 entre 4.567.333) | efficiency V · smelter V · fortune III · tunnel III · unbreaking III · veinminer III · blast_mining II · mending I · telekinesis I |
+| Pala del Eclipse | `NETHERITE_SHOVEL` | 1 | 0.5% | 0.000016% (1 entre 6.089.778) | efficiency V · smelter V · fortune III · haste III · tunnel III · unbreaking III · mending I · telekinesis I |
+| Guadaña del Segador | `NETHERITE_HOE` | 1 | 0.5% | 0.000018% (1 entre 5.480.800) | efficiency V · smelter V · haste III · unbreaking III · mending I · replanter I · telekinesis I |
+| Arco del Eclipse | `BOW` | 1 | 0.7% | 0.000026% (1 entre 3.914.857) | power V · dragonfire_arrows III · explosive_arrows III · unbreaking III · vampiric_arrows III · electrified_arrows II · punch II · sniper II · flame I · infinity I · mending I |
+| Ballesta del Eclipse | `CROSSBOW` | 1 | 0.6% | 0.000020% (1 entre 5.074.815) | piercing IV · dragonfire_arrows III · electrified_arrows III · explosive_arrows III · quick_charge III · unbreaking III · vampiric_arrows III · sniper II · mending I · multishot I |
+| Tridente del Abismo Rojo | `TRIDENT` | 1 | 0.7% | 0.000026% (1 entre 3.914.857) | impaling V · infernus III · loyalty III · restore III · unbreaking III · channeling I · mending I · soulbound I |
+| Maza del Coloso | `MACE` | 1 | 0.6% | 0.000022% (1 entre 4.567.333) | density V · breach IV · restore III · unbreaking III · wind_burst III · mending I · soulbound I |
+| Corona de la Luna de Sangre | `NETHERITE_HELMET` | 1 | 0.6% | 0.000022% (1 entre 4.567.333) | protection V · elemental_protection IV · respiration III · thorns III · unbreaking III · saturation II · mending I · night_vision I · water_breathing I |
+| Peto del Eclipse Carmesí | `NETHERITE_CHESTPLATE` | 1 | 0.5% | 0.000018% (1 entre 5.480.800) | dragon_heart V · protection V · elemental_protection IV · fire_shield IV · cold_steel III · thorns III · unbreaking III · hardened II · mending I |
+| Grebas del Eclipse | `NETHERITE_LEGGINGS` | 1 | 0.5% | 0.000018% (1 entre 5.480.800) | protection V · elemental_protection IV · stopping_force III · swift_sneak III · thorns III · unbreaking III · mending I |
+| Botas del Eclipse | `NETHERITE_BOOTS` | 1 | 0.6% | 0.000022% (1 entre 4.567.333) | protection V · elemental_protection IV · feather_falling IV · depth_strider III · soul_speed III · unbreaking III · flame_walker II · jumping II · speed II · mending I · rebound I |
+| Égida del Eclipse | `SHIELD` | 1 | 0.5% | 0.000015% (1 entre 6.851.000) | restore III · unbreaking III · mending I · soulbound I |
+
+## Configuración
 
 ```yaml
 loot:
   default-table: mob_horde
   survivor-table: survivors
-  direct-to-inventory: false    # false = comunes al suelo, Raro+ van directo al inventario
-  require-player-kill: true     # sin jugador que mate, no hay loot
+  direct-to-inventory: false
+  require-player-kill: true
   keep-vanilla-drops: false
-  glow-rarities: [LEGENDARIO, MITICO]   # brillan e ignoran lava/explosiones
-
-announce:
-  loot: true                    # anuncio global al obtener LEGENDARIO / MÍTICO
+  glow-rarities: [LEGENDARIO, MITICO]
 ```
 
----
+## Ver las probabilidades reales
 
-## Ver probabilidades reales en el servidor
-
-```
-/luna chances <tabla>
-```
-
-Ejemplo:
 ```
 /luna chances mob_horde
+/luna chances boss_verdugo
 ```
 
-> El comando muestra los porcentajes ya incluyendo pity, suerte de dificultad y límites de míticos.
+Salida de ejemplo (recortada):
+
+```
+Tabla mob_horde · prob. base de drop: 60% · tiradas: 1-2
+Común 59.55%
+   - Carne 6.14%
+   - Flechas 4.60%
+Poco común 25.81%
+   - Oro 2.24%
+   - Manzana dorada 1.42%
+Raro 10.92%
+   - Diamante 0.890%
+   - Perla de ender 0.607%
+```
+
+## Notas de balance
+
+- **Ningún objeto está limitado**: no hay contador de ejemplares ni número de serie.
+- Los objetos **Raro y superiores van directo al inventario**; los comunes caen al suelo.
+- Los **Legendario y Mítico brillan** al caer e ignoran lava y explosiones (`loot.glow-rarities`).
+- **Sin maldiciones**: al morir, todo cae al suelo y cualquiera puede recogerlo.
+- Los niveles de encantamiento nunca superan su máximo real (5 en legendarios y míticos).

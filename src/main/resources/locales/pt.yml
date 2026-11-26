@@ -58,7 +58,6 @@ loot:
 # ==================== Items ====================
 item:
   rarity-line: "<gray>Raridade: {rarity}"
-  serial-line: "<dark_red>Exemplar único <white>#{serial}<gray>/{limit}"
   owner-line: "<dark_gray>Caçado por <white>{owner}"
   owner-unknown: "<dark_gray>Caçador desconhecido"
   no-disenchant: "<red>Os itens da Lua de Sangue não perdem encantamentos nem maldições."
@@ -95,7 +94,6 @@ cmd:
   usage-give: "<yellow>Uso: /luna give <jogador> <item> [quantidade]"
   player-unknown: "<red>Jogador {player} não encontrado."
   item-unknown: "<red>O item {item} não existe (use /luna items)."
-  item-limit: "<red>O item {item} já alcançou o limite de {limit} exemplares únicos."
   target-unknown: "<red>Não há nenhum jogador ou mundo chamado {target}."
   boss-spawned-world: "<green>Chefe {boss} invocado em {world}."
   boss-usage-no-event: "<red>Sem evento ativo use /luna boss <id> <jogador|mundo>."

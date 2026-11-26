@@ -3,9 +3,12 @@
 #  1) Se decide si el mob suelta algo (drop-chance de la tabla, sube con la dificultad).
 #  2) Se elige la RAREZA según su peso (weight) -> luego el ITEM dentro de esa rareza según el peso del item.
 #  - luck-affected: el peso sube con la dificultad (difficulty.scaling.rarity-luck).
-#  - pity: cada tirada sin obtener esa rareza suma 1 "stack" por jugador; el peso se multiplica por (1 + stacks * pity-per-roll).
-#    Al obtenerla se reinicia. Es protección contra mala suerte.
-#  - Items con "limit" (míticos) dejan de caer cuando se agotan los ejemplares.
+#  - pity: cada tirada sin obtener esa rareza suma 1 "stack" por jugador Y POR TABLA; el peso
+#    se multiplica por (1 + stacks * pity-per-roll). Al obtenerla se reinicia. La tabla forma
+#    parte de la clave porque si no, matar mobs de la horda regalaba suerte en los jefes.
+#  - Un mismo roll() no repite el mismo item si la tabla tiene alternativas.
+#  - Los pesos y drop-chance se validan al cargar: un valor negativo, un NaN o >1 se avisa y
+#    se ajusta en vez de desviar el sorteo en silencio.
 #  - "rolls" puede ser rango (ej. 1-2): cuántos items intenta soltar por kill.
 #  Mira los porcentajes reales con:  /bloodmoon chances <tabla>
 # ============================================================
@@ -137,6 +140,7 @@ tables:
       - { item: botas_noctambulo, weight: 20, drop-chance: 0.06 }
       - { item: escudo_espinas, weight: 20, drop-chance: 0.05 }
       - { item: martillo_trueno, weight: 18, drop-chance: 0.05 }
+      - { item: tridente_tormenta, weight: 18, drop-chance: 0.05 }
       - { item: peto_guardian, weight: 18, drop-chance: 0.045 }
       - { item: ballesta_dorada, weight: 18, drop-chance: 0.05 }
       - { item: hacha_abismal, weight: 18, drop-chance: 0.06 }

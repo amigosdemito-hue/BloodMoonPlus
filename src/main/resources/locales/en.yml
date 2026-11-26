@@ -58,7 +58,6 @@ loot:
 # ==================== Items ====================
 item:
   rarity-line: "<gray>Rarity: {rarity}"
-  serial-line: "<dark_red>Unique copy <white>#{serial}<gray>/{limit}"
   owner-line: "<dark_gray>Hunted by <white>{owner}"
   owner-unknown: "<dark_gray>Hunter unknown"
   no-disenchant: "<red>Blood Moon items never lose enchantments or curses."
@@ -95,7 +94,6 @@ cmd:
   usage-give: "<yellow>Usage: /luna give <player> <item> [amount]"
   player-unknown: "<red>Player {player} not found."
   item-unknown: "<red>Item {item} does not exist (use /luna items)."
-  item-limit: "<red>Item {item} already reached its limit of {limit} unique copies."
   target-unknown: "<red>There is no player or world named {target}."
   boss-spawned-world: "<green>Boss {boss} spawned in {world}."
   boss-usage-no-event: "<red>With no active event use /luna boss <id> <player|world>."

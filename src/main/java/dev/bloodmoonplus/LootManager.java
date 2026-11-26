@@ -76,7 +76,38 @@ public final class LootManager {
             }
             for (Table t : tables.values()) t.effective = resolved(t, new HashSet<>());
         }
+        validate();
         plugin.getLogger().info("Loot: " + rarities.size() + " rarezas, " + tables.size() + " tablas.");
+    }
+
+    /** Revisa los números de loot.yml una sola vez al cargar: un peso negativo, un NaN o una
+     *  probabilidad fuera de 0..1 desviaban el sorteo (o dejaban la tabla muda) sin avisar. */
+    private void validate() {
+        for (Table t : tables.values()) {
+            if (!Double.isFinite(t.dropChance) || t.dropChance < 0 || t.dropChance > 1) {
+                plugin.getLogger().warning("loot.yml: '" + t.id + "'.drop-chance fuera de 0..1 ("
+                        + t.dropChance + "); se ajusta al rango.");
+                t.dropChance = Double.isFinite(t.dropChance) ? Math.max(0, Math.min(1, t.dropChance)) : 1.0;
+            }
+            double sum = 0;
+            for (Entry e : t.effective) {
+                if (!Double.isFinite(e.weight()) || e.weight() < 0) {
+                    plugin.getLogger().warning("loot.yml: '" + t.id + "' tiene una entrada con peso "
+                            + "inválido (" + e.item() + ": " + e.weight() + "); se ignora.");
+                    continue;
+                }
+                sum += e.weight();
+            }
+            if (sum <= 0) {
+                plugin.getLogger().warning("loot.yml: la tabla '" + t.id
+                        + "' no tiene ninguna entrada con peso > 0; no soltará nada.");
+            }
+            for (Map.Entry<String, Double> rw : t.rarityWeights.entrySet()) {
+                if (Double.isFinite(rw.getValue()) && rw.getValue() >= 0) continue;
+                plugin.getLogger().warning("loot.yml: '" + t.id + "'.rarity-weights." + rw.getKey()
+                        + " inválido (" + rw.getValue() + "); se ignora.");
+            }
+        }
     }
 
     private List<Entry> parseEntries(List<Map<?, ?>> list) {
@@ -148,22 +179,26 @@ public final class LootManager {
             if (s != null) out.add(s);
         }
         if (applyDropChance) {
-            double c = Math.min(1.0, t.dropChance * plugin.scaled(diff, "loot-chance"));
+            double c = Math.max(0, Math.min(1.0, t.dropChance * plugin.scaled(diff, "loot-chance")));
             if (ThreadLocalRandom.current().nextDouble() >= c) return out;
         }
         int rolls = Util.between(t.rolls);
+        // Un mismo roll() no repite el mismo item si la tabla tiene alternativas: un jefe
+        // soltando dos veces la misma espada se sentía como un fallo del sorteo.
+        Set<String> given = new HashSet<>();
         for (int i = 0; i < rolls; i++) {
-            ItemStack s = rollOnce(t, player, diff, owner);
+            ItemStack s = rollOnce(t, player, diff, owner, given);
             if (s != null) out.add(s);
         }
         return out;
     }
 
-    private ItemStack rollOnce(Table t, Player player, double diff, String owner) {
+    private ItemStack rollOnce(Table t, Player player, double diff, String owner, Set<String> given) {
         Map<String, List<Entry>> byRarity = new LinkedHashMap<>();
         for (Entry e : t.effective) {
+            if (!Double.isFinite(e.weight()) || e.weight() <= 0) continue;
             ItemFactory.ItemDef d = plugin.items().get(e.item());
-            if (d == null || e.weight() <= 0 || !plugin.items().available(d)) continue;
+            if (d == null) continue;
             byRarity.computeIfAbsent(d.rarity(), k -> new ArrayList<>()).add(e);
         }
         if (byRarity.isEmpty()) return null;
@@ -176,9 +211,12 @@ public final class LootManager {
             Rarity ra = rarities.get(rid);
             if (ra == null) continue;
             double w = t.rarityWeights.getOrDefault(rid, ra.weight());
-            if (w <= 0) continue;
+            if (!Double.isFinite(w) || w <= 0) continue;
             if (ra.luck()) w *= luckMult;
-            if (uid != null && ra.pityPerRoll() > 0) w *= 1 + plugin.data().pity(uid, rid) * ra.pityPerRoll();
+            // El pity es por tabla: matar mobs de la horda no regala suerte en las tablas de jefe.
+            if (uid != null && ra.pityPerRoll() > 0) {
+                w *= 1 + plugin.data().pity(uid, t.id, rid) * ra.pityPerRoll();
+            }
             weights.put(rid, w);
             total += w;
         }
@@ -198,18 +236,23 @@ public final class LootManager {
             for (String rid : byRarity.keySet()) {
                 Rarity ra = rarities.get(rid);
                 if (ra == null || ra.pityPerRoll() <= 0) continue;
-                if (rid.equals(chosen)) plugin.data().setPity(uid, rid, 0);
-                else plugin.data().setPity(uid, rid, Math.min(ra.pityMax(), plugin.data().pity(uid, rid) + 1));
+                if (rid.equals(chosen)) plugin.data().setPity(uid, t.id, rid, 0);
+                else plugin.data().setPity(uid, t.id, rid,
+                        Math.min(ra.pityMax(), plugin.data().pity(uid, t.id, rid) + 1));
             }
         }
 
-        Entry e = Util.pick(byRarity.get(chosen), Entry::weight);
+        List<Entry> pool = byRarity.get(chosen);
+        List<Entry> fresh = new ArrayList<>();
+        for (Entry en : pool) if (!given.contains(en.item())) fresh.add(en);
+        if (!fresh.isEmpty()) pool = fresh;
+        Entry e = Util.pick(pool, Entry::weight);
         if (e == null) return null;
         // Drop-chance individual por item: los simples caen siempre, los rotos son raros
         if (e.dropChance() < 1.0 && ThreadLocalRandom.current().nextDouble() >= e.dropChance()) return null;
         ItemFactory.ItemDef d = plugin.items().get(e.item());
         ItemStack stack = plugin.items().create(d, Util.between(e.amount()), owner);
-        if (stack == null) return null;
+        given.add(e.item());
 
         Rarity ra = rarities.get(chosen);
         if (ra != null && ra.broadcast() && player != null && plugin.messages().announce("loot", true)) {
@@ -257,17 +300,30 @@ public final class LootManager {
         }
     }
 
-    /** Porcentajes reales de una tabla a dificultad 1 y sin pity (para /bloodmoon chances). */
-    public List<String> describe(String id) {
+    /** Porcentajes reales de una tabla a dificultad 1 (para /luna chances). Muestra la
+     *  probabilidad FINAL de cada item (rareza x peso x drop-chance) y el pity actual del
+     *  jugador que ejecuta el comando en esa tabla. */
+    public List<String> describe(String id, Player viewer) {
         Table t = tables.get(id);
         if (t == null) return null;
         List<String> lines = new ArrayList<>();
         lines.add("<gold>Tabla <white>" + id + " <gray>· prob. base de drop: <white>"
-                + String.format(Locale.ROOT, "%.1f%%", t.dropChance * 100) + " <gray>· tiradas: <white>" + t.rolls[0] + "-" + t.rolls[1]);
+                + pct(t.dropChance) + " <gray>· tiradas: <white>" + t.rolls[0] + "-" + t.rolls[1]);
+        if (!t.guaranteed.isEmpty()) {
+            List<String> names = new ArrayList<>();
+            for (Entry g : t.guaranteed) {
+                ItemFactory.ItemDef d = plugin.items().get(g.item());
+                if (d == null) continue;
+                names.add((d.name() != null ? d.name() : d.material().name())
+                        + " <gray>x" + g.amount()[0] + (g.amount()[1] > g.amount()[0] ? "-" + g.amount()[1] : ""));
+            }
+            if (!names.isEmpty()) lines.add("<gray>Garantizado: <white>" + String.join("<gray>, ", names));
+        }
         Map<String, List<Entry>> byRarity = new LinkedHashMap<>();
         for (Entry e : t.effective) {
+            if (!Double.isFinite(e.weight()) || e.weight() <= 0) continue;
             ItemFactory.ItemDef d = plugin.items().get(e.item());
-            if (d == null || e.weight() <= 0) continue;
+            if (d == null) continue;
             byRarity.computeIfAbsent(d.rarity(), k -> new ArrayList<>()).add(e);
         }
         double total = 0;
@@ -276,33 +332,50 @@ public final class LootManager {
             Rarity ra = rarities.get(rid);
             if (ra == null) continue;
             double v = t.rarityWeights.getOrDefault(rid, ra.weight());
-            if (v <= 0) continue;
+            if (!Double.isFinite(v) || v <= 0) continue;
             w.put(rid, v);
             total += v;
         }
         if (total <= 0) {
-            // Sin pesos válidos (rarities ausentes o con peso 0) la división daba NaN%.
-            lines.add(" <gray>(esta tabla no tiene rarezas válidas en loot.yml)");
+            // Sin pesos validos (rarities ausentes o con peso 0) la division daba NaN%.
+            lines.add(" <gray>(esta tabla no tiene rarezas validas en loot.yml)");
             return lines;
         }
         for (Map.Entry<String, Double> en : w.entrySet()) {
-            double pct = en.getValue() / total * 100;
-            lines.add(" " + rarityDisplay(en.getKey()) + " <white>" + String.format(Locale.ROOT, "%.2f%%", pct));
+            double chance = en.getValue() / total;
+            lines.add(" " + rarityDisplay(en.getKey()) + " <white>" + pct(chance));
             List<Entry> es = byRarity.get(en.getKey());
             double sum = 0;
             for (Entry e : es) sum += e.weight();
             for (Entry e : es) {
                 ItemFactory.ItemDef d = plugin.items().get(e.item());
                 String nm = d.name() != null ? d.name() : d.material().name();
+                double finalPct = chance * (e.weight() / sum) * e.dropChance();
                 String dropInfo = e.dropChance() < 1.0
-                        ? " <gray>· drop: <white>" + String.format(Locale.ROOT, "%.0f%%", e.dropChance() * 100)
+                        ? " <gray>· drop: <white>" + pct(e.dropChance())
                         : "";
-                lines.add("   <dark_gray>- <reset>" + nm + " <gray>"
-                        + String.format(Locale.ROOT, "%.2f%%", pct * e.weight() / sum)
-                        + dropInfo
-                        + (d.limit() > 0 ? " <red>(únicos: " + plugin.data().created(d.id()) + "/" + d.limit() + ")" : ""));
+                lines.add("   <dark_gray>- <reset>" + nm + " <white>" + pct(finalPct) + dropInfo);
             }
         }
+        if (viewer != null) {
+            StringBuilder pity = new StringBuilder();
+            for (Rarity ra : rarities.values()) {
+                if (ra.pityPerRoll() <= 0) continue;
+                int stacks = plugin.data().pity(viewer.getUniqueId(), t.id, ra.id());
+                if (stacks <= 0) continue;
+                if (pity.length() > 0) pity.append(" <dark_gray>· <gray>");
+                pity.append(ra.display()).append(" <white>").append(stacks)
+                        .append("<gray>/").append(ra.pityMax())
+                        .append(" <dark_gray>x").append(String.format(Locale.ROOT, "%.2f",
+                                1 + stacks * ra.pityPerRoll()));
+            }
+            lines.add("<gray>Tu pity en esta tabla: " + (pity.length() == 0 ? "<white>0" : pity.toString()));
+        }
+        lines.add("<dark_gray>El % de cada item ya incluye su drop-chance propio; el sorteo de rareza va antes.");
         return lines;
+    }
+
+    private static String pct(double v) {
+        return String.format(Locale.ROOT, "%.2f%%", v * 100);
     }
 }

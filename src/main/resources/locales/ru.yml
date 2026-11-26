@@ -58,7 +58,6 @@ loot:
 # ==================== Items ====================
 item:
   rarity-line: "<gray>Редкость: {rarity}"
-  serial-line: "<dark_red>Уникальный экземпляр <white>#{serial}<gray>/{limit}"
   owner-line: "<dark_gray>Добыто: <white>{owner}"
   owner-unknown: "<dark_gray>Охотник неизвестен"
   no-disenchant: "<red>Предметы Кровавой Луны не теряют зачарования и проклятия."
@@ -95,7 +94,6 @@ cmd:
   usage-give: "<yellow>Использование: /luna give <игрок> <item> [количество]"
   player-unknown: "<red>Игрок {player} не найден."
   item-unknown: "<red>Предмета {item} не существует (используйте /luna items)."
-  item-limit: "<red>Предмет {item} достиг лимита в {limit} уникальных экземпляров."
   target-unknown: "<red>Нет игрока или мира с именем {target}."
   boss-spawned-world: "<green>Босс {boss} вызван в {world}."
   boss-usage-no-event: "<red>Без активного события используйте /luna boss <id> <игрок|мир>."
