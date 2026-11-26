@@ -2,7 +2,7 @@
 
 🌐 **English** · [Español](README.md)
 
-Everything you need to know about the **9 bosses** of the Blood Moon and the **drop system** (45 items).
+Everything you need to know about the **10 bosses** of the Blood Moon and the **drop system** (104 items), plus the full catalogue and how the probabilities are calculated.
 
 ---
 
@@ -161,393 +161,250 @@ When it triggers (once per boss):
 
 ## Loot per boss
 
-Bosses use their own tables with a **weight of 0 for Common and Uncommon**: they only drop **Rare or better**, and always have **guaranteed** drops on top of the rolls.
+Bosses use their own tables with **weight 0 on Common and Uncommon**: they only drop **Rare or
+better**, and always include **guaranteed** drops on top of the rolls.
 
 | Table | Used by | Guaranteed | Rolls | Rare | Epic | Leg. | Mythic |
-|-------|---------|------------|-------|------|------|------|--------|
-| `boss_rey_zombi` | Zombie King, Necromancer | XP Bottle 8-16, Diamond 3-6 | 4-5 | 48.7% | 36.5% | 13.4% | 1.5% |
-| `boss_arquera` | Archer, Hunter, Sentinel | Arrows 32-64, Diamond 2-5 | 4-5 | 48.0% | 36.0% | 14.4% | 1.7% |
-| `boss_verdugo` | Executioner, Devastator, Warden, **Scourge** | Netherite Scrap 3-6, XP Bottle 6-12 | 5-6 | 31.7% | 45.2% | 20.4% | 2.7% |
+|---|---|---|---|---|---|---|---|
+| `boss_rey_zombi` | Zombie King, Necromancer | Bottle o' Enchanting ×8-16, Diamond ×3-6 | 4-5 | 48.7% | 36.5% | 13.4% | 1.5% |
+| `boss_arquera` | Archer, Hunter, Sentinel | Arrows ×32-64, Diamond ×2-5 | 4-5 | 48.0% | 36.0% | 14.4% | 1.7% |
+| `boss_verdugo` | Executioner, Devastator, Warden, Maw, **Scourge** | Netherite scrap ×3-6, Bottle o' Enchanting ×6-12 | 5-6 | 31.7% | 45.2% | 20.4% | 2.7% |
 | `boss_top_damage` | Top damage against any boss | — | 1 | — | 38.2% | 47.8% | 14.0% |
 
-> The percentages are the rarity roll **before** each item's individual drop-chance
-> (mythics still apply their 0.5-0.8%). The stronger the boss, the better the table:
-> the **Crimson Scourge** uses the best one (`boss_verdugo`).
+> Percentages are the rarity roll **before** each item's own drop-chance. The harder the boss,
+> the better the table: the **Crimson Scourge** uses the best one (`boss_verdugo`).
 
 ---
 
 # 💎 PART 2 — LOOT
 
-## How drop probability works
+## How the drop probability works
 
-Every horde mob kill goes through **5 steps**. If you understand these 5, you understand all the loot:
-
-```
- mob kill
-      │
-      ▼
- [1] DOES IT DROP ANYTHING?  ── No (90% at x1) ──▶ nothing
-      │ Yes (10%)
-      ▼
- [2] HOW MANY ROLLS?  ── rolls 1 or 2
-      │
-      ▼
- [3] WHICH RARITY?  ── weighted roll (Common 59.6% ... Mythic 0.05%)
-      │
-      ▼
- [4] WHICH ITEM?  ── weighted roll within that rarity
-      │
-      ▼
- [5] DOES IT DROP?  ── the item's individual drop-chance
-      │               │
-     Yes            No ──▶ the roll gives nothing
-      ▼
-    🎁 item
-```
-
-### Step 1 — Does the mob drop anything? (table probability)
-
-Every loot table has a base probability that is multiplied by the event difficulty:
+Every horde mob death goes through **5 steps**:
 
 ```
-real probability = table × (1 + (difficulty − 1) × 0.25)
+ [1] does it drop?     table drop-chance × difficulty
+ [2] how many rolls?   rolls (1-2 horde, 4-6 bosses)
+ [3] which rarity?     rarity weight (+ luck + pity)
+ [4] which item?       item weight inside the rarity
+ [5] does it land?     the item's own drop-chance
 ```
 
-| Difficulty | Multiplier | `mob_horde` (10%) | `mob_elite` (45%) |
-|------------|------------|-------------------|-------------------|
-| x1 | ×1.00 | 10% | 45% |
-| x2 | ×1.25 | 12.5% | 56% |
-| x3 | ×1.50 | 15% | 67.5% |
-| x5 | ×2.00 | 20% | 90% |
-| x10 | ×3.25 | 32.5% | 100% |
+### Step 1 — does the mob drop anything?
 
-> An event scheduled with `difficulty: 3` gives **half again** as much loot as a normal one.
+`real chance = drop-chance × (1 + (difficulty − 1) × 0.25)`
 
-### Step 2 — How many rolls?
+With `mob_horde` at 60%: **x1 → 60%**, x2 → 75%, x3 → 90%, x10 → 100%.
 
-If step 1 passed, the table rolls: in `mob_horde` it is `1-2`, meaning **a random number between 1 and 2** items (average 1.5). Each roll is **independent** and goes through steps 3-5 on its own. Elite mobs and survivors roll 2-3; bosses 4-6.
+### Step 2 — how many rolls?
 
-### Step 3 — Rarity roll (relative weights)
+`mob_horde` rolls **1-2** items (1.5 on average); elites and survivors 2-3; bosses 4-6. Every roll
+is independent and will not repeat an item already given in the same batch.
 
-Not all colors weigh the same. This is the real roll for `mob_horde`:
+### Step 3 — rarity roll
 
-| Rarity | Weight | **Real % per roll** |
-|--------|--------|---------------------|
-| Common | 600 | **59.6%** |
-| Uncommon | 260 | **25.8%** |
-| Rare | 110 | **10.9%** |
-| Epic | 32 | **3.2%** |
-| Legendary | 5 | **0.50%** |
-| Mythic | 0.5 | **0.05%** |
+| Rarity | Weight in `mob_horde` | Real % per roll | Global announce |
+|---|---|---|---|
+| Common | 600 | **59.55%** | — |
+| Uncommon | 260 | **25.81%** | — |
+| Rare | 110 | **10.92%** | — |
+| Epic | 32 | **3.18%** | — |
+| Legendary | 5 | **0.50%** | yes |
+| Mythic | 0.5 | **0.05%** | yes |
 
-**Luck:** rarities flagged as `luck-affected` (Rare and above) multiply their weight by `1 + (difficulty − 1) × 0.5`. In a x3 event, Rare+ **doubles** its weight: the harder the event, the better the loot.
+**Luck:** Rare, Epic, Legendary and Mythic multiply their weight by `1 + (difficulty − 1) × 0.50`.
+At x3 they weigh twice as much.
 
-### Step 4 — Item roll within the rarity
+### Step 4 — item roll inside the rarity
 
-All items of that rarity compete by weight. Example, if **Rare** comes up (weights 40/30/15/15/14/14/12):
+Every item of that rarity competes by weight. The odds of each one are in
+[`DROPS.en.md`](DROPS.en.md), where the **Real %** column already includes its drop-chance.
 
-- Diamond: 28.6% · Ender Pearl: 21.4% · Blood Sword: 10.7% · Crimson Bow: 10.7% · Dagger: 10% · Storm Bow: 10% · Umbral Pickaxe: 8.6%
+### Step 5 — the item's own drop-chance
 
-### Step 5 — The item's individual drop-chance (key!)
+If the chosen item fails its own `drop-chance`, **that roll gives nothing**. Commons always drop;
+broken rare weapons sit at 5%%; mythics at 0.5-0.8%%.
 
-The rolled item has its **own** drop probability. **If it fails, that roll gives nothing** (it is not replaced by another item):
+### Pity per table and rarity
 
-| Drop-chance | Items | Result |
-|-------------|-------|--------|
-| 100% | Commons and simple materials | The rolled item **always drops** |
-| 25-50% | Diamond, pearls, obsidian | Drops most of the time |
-| **5%** | **Broken Rare/Legendary weapons** | Capped on purpose |
-| 10-20% | Epics | Low probability |
-| 0.5-0.8% | Mythics | "Pink sheep" |
+Every failed roll of a rarity adds 1 point **in that table**; the weight is multiplied by
+`1 + points × pity-per-roll` and resets when it drops.
 
-> That's why commons are 100%: if the roll gave you a Common, there is no second chance to fail.
-> And that's why a Blood Sword at 5% is **far** rarer than its 10.7% weight suggests:
-> 10.7% × 5% = **0.54% real** once Rare has already come up.
+| Rarity | Pity per roll | Max points | Max multiplier |
+|---|---|---|---|
+| Common | — | — | — |
+| Uncommon | — | — | — |
+| Rare | — | — | — |
+| Epic | +0.02 | 150 | ×4.0 |
+| Legendary | +0.05 | 200 | ×11.0 |
+| Mythic | +0.08 | 300 | ×25.0 |
 
-### Luck and pity (bad-luck protection)
+> Pity used to be global per rarity: grinding horde mobs ended up handing mythics at bosses.
+> Now every table tracks its own streak.
 
-- **Luck:** weight of Rare+ × `1 + (difficulty − 1) × 0.5` (only pays off in hard events).
-- **Pity:** every roll that does **not** give you a high rarity adds 1 point *for you*. Multiplier: `1 + points × pity-per-roll`. When you get it, it **resets to 0**.
+### Balance rules
 
-| Rarity | Pity per failed roll | Max points | Max multiplier |
-|--------|----------------------|------------|----------------|
-| Epic | +0.02 | 150 | ×4 |
-| Legendary | +0.05 | 200 | ×11 |
-| Mythic | +0.08 | 300 | ×25 |
-
-> Pity is **per player and per rarity**: if you've gone 300 rolls without a mythic, your mythic chance is 25 times the base. Bosses and the survivor reward speed this up enormously.
-
-### Real example: 100 kills in a x1 event
-
-1. ~10 kills pass step 1 (10%).
-2. Those 10 generate **~15 rolls** (average 1.5 per kill).
-3. Expected result of those 15 rolls:
-
-| Comes up... | Rolls | Real items (after their drop-chance) |
-|-------------|-------|--------------------------------------|
-| Common | 8.9 | ~8.9 items (always drop) |
-| Uncommon | 3.9 | ~3.1 items |
-| Rare | 1.6 | ~0.45 items (diamonds and pearls almost always) |
-| Epic | 0.48 | ~0.06 items |
-| Legendary | 0.075 | ~0.004 items |
-| Mythic | 0.0075 | almost nothing (mythics come from bosses) |
-
-> In short: **~12 items per 100 kills**, mostly food and materials, occasionally a diamond.
-> The real loot is in the **bosses** (guaranteed Rare+ tables), the **survivor reward**
-> (100%, 2-3 rolls) and the **top-damage prize** (Epic+ only).
-
-### Global balance rules
-
-- **Mythics:** at most **3 copies on the whole server** (serial number in the lore); once exhausted, they stop dropping.
-- **Broken Rare/Legendary weapons capped at 5%**: Blood Sword, Crimson Bow, Shadow Dagger, Storm Bow and Vampiric Fang.
-- **No curses**: no Moon piece carries the Curse of Vanishing or the Curse of Binding; if you die with one, it drops and anyone can pick it up. *(The automatic curse from 1.0.2 was removed in 1.0.3.)*
-- **Enchantments:** the level never exceeds **7** (trimmed on load).
-- Kills only count when a player is nearby (`require-player-kill`).
-- Legendary and Mythic items **glow** when dropped and ignore lava and explosions.
-
-### Rarity distribution per table
-
-Step 3 percentages in each table (before the individual drop-chance):
-
-| Table | Common | Uncommon | Rare | Epic | Leg. | Mythic |
-|-------|--------|----------|------|------|------|--------|
-| `mob_horde` (10%, 1-2 rolls) | 59.6% | 25.8% | 10.9% | 3.2% | 0.50% | 0.05% |
-| `mob_elite` (45%, 2-3 rolls) | 26.5% | 33.1% | 26.5% | 11.9% | 1.85% | 0.16% |
-| `supervivientes` (100%, 2-3 rolls) | 33.1% | 33.1% | 22.1% | 9.9% | 1.55% | 0.13% |
-| `boss_rey_zombi` (100%, 4-5) | — | — | 48.7% | 36.5% | 13.4% | 1.5% |
-| `boss_arquera` (100%, 4-5) | — | — | 48.0% | 36.0% | 14.4% | 1.7% |
-| `boss_verdugo` (100%, 5-6) | — | — | 31.7% | 45.2% | 20.4% | 2.7% |
-| `boss_top_damage` (100%, 1) | — | — | — | 38.2% | 47.8% | 14.0% |
-
-### Rarity reference
-
-| Rarity | Luck | Pity | Global warning | Glows on drop |
-|--------|------|------|----------------|---------------|
-| Common | — | — | — | — |
-| Uncommon | — | — | — | — |
-| Rare | ✅ | — | — | — |
-| Epic | ✅ | 0.02/roll | — | — |
-| Legendary | ✅ | 0.05/roll | ✅ | ✅ |
-| Mythic | ✅ | 0.08/roll | ✅ | ✅ |
+- **No copy limit**: no cap and no serial number. If it drops, it is yours.
+- **No curses**: on death it falls to the ground (mythics too) and anyone can pick it up.
+- **A batch never repeats an item** while the table still has alternatives.
+- **Weights are validated on load**: negative values, `NaN` or `drop-chance > 1` are reported and fixed.
+- **Every item drops somewhere**: a test enforces it (the storm trident used to exist without
+  appearing in any table).
+- **Legendary and Mythic glow** on the ground and ignore lava and explosions.
 
 ---
 
-## 📦 Full item list (45)
+## 📦 Full catalogue (104 items)
 
-### Commons (always drop)
+**88 gear pieces** (14 classes × 6 rarities) + **16 stackable materials**.
 
-| Item | Material | Amount |
-|------|----------|--------|
-| Meat | COOKED_BEEF | 3-8 |
-| Arrows | ARROW | 6-16 |
-| Gunpowder | GUNPOWDER | 2-6 |
-| Iron | IRON_INGOT | 2-5 |
-| Bone | BONE | 2-6 |
-| String | STRING | 1-4 |
+| Rarity | Items | What it holds |
+|---|---|---|
+| Common | 20 | basic materials and wood/leather gear |
+| Uncommon | 19 | useful materials and stone/chainmail gear |
+| Rare | 18 | diamonds, ender pearls and weapons with 1-2 custom enchantments |
+| Epic | 19 | totem, netherite and pieces with 2-3 custom enchantments |
+| Legendary | 14 | one piece per class, 3-4 customs and a global announce |
+| Mythic | 14 | one piece per class, 5-6 customs, glow and global announce |
 
-### Uncommons
+### Versions per class
 
-| Item | Material | Amount | Drop |
-|------|----------|--------|------|
-| Gold | GOLD_INGOT | 2-4 | 90% |
-| Golden Apple | GOLDEN_APPLE | 1 | 85% |
-| XP Bottle | EXPERIENCE_BOTTLE | 3-9 | 85% |
-| Eye of Ender | ENDER_EYE | 1-2 | 70% |
-| Obsidian | OBSIDIAN | 1-3 | 60% |
+| Class | Common | Uncommon | Rare | Epic | Legendary | Mythic |
+|---|---|---|---|---|---|---|
+| **Sword** | Espada Oxidada | Espada de Piedra Lunar | Espada Sanguinaria, Daga de las Sombras | Espada de la Ruina | Colmillo Vampírico | Hoja del Eclipse Carmesí |
+| **Axe** | Hacha Oxidada | Hacha de Piedra Lunar | Hacha Sangrienta | Hacha de la Ventisca, Hacha del Verdugo | Hacha del Abismo | Hacha del Apocalipsis |
+| **Pickaxe** | Pico Oxidado | Pico de Piedra Lunar | Pico Umbrío | Pico del Abismo | Pico Espectral | Pico del Eclipse |
+| **Shovel** | Pala Oxidada | Pala de Piedra Lunar | Pala Sangrienta | Pala del Abismo | Pala Espectral | Pala del Eclipse |
+| **Hoe** | Azada Oxidada | Azada de Piedra Lunar | Azada Sangrienta | Azada del Abismo | Azada Espectral | Guadaña del Segador |
+| **Bow** | Arco Astillado | Arco de Hueso Lunar | Arco Carmesí, Arco de la Tormenta | Arco del Abismo | Arco Lunar | Arco del Eclipse |
+| **Crossbow** | Ballesta Astillada | Ballesta de Hueso Lunar | Ballesta Carmesí | Ballesta del Abismo | Ballesta del Alba | Ballesta del Eclipse |
+| **Trident** | Tridente Oxidado | Tridente de los Mares | Tridente Sangriento | Tridente Profundo | Tridente de la Tormenta | Tridente del Abismo Rojo |
+| **Mace** | Maza Oxidada | Maza Pesada | Maza de Hueso | Maza Carmesí | Martillo del Trueno | Maza del Coloso |
+| **Helmet** | Casco de Cuero | Casco de Cadena Lunar | Casco de Hierro Carmesí | Yelmo del Cazador de Sangre | Yelmo del Eclipse | Corona de la Luna de Sangre |
+| **Chestplate** | Peto de Cuero | Peto de Cadena Lunar | Peto de Hierro Carmesí | Peto del Cazador de Sangre | Peto del Guardián Carmesí | Peto del Eclipse Carmesí |
+| **Leggings** | Grebas de Cuero | Grebas de Cadena Lunar | Grebas de Hierro Carmesí | Grebas del Cazador de Sangre | Grebas del Titán | Grebas del Eclipse |
+| **Boots** | Botas de Cuero | Botas de Cadena Lunar | Botas de Hierro Carmesí | Botas del Cazador de Sangre, Botas del Estrondo | Botas del Noctámbulo | Botas del Eclipse |
+| **Shield** | Escudo Astillado | Escudo Reforzado | Escudo Carmesí | Escudo del Guardián | Égida Carmesí | Égida del Eclipse |
 
-### Rares
+### The 14 mythics
 
-> **Balance note:** the broken Rare/Legendary **weapons** are capped at a **5%** drop
-> (Blood Sword, Crimson Bow, Shadow Dagger, Storm Bow, Vampiric Fang).
-> Mythics were already rarer on their own (0.5-0.8%).
+| Item | Class | Enchantments |
+|---|---|---|
+| Hoja del Eclipse Carmesí | Sword | sharpness V · thunder V · looting III · paralyze III · sweeping_edge III · unbreaking III · vampire III · double_strike II · fire_aspect II · wither II · mending I |
+| Hacha del Apocalipsis | Axe | efficiency V · sharpness V · thunder V · unbreaking III · vampire III · decapitator II · double_strike II · mending I · treefeller I |
+| Pico del Eclipse | Pickaxe | efficiency V · smelter V · fortune III · tunnel III · unbreaking III · veinminer III · blast_mining II · mending I · telekinesis I |
+| Pala del Eclipse | Shovel | efficiency V · smelter V · fortune III · haste III · tunnel III · unbreaking III · mending I · telekinesis I |
+| Guadaña del Segador | Hoe | efficiency V · smelter V · haste III · unbreaking III · mending I · replanter I · telekinesis I |
+| Arco del Eclipse | Bow | power V · dragonfire_arrows III · explosive_arrows III · unbreaking III · vampiric_arrows III · electrified_arrows II · punch II · sniper II · flame I · infinity I · mending I |
+| Ballesta del Eclipse | Crossbow | piercing IV · dragonfire_arrows III · electrified_arrows III · explosive_arrows III · quick_charge III · unbreaking III · vampiric_arrows III · sniper II · mending I · multishot I |
+| Tridente del Abismo Rojo | Trident | impaling V · infernus III · loyalty III · restore III · unbreaking III · channeling I · mending I · soulbound I |
+| Maza del Coloso | Mace | density V · breach IV · restore III · unbreaking III · wind_burst III · mending I · soulbound I |
+| Corona de la Luna de Sangre | Helmet | protection V · elemental_protection IV · respiration III · thorns III · unbreaking III · saturation II · mending I · night_vision I · water_breathing I |
+| Peto del Eclipse Carmesí | Chestplate | dragon_heart V · protection V · elemental_protection IV · fire_shield IV · cold_steel III · thorns III · unbreaking III · hardened II · mending I |
+| Grebas del Eclipse | Leggings | protection V · elemental_protection IV · stopping_force III · swift_sneak III · thorns III · unbreaking III · mending I |
+| Botas del Eclipse | Boots | protection V · elemental_protection IV · feather_falling IV · depth_strider III · soul_speed III · unbreaking III · flame_walker II · jumping II · speed II · mending I · rebound I |
+| Égida del Eclipse | Shield | restore III · unbreaking III · mending I · soulbound I |
 
-| Item | Material | Drop | Enchantments |
-|------|----------|------|-----------|
-| Diamond | DIAMOND (1-3) | 50% | — |
-| Ender Pearl | ENDER_PEARL (1-2) | 45% | — |
-| Blood Sword | DIAMOND_SWORD | **5%** | Vampire II · Venom I (Sharpness V · Looting II) |
-| Crimson Bow | BOW | **5%** | Sniper I (Power V · Punch II) |
-| **Shadow Dagger** | IRON_SWORD | **5%** | Double Strike I · Ice Aspect II (Sharpness IV · Looting III) |
-| **Storm Bow** | BOW | **5%** | Electrified Arrows II (Power V · Flame) |
-| **Umbral Pickaxe** | DIAMOND_PICKAXE | 25% | Haste II · Smelter I (Fortune III · Efficiency V) |
-
-### Epics
-
-| Item | Material | Drop | Enchantments |
-|------|----------|------|-----------|
-| Enchanted Golden Apple | ENCHANTED_GOLDEN_APPLE | 20% | — |
-| Totem | TOTEM_OF_UNDYING | 15% | — |
-| Netherite Scrap | NETHERITE_SCRAP (1-2) | 18% | — |
-| Executioner's Axe | NETHERITE_AXE | 12% | Cutter II · Decapitator I (Sharpness V · Efficiency V) |
-| Hunter's Helm | NETHERITE_HELMET | 10% | Hardened II (Protection IV · Respiration III) |
-| Hunter's Chestplate | NETHERITE_CHESTPLATE | 10% | Hardened II · Dragon Heart II (Protection IV) |
-| Hunter's Leggings | NETHERITE_LEGGINGS | 10% | Hardened II · Regrowth II (Protection IV) |
-| Hunter's Boots | NETHERITE_BOOTS | 10% | Speed I (Protection IV · Feather Falling IV) |
-| **Ruin Sword** | NETHERITE_SWORD | 14% | Vampire I · Wither II (Sharpness V · Looting III) |
-| **Abyssal Crossbow** | CROSSBOW | 12% | Electrified Arrows I (Multishot · Piercing IV) |
-| **Thunder Boots** | NETHERITE_BOOTS | 10% | Jumping II · Stopping Force I (Soul Speed III) |
-| **Blizzard Axe** | DIAMOND_AXE | 12% | Ice Aspect III · Paralyze II (Sharpness V) |
-
-### Legendaries
-
-> ✅ **No Moon piece carries curses**: neither the Curse of Vanishing nor the Curse of Binding. If
-> you die with one, it drops like any other item and anyone can pick it up, Mythic gear included.
-> *(The automatic curse from 1.0.2 was removed in 1.0.3: gear already handed out loses it on join,
-> on pickup or with `/luna refresh`.)*
-
-| Item | Material | Drop | Enchantments |
-|------|----------|------|-----------|
-| Vampiric Fang | NETHERITE_SWORD | **5%** | Vampire III · Wither II (Sharpness V · Fire Aspect II) |
-| Lunar Bow | BOW | 5% | Vampiric Arrows II · Sniper II (Power V · Infinity) |
-| Nightwalker Boots | NETHERITE_BOOTS | 5% | Speed II · Night Vision I (Feather Falling IV) |
-| Aegis of Thorns | SHIELD | 4% | Unbreaking III · Mending |
-| **Thunder Hammer** | MACE | 5% | **Thunder II** · Double Strike I (Density V · Breach IV) |
-| **Crimson Guardian Chestplate** | NETHERITE_CHESTPLATE | 4.5% | Hardened II · **Fire Shield II** · Thorns III |
-| **Dawn Crossbow** | CROSSBOW | 5% | **Electrified Arrows III** (Piercing IV) |
-
-### Mythics (max 3 per server, with a serial number)
-
-| Item | Material | Drop | Enchantments |
-|------|----------|------|-----------|
-| Crimson Eclipse Blade | NETHERITE_SWORD | 0.8% | Vampire III · **Thunder II** · Wither II (Sharpness V) |
-| Blood Moon Crown | NETHERITE_HELMET | 0.6% | Dragon Heart III · Night Vision I (Protection V) |
-| Reaper's Scythe | NETHERITE_HOE | 0.5% | Wither II · Vampire II (Sharpness V · Fortune III) |
-| Red Abyss Trident | TRIDENT | 0.7% | Infernus III · **Thunder I** (Impaling V) |
-| Colossus Mace | MACE | 0.6% | **Thunder I** · Paralyze I (Density V · Breach IV) |
-| **Apocalypse Axe** | NETHERITE_AXE | 0.6% | Double Strike II · Vampire II (Sharpness V · Efficiency V) |
-| **Crimson Eclipse Chestplate** | NETHERITE_CHESTPLATE | 0.5% | Hardened II · **Fire Shield II** · Stopping Force I |
-| **Eclipse Greaves** | NETHERITE_LEGGINGS | 0.5% | Speed II · Lightweight I (Swift Sneak III) |
+The full list with amounts, drop-chance and final probability is in
+[`DROPS.en.md`](DROPS.en.md).
 
 ---
 
-## ⚔️ Item enchantments
+## 🌍 Languages
 
-Moon gear no longer carries custom abilities or above-vanilla levels. It ships:
+The plugin ships **7 complete languages**, selected in `plugins/BloodMoonPlus/locales/locales.yml`:
 
-- **Vanilla enchantments at their max**: Sharpness 5, Unbreaking 3, Looting 3… **Legendary and
-  mythic** gear raises the cap to **5** even where vanilla stops lower (Protection 5, Thorns 5…).
-  Any higher value in `items.yml` is trimmed when the item is built.
-- **[ExcellentEnchants](https://nightexpressdev.com/excellentenchants/) enchantments**: `vampire`,
-  `thunder`, `electrified_arrows`, `dragon_heart`, `hardened`, `haste`... at the level that plugin
-  allows.
+| Code | Language |
+|---|---|
+| `es` | Español |
+| `en` | English |
+| `pt` | Português |
+| `fr` | Français |
+| `de` | Deutsch |
+| `it` | Italiano |
+| `ru` | Русский |
 
-> ⚠️ **Never remove ExcellentEnchants from a server with gear already handed out**: Minecraft deletes
-> any item whose enchantment does not exist, so those items would vanish when their owner logs in. If
-> the server starts without EE (for example on a Paper version it does not support yet), **new** items
-> get only the vanilla enchantments, the console warns once, and older EE items are lost on login.
-> Before removing EE, reinstall it and run `/luna refresh <player|all>` on a server where EE loaded.
+```yaml
+Language: es            # table code
+UseBundledLocales: true # missing keys fall back to English
+```
 
-Each enchantment's chance (including `thunder`'s lightning) is configured in
-`plugins/ExcellentEnchants/enchants/<id>.yml`, not in BloodMoon. For thunder without a storm:
-`thunderstorm_only: false`.
+- All 7 files are copied to `plugins/BloodMoonPlus/locales/` on first start.
+- `/luna reload` applies the change live.
+- A test checks that all 7 languages have the same keys and placeholders.
 
 ---
 
-## 🔧 View probabilities in-game
+## 🛡️ Blood Moon item protection
+
+| Action | Allowed? |
+|---|---|
+| Add enchantments (table, books, smithing) | ✅ Yes |
+| Rename on the anvil | ✅ Yes |
+| Repair / upgrade | ✅ Yes |
+| **Strip them on a grindstone** (disenchant) | ❌ No |
+| **Lose enchantments, rarity or owner** | ❌ No |
+
+- The **grindstone** cancels the result and warns the player; a piece without enchantments can
+  still be repaired.
+- **Anvil** and **smithing table** keep enchantments, rarity, owner and unbreakability even when
+  the combination would have dropped them.
+- **Automatic refresh**: on join, when picking the item up and when taking it out of a chest or
+  shulker, the `items.yml` enchantments are applied, levels clamped and the lore regenerated
+  (description, rarity and hunter). Durability, custom names and extra enchantments are kept.
+- **`/luna refresh <player|all>`** applies it instantly to inventory, armor, off hand and ender
+  chest. Requires `bloodmoon.admin`.
+
+---
+
+## 🔧 Check probabilities in game
 
 ```
 /luna chances mob_horde
 /luna chances boss_verdugo
 ```
 
-Shows the real rarity percentages and of each item in the table.
+It shows each item's **final** probability (rarity × weight × drop-chance), the guaranteed drops
+and your current pity in that table.
 
 ---
 
-## 🔄 Updating from 1.0.2 to 1.0.3 (the `items.yml` DOES change)
+## 🔄 Updating from 1.0.2 to 1.0.3
 
-1.0.3 drops the custom abilities, replaces them with ExcellentEnchants enchantments and raises the
-vanilla cap to 5 on legendary and mythic gear. **Your current `items.yml` is not replaced
-automatically**: the plugin only writes it when it does not exist, so an updated server keeps the
-old file (Protection 4, ability lists) and the refresh applies *that* file — `/luna refresh all`
-would leave Protection 4 in place.
+1.0.3 replaces the old item abilities with ExcellentEnchants enchantments, raises the vanilla cap
+to 5 on legendaries and mythics, and the catalogue grows to **104 items**. Your server's
+`items.yml` is **not replaced automatically**: the plugin only writes it when it does not exist.
 
-1. Stop the server and back up `plugins/BloodMoonPlus/items.yml` (the plugin also leaves
-   `items.yml.bak`).
-2. Replace it with the `items.yml` inside the jar (or rename it and start once so it is generated
-   again) and re-apply your customisations. If you prefer editing yours, at least set
-   **`protection: 5`** (plus Thorns 5…) on the `LEGENDARIO`/`MITICO` pieces and add the EE
-   enchantments.
-3. Start with **ExcellentEnchants and NightCore installed** and check the console:
-   `Items cargados: 45` and no unknown-enchantment warning.
-4. Run `/luna refresh all` (or let players reconnect or pick their gear up): that is when a
-   Protection 4 chestplate already handed out becomes Protection 5.
+1. Stop the server and back up `plugins/BloodMoonPlus/items.yml`.
+2. Replace it with the one inside the `.jar` (or rename it and start once) and re-apply your
+   customizations.
+3. Start **with ExcellentEnchants and NightCore** and check the console: `Items cargados: 104` and
+   no warnings about unknown or unsupported enchantments.
+4. Run `/luna refresh all` (or let players reconnect or pick their items up).
 
-> Shift-clicking (or using a hotbar key) to pull gear out of a chest, shulker or the ender chest
-> refreshes it as it lands in your inventory. Two cases stay out on purpose: gear **dragged** with
-> the mouse is refreshed on the next click on it, and gear still **stored** in a chest or in the
-> ender chest is only refreshed on join or with `/luna refresh`.
+### Changes in `data.yml` and `loot.yml`
 
-> ⚠️ Never remove ExcellentEnchants while gear is out: Minecraft deletes items whose enchantment
-> does not exist. Run `/luna refresh all` on a server where EE loaded first.
+- Copy counters and serial numbers are no longer stored: any `created.*` keys left in `data.yml`
+  are ignored and can be deleted.
+- **Pity** is now stored per table (`pity.<uuid>.<table>.<rarity>`). Values in the old format
+  (`pity.<uuid>.<rarity>`) are ignored: every player starts at 0.
+- Items handed out with a serial number keep that lore line until the next refresh, which removes
+  it (it is no longer used).
+- `loot.yml` adds the storm trident to the horde table and documents the new pity.
 
-`config.yml` only gains `items.migrate-on-join: true` (refresh on join; set it to `false` if you
-prefer controlling it with `/luna refresh`).
-
----
-
-## 🔄 Updating from 1.0.1 (or older)
-
-**Only the `.jar` needs to be replaced.** Nothing is migrated and no data is deleted.
-
-1. If an event is running, run `/luna stop` and **stop the server**.
-2. **Delete the old jar** from `plugins/` (`BloodMoonPlus-1.0.1.jar`). That is the one thing you
-   must remove: both jars declare `name: BloodMoonPlus` and Bukkit rejects the second with
-   *“plugin name is already in use”* (or loads the one you did not want).
-3. Copy the current `BloodMoonPlus-1.0.3-beta.jar` into `plugins/` and start the server. There is
-   no need to go through 1.0.2 first.
-4. Check the console: `Items cargados: 45`, `Jefes cargados: 10`.
-
-The five new languages (`pt`, `fr`, `de`, `it`, `ru`) are copied automatically on first start.
-
-### What you must NOT delete
-
-| File | What you lose by deleting it |
-|---|---|
-| `data.yml` | The running event, the serial numbers of unique items and pity. **Limited mythics would become available again.** |
-| `statistics.yml` | The event, death and boss history. |
-| `config.yml` | All your settings. It did not change between 1.0.1 and 1.0.2, so there is nothing to migrate. |
-| `locales/*.yml` | Your custom translations: the plugin never overwrites them. |
-| `worlds/<world>/config.yml` | Per-world settings. Retired keys (`IncludeLateJoiners`, `VanillaBossBar`, `UseMythicMobsRewards`…) are ignored without errors. |
-
-### What happens to `bosses.yml` if you don't update it
-
-Your server's `bosses.yml` is **never overwritten**. If you keep yours:
-
-- You keep your bosses and your tuning, but the new boss **`creeper_cargado`** (Cataclysm Maw, with
-  `VORTEX` absorption, `SWARM` minions and its `EXPLODE` detonation) **will not exist**.
-- `bar-color: BLACK` on `cazador_sombras` **no longer deletes the boss**: each field is validated
-  separately and falls back to `RED` with a warning naming the field, the value and the valid
-  options. Before, that value removed the hunter and only 8 of 9 bosses loaded.
-- The file shipped in the jar changes that colour to `PURPLE`, so updating it turns the hunter's
-  bar purple.
-
-To get the new boss **without losing your tuning**: back up your `bosses.yml`, delete or rename the
-original, start once so the new file is generated, then re-apply your changes (or copy just the
-`creeper_cargado:` block by hand from the jar).
-
-### `items.yml` and `messages.yml`
-
-- **For 1.0.2, `items.yml` needed no changes.** Only comments and the
-  `settings.vanishing-curse-min-rarity` key were added, and that key **no longer exists**: 1.0.3
-  removed the Curse of Vanishing, so it is ignored and you can delete it from the file.
-  **In 1.0.3 it does change: see "Updating from 1.0.2 to 1.0.3".**
-- **`messages.yml`** is no longer read by any code since 1.0.2: you can safely delete it.
+> ⚠️ Do not remove ExcellentEnchants while items are out there: Minecraft deletes items whose
+> enchantment does not exist. Run `/luna refresh all` on a server where EE has loaded first.
 
 ---
 
 ## 📜 License
 
-**All rights reserved.**
-This project's code is public **for reading and security review only**. Copying,
-modifying, reusing or redistributing it is not allowed. You may download and
-**run** the compiled plugin on your server. See the [`LICENSE`](LICENSE) file
-for details.
+**All rights reserved.** The code is public for reading and security auditing only. See
+[`LICENSE`](LICENSE).
 
 ---
 
-## 📤 Modrinth publishing
+## 📤 Publishing on Modrinth
 
-The ready-to-publish materials (description, changelog, icon and step-by-step
-guide) are in the [`modrinth/`](modrinth/) folder. Start with
+Ready-to-publish material lives in [`modrinth/`](modrinth/). Start with
 [`modrinth/PUBLISH.md`](modrinth/PUBLISH.md).
