@@ -12,7 +12,7 @@ Todo lo que necesitas saber sobre los **10 jefes** de la Luna de Sangre y el **s
 
 | Plugin | Versión probada | Tipo | Qué aporta | Si falta |
 |---|---|---|---|---|
-| **Paper** | 26.2 / 26.3 (probado en 26.1.2 y 26.3) | Obligatorio | Servidor | El plugin no carga |
+| **Paper** | 26.2 / 26.3 (compilado contra la API 26.3) | Obligatorio | Servidor | El plugin no carga |
 | **ExcellentEnchants** + **NightCore** | EE 5.4.3 · NightCore 2.16.7 | Opcional, muy recomendado | Los encantamientos custom (`vampire`, `thunder`, `tunnel`, `veinminer`, `dragon_heart`…) de los 104 objetos | Los objetos se crean solo con los vanilla y la consola avisa; los ya repartidos con EE se pierden al entrar (Minecraft borra los encantamientos que no existen) |
 | **PlaceholderAPI** | 2.11.6 | Opcional | Los placeholders `%bloodmoon_*%` | Todo lo demás funciona; simplemente no hay placeholders |
 | **MythicMobs** | 5.12+ | Opcional | Jefes con `mode: MYTHICMOBS` en `bosses.yml` | Se usa el jefe vanilla si `mythic-fallback: true`; con el fallback desactivado, ese jefe no aparece |
