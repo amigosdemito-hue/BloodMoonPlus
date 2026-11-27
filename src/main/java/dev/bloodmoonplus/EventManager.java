@@ -4,6 +4,7 @@ import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -124,6 +125,11 @@ public final class EventManager {
      *  real del evento: lo ajustan spawn/onHordeMobKilled y lo reconstruye countHordeAlive desde
      *  las entidades del mundo cada ~2 s, así que una oleada no necesita recorrer entidades. */
     private final Map<UUID, Integer> aliveByPlayer = new HashMap<>();
+    /** Mundos cuyo evento ya terminó (o cuyo mundo se descargó a mitad) y en los que puede quedar
+     *  horda en chunks SIN cargar. removeTagged() solo ve entidades de chunks cargados, así que los
+     *  mobs de una zona descargada sobrevivían al final del evento y volvían a atacar al pasar por
+     *  allí, ya sin Luna de Sangre. El guardia de ChunkLoadEvent los borra en cuanto cargan. */
+    private final Set<String> sweepWorlds = new HashSet<>();
 
     private boolean hordeEnabled;
     /** event.global: el evento cubre TODOS los mundos cargados, no solo los de la lista. */
@@ -167,6 +173,8 @@ public final class EventManager {
         endTime = c.getLong("event.end-time-ticks", 23000);
         clearWeather = c.getBoolean("event.clear-weather", true);
         removeOnEnd = c.getBoolean("event.remove-mobs-on-end", true);
+        // Con el borrado desactivado no se barre nada, ni siquiera los restos ya apuntados.
+        if (!removeOnEnd) sweepWorlds.clear();
         forceDifficulty = c.getBoolean("event.force-difficulty", true);
         protectTerrain = c.getBoolean("event.protect-terrain", true);
         blockWitherSpawn = c.getBoolean("event.block-wither-spawn", true);
@@ -314,6 +322,8 @@ public final class EventManager {
         double firstInterval = Math.max(4, waveInterval / plugin.scaled(diff, "spawn-speed"));
         s.lastWaveMs = startMs + (long) (firstWaveDelay * 1000) - (long) (firstInterval * 1000);
         sessions.put(w.getName(), s);
+        // Evento nuevo en este mundo: lo que quedara apuntado para barrer ya no se toca.
+        sweepWorlds.remove(w.getName());
         // Clave = nombre del mundo: así el evento se RETOMA tras un reinicio (resume()
         // resuelve cada clave con Bukkit.getWorld). Antes se guardaba como "global" y se perdía.
         plugin.data().saveActive(w.getName(), startMs, endMs, diff);
@@ -426,10 +436,10 @@ public final class EventManager {
     private void stopOne(Session s, boolean natural) {
         plugin.getLogger().info("Luna de Sangre " + (natural ? "terminada" : "detenida") + " en '"
                 + s.world.getName() + "'.");
+        // La limpieza va primero: si algo de lo de abajo falla, los mobs ya no quedan sueltos.
+        removeWorldMobs(s.world.getName());
         plugin.data().clearActive(s.world.getName());
         for (Player p : Bukkit.getOnlinePlayers()) p.hideBossBar(s.bar);
-        plugin.bosses().removeAll(s.world);
-        if (removeOnEnd) removeTagged(s.world);
         // Jefes que quedaron en cola para una oleada que ya no va a llegar.
         s.dueBosses.clear();
         if (lockNight) setWorldTime(s.world, endTime);
@@ -458,6 +468,61 @@ public final class EventManager {
         runCommands(cmdEnd, s.world, null, s.difficulty);
         // Comandos por mundo (CommandsOnEnd), igual que los de inicio.
         runCommands(plugin.worldConfigs().get(s.world.getName()).commandsOnEnd(), s.world, null, s.difficulty);
+    }
+
+    /** Pasadas extra tras el final: un jefe puede tener esbirros en cola que nacen en el tick
+     *  siguiente al borrado, y esos ya no los ve la limpieza inmediata. */
+    private static final long[] SWEEP_DELAYS = {40L, 200L};
+
+    /** Quita jefes y mobs etiquetados de un mundo y deja el mundo apuntado para el barrido de
+     *  chunks: lo que estuviera en zonas descargadas se borra en cuanto se carguen. */
+    private void removeWorldMobs(String worldName) {
+        // Por nombre, no por objeto: una sesión puede guardar un World que ya no existe (mundo
+        // recargado) y entonces removeAll(World) no encontraba a sus jefes.
+        plugin.bosses().removeAll(worldName);
+        // Los jefes se van siempre (barra y estado no deben sobrevivir al evento); la horda solo
+        // si event.remove-mobs-on-end está activo, como estaba documentado. Sin esta guarda el
+        // borrado inmediato ignoraba la opción y se llevaba los mobs igual.
+        if (!removeOnEnd) return;
+        World w = Bukkit.getWorld(worldName);
+        if (w != null) removeTagged(w);
+        sweepWorlds.add(worldName);
+        for (long delay : SWEEP_DELAYS) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> sweep(worldName), delay);
+        }
+    }
+
+    /** Pasada de limpieza de un mundo ya terminado; si arrancó un evento nuevo, no toca nada. */
+    private void sweep(String worldName) {
+        World w = Bukkit.getWorld(worldName);
+        if (w == null || session(w) != null || !removeOnEnd) return;
+        plugin.bosses().removeAll(worldName);
+        removeTagged(w);
+    }
+
+    /** ¿Hay que borrar restos en este mundo? Lo consulta el guardia de ChunkLoadEvent; es una
+     *  consulta barata (un Set), porque ChunkLoadEvent se dispara muchísimo. */
+    public boolean needsSweep(World w) {
+        return w != null && removeOnEnd && sweepWorlds.contains(w.getName()) && !sessions.containsKey(w.getName());
+    }
+
+    /** Borra los restos etiquetados de un chunk recién cargado en un mundo ya terminado. Se hace
+     *  aquí y no en el listener para liberar también el cupo del dueño: removeTagged() limpia esas
+     *  cuotas, y si este camino no lo hiciera el jugador seguiría con el cupo gastado en mobs que
+     *  ya no existen hasta el siguiente resync. Un jefe vivo se respeta (lo gestiona BossManager).
+     *  Devuelve cuántas entidades se borraron. */
+    public int sweepChunk(Chunk chunk) {
+        if (chunk == null) return 0;
+        int n = 0;
+        for (Entity ent : chunk.getEntities()) {
+            if (!isTagged(ent)) continue;
+            if (plugin.bosses().isBoss(ent)) continue;
+            UUID owner = ownerOf(ent);
+            if (owner != null) aliveByPlayer.computeIfPresent(owner, (id, v) -> v > 1 ? v - 1 : null);
+            ent.remove();
+            n++;
+        }
+        return n;
     }
 
     private void giveSurvivorRewards(Session s, List<Player> survivors) {
@@ -490,7 +555,13 @@ public final class EventManager {
             for (String wn : new ArrayList<>(a.getKeys(false))) {
                 World w = Bukkit.getWorld(wn);
                 long end = a.getLong(wn + ".end");
-                if (w == null || end <= now) { plugin.data().clearActive(wn); continue; }
+                if (w == null || end <= now) {
+                    plugin.data().clearActive(wn);
+                    // Evento que caducó mientras el servidor estaba apagado: sus mobs siguen
+                    // guardados en chunks que se cargarán más tarde, así que hay que barrerlos.
+                    if (removeOnEnd) sweepWorlds.add(wn);
+                    continue;
+                }
                 if (startInternal(w, a.getDouble(wn + ".difficulty", 1), a.getLong(wn + ".start", now), end, true, false)) {
                     plugin.getLogger().info("Evento retomado en '" + wn + "' (quedan " + Util.dur((end - now) / 1000) + ").");
                 }
@@ -500,7 +571,10 @@ public final class EventManager {
         // sesión retomada (antes solo se limpiaba si no había ninguna sesión viva, así que
         // con un evento global retomado los mobs viejos de los demás mundos quedaban sueltos).
         for (World world : Bukkit.getWorlds()) {
-            if (!sessions.containsKey(world.getName())) removeTagged(world);
+            if (sessions.containsKey(world.getName())) continue;
+            removeTagged(world);
+            // Los restos de eventos anteriores en chunks descargados también se borran al cargar.
+            if (removeOnEnd) sweepWorlds.add(world.getName());
         }
     }
 
@@ -545,6 +619,9 @@ public final class EventManager {
             for (Session s : orphan) {
                 sessions.remove(s.world.getName());
                 plugin.data().clearActive(s.world.getName());
+                // El mundo se descargó a mitad del evento y sus mobs quedaron guardados: en cuanto
+                // el mundo vuelva, el barrido de chunks los borra (no hay sesión que los cubra).
+                if (removeOnEnd) sweepWorlds.add(s.world.getName());
             }
         }
         if (ended != null) stopSessions(ended, true);

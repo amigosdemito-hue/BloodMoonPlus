@@ -926,10 +926,18 @@ public final class BossManager {
     }
 
     public int removeAll(World w) {
+        return w == null ? 0 : removeAll(w.getName());
+    }
+
+    /** Igual que removeAll(World) pero por NOMBRE: la sesión puede guardar un World que ya no
+     *  existe (mundo recargado) y la comparación por objeto no encontraba a sus jefes, así que
+     *  sobrevivían al final del evento. */
+    public int removeAll(String worldName) {
+        if (worldName == null) return 0;
         int n = 0;
         for (Iterator<Instance> it = alive.values().iterator(); it.hasNext(); ) {
             Instance bi = it.next();
-            if (!bi.world.equals(w)) continue;
+            if (bi.world == null || !bi.world.getName().equals(worldName)) continue;
             Entity ent = Bukkit.getEntity(bi.id);
             if (ent != null) ent.remove();
             hideBar(bi);

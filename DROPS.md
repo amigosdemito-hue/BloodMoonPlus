@@ -1,4 +1,4 @@
-# Drops de la Luna de Sangre (v1.0.5-beta)
+# Drops de la Luna de Sangre (v1.0.6-beta)
 
 🌐 **Español** · [English](DROPS.en.md)
 

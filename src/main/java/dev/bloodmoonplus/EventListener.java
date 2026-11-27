@@ -20,6 +20,7 @@ import org.bukkit.event.entity.EntityTransformEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -73,6 +74,19 @@ public final class EventListener implements Listener {
         for (Entity out : e.getTransformedEntities()) {
             if (out instanceof LivingEntity to) EventManager.copyHordeData(from, to);
         }
+    }
+
+    /**
+     * Restos del evento en chunks que estaban descargados cuando terminó la Luna de Sangre.
+     * removeTagged() solo recorre entidades cargadas, así que un mob (o un jefe) que estaba lejos
+     * sobrevivía al final y volvía a atacar al cargarse la zona. Al cargar un chunk de un mundo ya
+     * terminado se borra lo etiquetado; un jefe invocado a mano se respeta, porque lo gestiona
+     * BossManager.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onChunkLoad(ChunkLoadEvent e) {
+        if (!plugin.events().needsSweep(e.getWorld())) return;
+        plugin.events().sweepChunk(e.getChunk());
     }
 
     /**

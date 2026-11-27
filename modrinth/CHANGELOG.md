@@ -8,6 +8,31 @@ Modrinth. Lines marked with ⭐ are the most eye-catching features for the
 project page.
 -->
 
+## [1.0.6-beta] — The moon takes its mobs with it
+
+Mobs from an ended Blood Moon kept attacking, even with the event off, because the cleanup could
+not reach the ones stored in chunks that were not loaded.
+
+### Fixed
+- ⭐ **No leftovers in unloaded chunks.** When the event ends, every world it ran in is flagged, and
+  the first time one of its chunks loads, the mobs tagged by the event inside it are removed. Before,
+  cleanup only walked the entities of loaded chunks, so a mob (or a boss minion) standing far away
+  survived the end of the moon and came back to attack later, with no event running.
+- ⭐ **Bosses are matched by world name** when the event stops. A session could still hold a `World`
+  object from before the world was reloaded, and the old object comparison missed its bosses, which
+  then stayed alive next to the players.
+- **Two extra cleanup passes** (2 s and 10 s after the end) catch minions a boss had already queued
+  to summon and that were born after the immediate cleanup.
+- **Events that expired while the server was offline**, and worlds unloaded mid-event, are now
+  flagged too, so their leftovers are swept when the world comes back.
+- Cleanup no longer ignores `event.remove-mobs-on-end: false`: bosses are always retired, the horde
+  is only removed when the option is on, as documented.
+- The per-player spawn quota is released for mobs removed by the chunk sweep, so a player does not
+  keep a used-up quota for mobs that no longer exist.
+
+### Compatibility
+- Paper **26.2** and **26.3**. Built with Java 25. Jar: `BloodMoonPlus-1.0.6-beta.jar`.
+
 ## [1.0.5-beta] — One start alert, one label
 
 When the moon rose in several worlds at once, the Discord start embed named only the first one,
