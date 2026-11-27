@@ -127,3 +127,10 @@ special:
   storm: "<aqua>☂ Der Sturm bricht los. Der Blutmond nährt sich vom Chaos."
   fog: "<gray>🌫 Dichter Nebel umhüllt die Überlebenden. <dark_gray>Du siehst nichts."
   silence: "<black>🔇 Die Stille ergreift alles. <dark_gray>Du hörst nur dein Herz schlagen."
+
+# ==================== Discord ====================
+discord:
+  warning: "🌙 Der Blutmond beginnt in {min} Min. · {when} · Schwierigkeit x{difficulty}. Macht euch bereit!"
+  start: "🌙 Der Blutmond hat in {world} begonnen! Schwierigkeit x{difficulty} · dauert {minutes} Min."
+  end: "☀️ Der Blutmond ist in {world} nach {minutes} Min. beendet. Die Morgendämmerung kommt!"
+  stopped: "⏹️ Der Blutmond wurde in {world} gestoppt."

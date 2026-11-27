@@ -114,6 +114,23 @@ announce:
   warnings: false             # avisos 10/5/1 min antes de que empiece
 
 # ------------------------------------------------------------
+#  DISCORD — avisos al canal por webhook
+#  Crea el webhook en Discord: Ajustes del canal → Integraciones
+#  → Webhooks → Nuevo webhook → Copiar URL del webhook.
+#  No hace falta un bot ni un token. Efectivo con /luna reload
+# ------------------------------------------------------------
+discord:
+  enabled: false
+  webhook-url: ""                      # https://discord.com/api/webhooks/...
+  username: "Luna de Sangre"           # nombre con el que firma el mensaje
+  avatar-url: ""                       # opcional: avatar del webhook
+  warnings-minutes: [60, 30, 10, 5]    # cuenta atrás; lista vacía = sin cuenta atrás
+  notify:
+    warnings: true                     # "la luna empieza en X min"
+    start: true                        # al arrancar el evento
+    end: true                          # al terminar o al detenerlo con /luna stop
+
+# ------------------------------------------------------------
 #  DIFICULTAD
 #  Multiplicador N (x1 normal, x3 triple...). Cada estadística usa:
 #      valor = base * (1 + (N - 1) * factor)

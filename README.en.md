@@ -23,6 +23,47 @@ Everything you need to know about the **10 bosses** of the Blood Moon and the **
 
 ---
 
+## 🔔 Discord alerts
+
+The plugin can post to a Discord channel **how long until the Blood Moon, when it starts and when it ends**, without a bot or a token: it uses a channel **webhook**.
+
+### Create the webhook
+
+1. In Discord: **Channel settings → Integrations → Webhooks → New webhook**.
+2. Pick the channel, give it a name and click **Copy Webhook URL**.
+3. Paste it into `plugins/BloodMoonPlus/config.yml`:
+
+```yaml
+discord:
+  enabled: true
+  webhook-url: "https://discord.com/api/webhooks/123456789/abcdef..."
+  username: "Blood Moon"
+  avatar-url: ""
+  warnings-minutes: [60, 30, 10, 5]
+  notify:
+    warnings: true
+    start: true
+    end: true
+```
+
+4. `/luna reload`. The console confirms with `Avisos de Discord activados (...)`.
+
+### What gets posted
+
+| Alert | When | Example |
+|---|---|---|
+| Countdown | At every value in `warnings-minutes` | “The Blood Moon starts in 30 min · Monday 21:30 (America/Mexico_City) · difficulty x1” |
+| Start | When the event begins (once, even with several worlds) | “The Blood Moon has begun in world! Difficulty x1 · lasts 20 min” |
+| End | When it finishes on its own or via `/luna stop` | “The Blood Moon ended in world after 20 min” |
+
+- The texts live in `locales/<language>.yml` (`discord.warning`, `discord.start`, `discord.end`, `discord.stopped`), so they follow the server's active language.
+- Delivery runs off the main thread: a slow, down or rate-limited Discord never stalls the event; it only leaves a console warning.
+- The URL is validated on load (only `discord.com`, `canary`, `ptb` or `discordapp`). A bad paste disables the feature with a console warning instead of failing on every event.
+- `allowed_mentions` is empty, so a text containing `@everyone` never pings the channel.
+- To test without Discord, point `webhook-url` at `http://127.0.0.1:PORT/...`; loopback is accepted for local testing.
+
+---
+
 # 🩸 PART 1 — BOSSES
 
 ## How bosses work

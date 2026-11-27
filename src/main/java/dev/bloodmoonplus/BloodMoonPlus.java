@@ -2,6 +2,7 @@ package dev.bloodmoonplus;
 
 import dev.bloodmoonplus.config.WorldConfigRegistry;
 import dev.bloodmoonplus.i18n.LocaleManager;
+import dev.bloodmoonplus.integration.discord.DiscordNotifier;
 import dev.bloodmoonplus.integration.mythic.MythicBridge;
 import dev.bloodmoonplus.placeholder.PlaceholderSnapshotService;
 import dev.bloodmoonplus.stats.StatisticsStore;
@@ -20,6 +21,7 @@ public final class BloodMoonPlus extends JavaPlugin {
     private StatisticsStore stats;
     private SurvivorManager survivors;
     private MythicBridge mythic;
+    private DiscordNotifier discord;
     private DataStore data;
     private ItemFactory items;
     private LootManager loot;
@@ -63,6 +65,7 @@ public final class BloodMoonPlus extends JavaPlugin {
         snapshots = new PlaceholderSnapshotService(this, stats);
         survivors = new SurvivorManager(this);
         mythic = new MythicBridge(this);
+        discord = new DiscordNotifier(this);
         reloadAll();
 
         // Orden de tareas: eventos y boss antes que los snapshots para garantizar que los
@@ -119,6 +122,7 @@ public final class BloodMoonPlus extends JavaPlugin {
         bosses.reload();
         events.reload();
         schedule.reload();
+        discord.reload();
     }
 
     /** Escala una estadística con la dificultad: 1 + (dif - 1) * factor configurado en difficulty.scaling.<clave>. */
@@ -133,6 +137,7 @@ public final class BloodMoonPlus extends JavaPlugin {
     public StatisticsStore stats() { return stats; }
     public SurvivorManager survivors() { return survivors; }
     public MythicBridge mythic() { return mythic; }
+    public DiscordNotifier discord() { return discord; }
     public DataStore data() { return data; }
     public ItemFactory items() { return items; }
     public LootManager loot() { return loot; }

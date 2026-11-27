@@ -349,6 +349,8 @@ public final class EventManager {
                 p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.GLOWING, 20 * 30, 0, false, false));
             }
             if (announce && plugin.messages().announce("event", false)) plugin.messages().all("event.start", "difficulty", d, "minutes", String.valueOf(minutes));
+            // Un solo aviso de Discord aunque arranquen varios mundos a la vez.
+            if (announce) plugin.discord().started(w.getName(), diff, (int) minutes);
             runCommands(cmdStart, w, null, diff);
             // Comandos por mundo (CommandsOnStart de <mundo>/config.yml). Eran leídos por
             // WorldConfig pero nunca ejecutados: la opción documentada no hacía nada.
@@ -389,6 +391,11 @@ public final class EventManager {
             sessions.remove(s.world.getName());
             stopOne(s, natural);
         }
+        // Un único aviso de Discord para la parada completa (natural o /luna stop), también
+        // cuando cae más de un mundo a la vez.
+        Session first = toStop.get(0);
+        long minutes = Math.max(0, (System.currentTimeMillis() - first.startMs) / 60_000L);
+        plugin.discord().ended(toStop.size() == 1 ? first.world.getName() : "global", natural, (int) minutes);
     }
 
     private void recordHistory(List<Session> group) {

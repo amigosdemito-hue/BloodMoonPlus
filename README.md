@@ -23,6 +23,47 @@ Todo lo que necesitas saber sobre los **10 jefes** de la Luna de Sangre y el **s
 
 ---
 
+## 🔔 Avisos en Discord
+
+El plugin puede anunciar en un canal de Discord **cuánto falta para la luna, cuándo empieza y cuándo termina**, sin instalar un bot ni darle un token a nadie: se usa un **webhook** del canal.
+
+### Crear el webhook
+
+1. En Discord: **Ajustes del canal → Integraciones → Webhooks → Nuevo webhook**.
+2. Elige el canal, ponle nombre y pulsa **Copiar URL del webhook**.
+3. Pega la URL en `plugins/BloodMoonPlus/config.yml`:
+
+```yaml
+discord:
+  enabled: true
+  webhook-url: "https://discord.com/api/webhooks/123456789/abcdef..."
+  username: "Luna de Sangre"
+  avatar-url: ""
+  warnings-minutes: [60, 30, 10, 5]
+  notify:
+    warnings: true
+    start: true
+    end: true
+```
+
+4. `/luna reload`. La consola confirma con `Avisos de Discord activados (antes: [60, 30, 10, 5] min)`.
+
+### Qué se publica
+
+| Aviso | Cuándo | Ejemplo |
+|---|---|---|
+| Cuenta atrás | En cada valor de `warnings-minutes` | «La Luna de Sangre comienza en 30 min · lunes 21:30 (America/Mexico_City) · dificultad x1» |
+| Inicio | Al arrancar el evento (una sola vez aunque sean varios mundos) | «¡La Luna de Sangre ha comenzado en world! Dificultad x1 · dura 20 min» |
+| Fin | Al terminar sola o con `/luna stop` | «La Luna de Sangre ha terminado en world tras 20 min» |
+
+- Los textos viven en `locales/<idioma>.yml` (`discord.warning`, `discord.start`, `discord.end`, `discord.stopped`), así que respetan el idioma activo del servidor.
+- El envío va en un hilo aparte: si Discord está lento, caído o limitando peticiones, el evento no se frena; solo queda un aviso en consola.
+- La URL se valida al cargar (solo `discord.com`, `canary`, `ptb` o `discordapp`). Una URL mal pegada deja la función apagada y lo dice en consola en vez de fallar en cada evento.
+- `allowed_mentions` va vacío: aunque un texto contenga `@everyone`, el mensaje nunca pingea al canal.
+- Para probar sin Discord: apunta `webhook-url` a `http://127.0.0.1:PUERTO/...`; ese destino se acepta para pruebas locales.
+
+---
+
 # 🩸 PARTE 1 — JEFES
 
 ## Cómo funcionan los jefes

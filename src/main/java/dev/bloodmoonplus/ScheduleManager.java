@@ -262,8 +262,16 @@ public final class ScheduleManager {
         return out;
     }
 
+    /** Próximo evento en el texto ya formateado del idioma activo, para el aviso de Discord.
+     *  Se calcula en el hilo del servidor; el envío HTTP va aparte. */
+    private String nextLabel() {
+        List<Upcoming> up = upcoming(1);
+        return up.isEmpty() ? "" : format(up.get(0));
+    }
+
     private void warnInterval(int minutes) {
         double defDiff = plugin.getConfig().getDouble("difficulty.default", 1.0);
+        plugin.discord().warning(minutes, defDiff, nextLabel());
         for (World w : resolveWorlds(List.of())) {
             if (plugin.events().isActive(w)) continue;
             if (!plugin.messages().announce("warnings", false)) continue;
@@ -289,6 +297,7 @@ public final class ScheduleManager {
     }
 
     private void warn(Slot slot, int minutes) {
+        plugin.discord().warning(minutes, slot.difficulty(), nextLabel());
         for (World w : resolveWorlds(slot.worlds())) {
             if (plugin.events().isActive(w)) continue;
             if (!plugin.messages().announce("warnings", false)) continue;

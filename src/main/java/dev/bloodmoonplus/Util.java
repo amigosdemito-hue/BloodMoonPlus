@@ -157,7 +157,7 @@ public final class Util {
         return Math.max(1, m) + " min";
     }
 
-    static String fmt(double d) {
+    public static String fmt(double d) {
         return d == Math.rint(d) ? String.valueOf((long) d) : String.format(Locale.ROOT, "%.1f", d);
     }
 

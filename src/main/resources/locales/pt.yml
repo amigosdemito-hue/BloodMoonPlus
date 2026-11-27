@@ -127,3 +127,10 @@ special:
   storm: "<aqua>☂ A tempestade se liberta. A Lua de Sangue se alimenta do caos."
   fog: "<gray>🌫 Uma névoa espessa envolve os sobreviventes. <dark_gray>Você não vê nada."
   silence: "<black>🔇 O silêncio toma conta de tudo. <dark_gray>Você só ouve seu coração bater."
+
+# ==================== Discord ====================
+discord:
+  warning: "🌙 A Lua de Sangue começa em {min} min · {when} · dificuldade x{difficulty}. Preparem-se!"
+  start: "🌙 A Lua de Sangue começou em {world}! Dificuldade x{difficulty} · dura {minutes} min."
+  end: "☀️ A Lua de Sangue terminou em {world} após {minutes} min. O amanhecer chegou!"
+  stopped: "⏹️ A Lua de Sangue foi interrompida em {world}."
