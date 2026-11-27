@@ -292,12 +292,16 @@ public final class EventManager {
         if (worlds == null || worlds.isEmpty()) return false;
         long now = System.currentTimeMillis();
         long endMs = now + Math.max(1, minutes) * 60_000L;
-        boolean any = false;
+        List<String> started = new ArrayList<>();
         for (World w : worlds) {
             if (w == null) continue;
-            if (startInternal(w, diff, now, endMs, false, !any)) any = true;
+            if (startInternal(w, diff, now, endMs, false, started.isEmpty())) started.add(w.getName());
         }
-        return any;
+        if (started.isEmpty()) return false;
+        // Un único aviso de Discord para todo el lote. Con varios mundos el campo Mundo dice
+        // "global", igual que el aviso de fin, en vez de mostrar solo el primero.
+        plugin.discord().started(started.size() == 1 ? started.get(0) : "global", diff, minutes);
+        return true;
     }
 
     private boolean startInternal(World w, double diff, long startMs, long endMs, boolean resumed, boolean announce) {
@@ -349,8 +353,8 @@ public final class EventManager {
                 p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.GLOWING, 20 * 30, 0, false, false));
             }
             if (announce && plugin.messages().announce("event", false)) plugin.messages().all("event.start", "difficulty", d, "minutes", String.valueOf(minutes));
-            // Un solo aviso de Discord aunque arranquen varios mundos a la vez.
-            if (announce) plugin.discord().started(w.getName(), diff, (int) minutes);
+            // El aviso de Discord se manda una sola vez desde startIn(), cuando ya se sabe
+            // cuántos mundos arrancaron de verdad.
             runCommands(cmdStart, w, null, diff);
             // Comandos por mundo (CommandsOnStart de <mundo>/config.yml). Eran leídos por
             // WorldConfig pero nunca ejecutados: la opción documentada no hacía nada.

@@ -1,4 +1,4 @@
-# 🩸 BloodMoonPlus — Blood Moon · 1.0.4-beta
+# 🩸 BloodMoonPlus — Blood Moon · 1.0.5-beta
 
 A **Blood Moon** event plugin for Paper servers: **7 complete languages**, **10 bosses**, **45 items** spread across rarities, **protected Moon gear**, **vanilla-max enchantments plus ExcellentEnchants**, **progressive waves**, **placeholders**, **full immersion** (red fog, lightning, ambient sounds and announcements) and **rare-loot inventory delivery**.
 
@@ -59,7 +59,7 @@ Change `Language:` in `plugins/BloodMoonPlus/locales/locales.yml` and run **`/lu
 
 1. If an event is running, run `/luna stop` and **stop the server**.
 2. **Delete the old jar** from `plugins/`. That is the one thing you must remove: both jars declare `name: BloodMoonPlus` and Bukkit rejects the second with *"plugin name is already in use"*.
-3. Copy the new `BloodMoonPlus-1.0.4-beta.jar` into `plugins/` and start the server.
+3. Copy the new `BloodMoonPlus-1.0.5-beta.jar` into `plugins/` and start the server.
 
 **Do NOT delete:** `data.yml` (running event, serial numbers of unique items and pity — mythics would become available again), `statistics.yml` (history), `config.yml` (it did not change in this version), `locales/*.yml` (your translations) or `worlds/<world>/config.yml`.
 

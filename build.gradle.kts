@@ -1,7 +1,7 @@
 plugins { java }
 
 group = "dev.bloodmoonplus"
-version = "1.0.4-beta"
+version = "1.0.5-beta"
 
 repositories {
     mavenCentral()
@@ -27,6 +27,9 @@ tasks.withType<JavaCompile> { options.encoding = "UTF-8" }
 
 tasks.processResources {
     filteringCharset = "UTF-8"
+    // Sin declarar la versión como entrada, Gradle dejaba la tarea UP-TO-DATE al subir de
+    // versión y el jar salía con el plugin.yml de la versión anterior.
+    inputs.property("version", project.version.toString())
     filesMatching("plugin.yml") { expand("version" to project.version) }
 }
 

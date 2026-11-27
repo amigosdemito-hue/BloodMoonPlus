@@ -8,6 +8,21 @@ Modrinth. Lines marked with ⭐ are the most eye-catching features for the
 project page.
 -->
 
+## [1.0.5-beta] — One start alert, one label
+
+When the moon rose in several worlds at once, the Discord start embed named only the first one,
+while the end embed said `global`.
+
+### Fixed
+- ⭐ The start embed's **World** field now says `global` when the event started in more than one
+  world, exactly like the end alert; a single-world start still shows that world's name.
+- The start alert is emitted once per batch from `startIn()`, after the worlds have actually
+  started, instead of from the first world's start path, so it also covers the real number of
+  worlds that came up.
+
+### Compatibility
+- Paper **26.2** and **26.3**. Built with Java 25. Jar: `BloodMoonPlus-1.0.5-beta.jar`.
+
 ## [1.0.4-beta] — Discord embeds for the Blood Moon alerts
 
 The Discord webhook no longer posts a line of text: every alert is now an **embed** with a title, a
