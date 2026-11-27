@@ -5,7 +5,7 @@
 #
 #  CATÁLOGO: cada clase de arma, herramienta y armadura tiene una versión de CADA rareza
 #  (COMUN, POCO_COMUN, RARO, EPICO, LEGENDARIO y MITICO). Los materiales suben con la
-#  rareza (madera -> piedra -> hierro -> diamante -> netherita) y los encantamientos
+#  rareza (hierro -> hierro -> diamante -> netherita) y los encantamientos
 #  también: los legendarios y míticos llevan los más potentes de ExcellentEnchants.
 #
 #  ENCANTAMIENTOS: solo encantamientos REALES del servidor.
@@ -58,15 +58,15 @@ items:
   #  ESPADAS
   # ============================================================
   espada_oxidada:
-    material: WOODEN_SWORD
+    material: IRON_SWORD
     name: "<gray>Espada Oxidada"
     lore: ["<gray>Forjada con restos de la última luna."]
     rarity: COMUN
     enchants: { sharpness: 2, unbreaking: 1 }
   espada_piedra:
-    material: STONE_SWORD
-    name: "<white>Espada de Piedra Lunar"
-    lore: ["<gray>Piedra tallada bajo la luna roja."]
+    material: IRON_SWORD
+    name: "<white>Espada de Hierro Lunar"
+    lore: ["<gray>Hierro forjado bajo la luna roja."]
     rarity: POCO_COMUN
     enchants: { sharpness: 3, unbreaking: 2, looting: 1 }
   espada_sanguinaria:
@@ -109,14 +109,14 @@ items:
   #  HACHAS
   # ============================================================
   hacha_oxidada:
-    material: WOODEN_AXE
+    material: IRON_AXE
     name: "<gray>Hacha Oxidada"
     lore: ["<gray>Apenas corta: la luna no perdona a los novatos."]
     rarity: COMUN
     enchants: { sharpness: 2, efficiency: 2, unbreaking: 1 }
   hacha_piedra:
-    material: STONE_AXE
-    name: "<white>Hacha de Piedra Lunar"
+    material: IRON_AXE
+    name: "<white>Hacha de Hierro Lunar"
     lore: ["<gray>Para la leña y para lo que se cruce."]
     rarity: POCO_COMUN
     enchants: { sharpness: 3, efficiency: 3, unbreaking: 2 }
@@ -160,15 +160,15 @@ items:
   #  PICOS
   # ============================================================
   pico_oxidado:
-    material: WOODEN_PICKAXE
+    material: IRON_PICKAXE
     name: "<gray>Pico Oxidado"
     lore: ["<gray>Excava despacio, pero excava."]
     rarity: COMUN
     enchants: { efficiency: 2, unbreaking: 1 }
   pico_piedra:
-    material: STONE_PICKAXE
-    name: "<white>Pico de Piedra Lunar"
-    lore: ["<gray>Hierro y piedra para abrir la roca."]
+    material: IRON_PICKAXE
+    name: "<white>Pico de Hierro Lunar"
+    lore: ["<gray>Hierro templado para abrir la roca."]
     rarity: POCO_COMUN
     enchants: { efficiency: 3, unbreaking: 2, fortune: 1 }
   pico_umbrial:
@@ -205,14 +205,14 @@ items:
   #  PALAS
   # ============================================================
   pala_oxidada:
-    material: WOODEN_SHOVEL
+    material: IRON_SHOVEL
     name: "<gray>Pala Oxidada"
     lore: ["<gray>Sirve para abrir la primera tumba."]
     rarity: COMUN
     enchants: { efficiency: 2, unbreaking: 1 }
   pala_piedra:
-    material: STONE_SHOVEL
-    name: "<white>Pala de Piedra Lunar"
+    material: IRON_SHOVEL
+    name: "<white>Pala de Hierro Lunar"
     lore: ["<gray>Arena, tierra y ceniza de la horda."]
     rarity: POCO_COMUN
     enchants: { efficiency: 3, unbreaking: 2, fortune: 1 }
@@ -250,14 +250,14 @@ items:
   #  AZADAS
   # ============================================================
   azada_oxidada:
-    material: WOODEN_HOE
+    material: IRON_HOE
     name: "<gray>Azada Oxidada"
     lore: ["<gray>La cosecha que la luna dejó."]
     rarity: COMUN
     enchants: { efficiency: 2, unbreaking: 1 }
   azada_piedra:
-    material: STONE_HOE
-    name: "<white>Azada de Piedra Lunar"
+    material: IRON_HOE
+    name: "<white>Azada de Hierro Lunar"
     lore: ["<gray>Siembra, recoge y vuelve a sembrar.", "<white>Replantador"]
     rarity: POCO_COMUN
     enchants: { efficiency: 3, unbreaking: 2, replanter: 1 }
@@ -481,15 +481,15 @@ items:
   #  CASCOS
   # ============================================================
   casco_cuero:
-    material: LEATHER_HELMET
-    name: "<gray>Casco de Cuero"
-    lore: ["<gray>Cuero curtido: mejor que ir a cabeza descubierta."]
+    material: IRON_HELMET
+    name: "<gray>Casco de Hierro Gastado"
+    lore: ["<gray>Hierro abollado: mejor que ir a cabeza descubierta."]
     rarity: COMUN
     enchants: { protection: 1, unbreaking: 1 }
   casco_cadena:
-    material: CHAINMAIL_HELMET
-    name: "<white>Casco de Cadena Lunar"
-    lore: ["<gray>Anillos de acero contra colmillos."]
+    material: IRON_HELMET
+    name: "<white>Casco de Hierro Lunar"
+    lore: ["<gray>Planchas de hierro contra colmillos."]
     rarity: POCO_COMUN
     enchants: { protection: 2, unbreaking: 2, respiration: 1 }
   casco_hierro:
@@ -526,15 +526,15 @@ items:
   #  PETOS
   # ============================================================
   peto_cuero:
-    material: LEATHER_CHESTPLATE
-    name: "<gray>Peto de Cuero"
-    lore: ["<gray>Cuero curtido a mano y cosido con tendones."]
+    material: IRON_CHESTPLATE
+    name: "<gray>Peto de Hierro Gastado"
+    lore: ["<gray>Hierro remachado a mano y cosido con tendones."]
     rarity: COMUN
     enchants: { protection: 1, unbreaking: 1 }
   peto_cadena:
-    material: CHAINMAIL_CHESTPLATE
-    name: "<white>Peto de Cadena Lunar"
-    lore: ["<gray>Anillos que aguantan el primer mordisco."]
+    material: IRON_CHESTPLATE
+    name: "<white>Peto de Hierro Lunar"
+    lore: ["<gray>Planchas que aguantan el primer mordisco."]
     rarity: POCO_COMUN
     enchants: { protection: 2, unbreaking: 2 }
   peto_hierro:
@@ -571,15 +571,15 @@ items:
   #  GREBAS
   # ============================================================
   grebas_cuero:
-    material: LEATHER_LEGGINGS
-    name: "<gray>Grebas de Cuero"
+    material: IRON_LEGGINGS
+    name: "<gray>Grebas de Hierro Gastadas"
     lore: ["<gray>Protegen lo justo para llegar vivo al amanecer."]
     rarity: COMUN
     enchants: { protection: 1, unbreaking: 1 }
   grebas_cadena:
-    material: CHAINMAIL_LEGGINGS
-    name: "<white>Grebas de Cadena Lunar"
-    lore: ["<gray>Cadenas que no ceden al arrastre."]
+    material: IRON_LEGGINGS
+    name: "<white>Grebas de Hierro Lunar"
+    lore: ["<gray>Planchas que no ceden al arrastre."]
     rarity: POCO_COMUN
     enchants: { protection: 2, unbreaking: 2 }
   grebas_hierro:
@@ -616,14 +616,14 @@ items:
   #  BOTAS
   # ============================================================
   botas_cuero:
-    material: LEATHER_BOOTS
-    name: "<gray>Botas de Cuero"
+    material: IRON_BOOTS
+    name: "<gray>Botas de Hierro Gastadas"
     lore: ["<gray>Ligeras, gastadas y con barro de la última huida."]
     rarity: COMUN
     enchants: { protection: 1, unbreaking: 1 }
   botas_cadena:
-    material: CHAINMAIL_BOOTS
-    name: "<white>Botas de Cadena Lunar"
+    material: IRON_BOOTS
+    name: "<white>Botas de Hierro Lunar"
     lore: ["<gray>Aterrizan sin romperse desde lo alto."]
     rarity: POCO_COMUN
     enchants: { protection: 2, unbreaking: 2, feather_falling: 1 }

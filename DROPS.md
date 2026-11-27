@@ -51,11 +51,11 @@ probabilidad real = drop-chance de la tabla × (1 + (dificultad − 1) × loot-c
 
 `difficulty.scaling.loot-chance` vale **0.25** por defecto.
 
-| Dificultad | Multiplicador | `mob_horde` (60%) | `mob_elite` (45%) |
+| Dificultad | Multiplicador | `mob_horde` (50%) | `mob_elite` (45%) |
 |---|---|---|---|
-| x1 | ×1.00 | 60.0% | 45.0% |
-| x2 | ×1.25 | 75.0% | 56.2% |
-| x3 | ×1.50 | 90.0% | 67.5% |
+| x1 | ×1.00 | 50.0% | 45.0% |
+| x2 | ×1.25 | 62.5% | 56.2% |
+| x3 | ×1.50 | 75.0% | 67.5% |
 | x5 | ×2.00 | 100.0% | 90.0% |
 | x10 | ×3.25 | 100.0% | 100.0% |
 
@@ -65,7 +65,7 @@ probabilidad real = drop-chance de la tabla × (1 + (dificultad − 1) × loot-c
 
 | Tabla | Tiradas |
 |---|---|
-| `mob_horde` | 1-2 |
+| `mob_horde` | 1 |
 | `mob_elite` | 2-3 |
 | `survivors` | 2-3 |
 | `boss_rey_zombi` | 4-5 |
@@ -80,7 +80,7 @@ Cada tabla declara sus propios pesos; si una rareza no aparece, se usa el peso g
 
 | Tabla | Común | Poco común | Raro | Épico | Legendario | Mítico |
 |---|---|---|---|---|---|---|
-| `mob_horde` | 59.55% | 25.81% | 10.92% | 3.18% | 0.50% | 0.05% |
+| `mob_horde` | 49.63% | 35.73% | 10.92% | 3.18% | 0.50% | 0.05% |
 | `mob_elite` | 26.48% | 33.10% | 26.48% | 11.92% | 1.85% | 0.16% |
 | `survivors` | 33.14% | 33.14% | 22.09% | 9.94% | 1.55% | 0.13% |
 | `boss_rey_zombi` | — | — | 48.66% | 36.50% | 13.38% | 1.46% |
@@ -122,7 +122,7 @@ un 0.5-0.8% propio de cada uno de los 14 objetos.
 
 | Tabla | Drop | Tiradas | Garantizado |
 |---|---|---|---|
-| `mob_horde` | 60% | 1-2 | — |
+| `mob_horde` | 50% | 1 | — |
 | `mob_elite` | 45% | 2-3 | — |
 | `survivors` | 100% | 2-3 | — |
 | `boss_rey_zombi` | 100% | 4-5 | Botella de XP ×8-16, Diamante ×3-6 |
@@ -146,50 +146,50 @@ Los porcentajes de la columna **% real** son la probabilidad de ese objeto concr
 
 | Objeto | Material | Cantidad | Drop | % real | Encantamientos |
 |---|---|---|---|---|---|
-| Carne | `COOKED_BEEF` | 3-8 | 100% | 6.14% | — |
-| Flechas | `ARROW` | 6-16 | 100% | 4.60% | — |
-| Pólvora | `GUNPOWDER` | 2-6 | 100% | 4.60% | — |
-| Hierro | `IRON_INGOT` | 3-7 | 100% | 3.84% | — |
-| Hueso | `BONE` | 3-7 | 100% | 3.84% | — |
-| Cuerda | `STRING` | 2-5 | 100% | 3.07% | — |
-| Espada Oxidada | `WOODEN_SWORD` | 1 | 50% | 1.53% | sharpness II · unbreaking I |
-| Hacha Oxidada | `WOODEN_AXE` | 1 | 50% | 1.53% | efficiency II · sharpness II · unbreaking I |
-| Pico Oxidado | `WOODEN_PICKAXE` | 1 | 50% | 1.53% | efficiency II · unbreaking I |
-| Pala Oxidada | `WOODEN_SHOVEL` | 1 | 50% | 1.38% | efficiency II · unbreaking I |
-| Azada Oxidada | `WOODEN_HOE` | 1 | 45% | 1.11% | efficiency II · unbreaking I |
-| Arco Astillado | `BOW` | 1 | 45% | 1.24% | power II · unbreaking II |
-| Ballesta Astillada | `CROSSBOW` | 1 | 45% | 1.11% | unbreaking II · quick_charge I |
-| Tridente Oxidado | `TRIDENT` | 1 | 35% | 0.537% | impaling II · unbreaking II · loyalty I |
-| Maza Oxidada | `MACE` | 1 | 35% | 0.645% | unbreaking II · density I |
-| Casco de Cuero | `LEATHER_HELMET` | 1 | 45% | 0.967% | protection I · unbreaking I |
-| Peto de Cuero | `LEATHER_CHESTPLATE` | 1 | 45% | 0.967% | protection I · unbreaking I |
-| Grebas de Cuero | `LEATHER_LEGGINGS` | 1 | 45% | 0.967% | protection I · unbreaking I |
-| Botas de Cuero | `LEATHER_BOOTS` | 1 | 45% | 0.967% | protection I · unbreaking I |
-| Escudo Astillado | `SHIELD` | 1 | 40% | 0.737% | unbreaking I |
+| Carne | `COOKED_BEEF` | 3-8 | 100% | 5.12% | — |
+| Flechas | `ARROW` | 6-16 | 100% | 3.83% | — |
+| Pólvora | `GUNPOWDER` | 2-6 | 100% | 3.83% | — |
+| Hierro | `IRON_INGOT` | 3-7 | 100% | 3.20% | — |
+| Hueso | `BONE` | 3-7 | 100% | 3.20% | — |
+| Cuerda | `STRING` | 2-5 | 100% | 2.56% | — |
+| Espada Oxidada | `IRON_SWORD` | 1 | 50% | 1.28% | sharpness II · unbreaking I |
+| Hacha Oxidada | `IRON_AXE` | 1 | 50% | 1.28% | efficiency II · sharpness II · unbreaking I |
+| Pico Oxidado | `IRON_PICKAXE` | 1 | 50% | 1.28% | efficiency II · unbreaking I |
+| Pala Oxidada | `IRON_SHOVEL` | 1 | 50% | 1.15% | efficiency II · unbreaking I |
+| Azada Oxidada | `IRON_HOE` | 1 | 45% | 0.921% | efficiency II · unbreaking I |
+| Arco Astillado | `BOW` | 1 | 45% | 1.04% | power II · unbreaking II |
+| Ballesta Astillada | `CROSSBOW` | 1 | 45% | 0.921% | unbreaking II · quick_charge I |
+| Tridente Oxidado | `TRIDENT` | 1 | 35% | 0.448% | impaling II · unbreaking II · loyalty I |
+| Maza Oxidada | `MACE` | 1 | 35% | 0.537% | unbreaking II · density I |
+| Casco de Hierro Gastado | `IRON_HELMET` | 1 | 45% | 0.806% | protection I · unbreaking I |
+| Peto de Hierro Gastado | `IRON_CHESTPLATE` | 1 | 45% | 0.806% | protection I · unbreaking I |
+| Grebas de Hierro Gastadas | `IRON_LEGGINGS` | 1 | 45% | 0.806% | protection I · unbreaking I |
+| Botas de Hierro Gastadas | `IRON_BOOTS` | 1 | 45% | 0.806% | protection I · unbreaking I |
+| Escudo Astillado | `SHIELD` | 1 | 40% | 0.614% | unbreaking I |
 
 ### Poco común (19)
 
 | Objeto | Material | Cantidad | Drop | % real | Encantamientos |
 |---|---|---|---|---|---|
-| Oro | `GOLD_INGOT` | 2-5 | 95% | 2.24% | — |
-| Manzana dorada | `GOLDEN_APPLE` | 1 | 90% | 1.42% | — |
-| Botella de XP | `EXPERIENCE_BOTTLE` | 3-9 | 90% | 2.12% | — |
-| Ojo de ender | `ENDER_EYE` | 1-2 | 75% | 0.885% | — |
-| Obsidiana | `OBSIDIAN` | 1-3 | 65% | 0.767% | — |
-| Espada de Piedra Lunar | `STONE_SWORD` | 1 | 45% | 0.708% | sharpness III · unbreaking II · looting I |
-| Hacha de Piedra Lunar | `STONE_AXE` | 1 | 45% | 0.708% | efficiency III · sharpness III · unbreaking II |
-| Pico de Piedra Lunar | `STONE_PICKAXE` | 1 | 45% | 0.708% | efficiency III · unbreaking II · fortune I |
-| Pala de Piedra Lunar | `STONE_SHOVEL` | 1 | 45% | 0.637% | efficiency III · unbreaking II · fortune I |
-| Azada de Piedra Lunar | `STONE_HOE` | 1 | 40% | 0.504% | efficiency III · unbreaking II · replanter I |
-| Arco de Hueso Lunar | `BOW` | 1 | 40% | 0.566% | power III · unbreaking III · punch I |
-| Ballesta de Hueso Lunar | `CROSSBOW` | 1 | 40% | 0.504% | unbreaking III · piercing II · quick_charge II |
-| Tridente de los Mares | `TRIDENT` | 1 | 30% | 0.236% | impaling III · unbreaking III · loyalty II · +1 |
-| Maza Pesada | `MACE` | 1 | 30% | 0.283% | unbreaking III · density II · breach I |
-| Casco de Cadena Lunar | `CHAINMAIL_HELMET` | 1 | 40% | 0.441% | protection II · unbreaking II · respiration I |
-| Peto de Cadena Lunar | `CHAINMAIL_CHESTPLATE` | 1 | 40% | 0.441% | protection II · unbreaking II |
-| Grebas de Cadena Lunar | `CHAINMAIL_LEGGINGS` | 1 | 40% | 0.441% | protection II · unbreaking II |
-| Botas de Cadena Lunar | `CHAINMAIL_BOOTS` | 1 | 40% | 0.441% | protection II · unbreaking II · feather_falling I |
-| Escudo Reforzado | `SHIELD` | 1 | 35% | 0.330% | unbreaking II |
+| Oro | `GOLD_INGOT` | 2-5 | 95% | 3.10% | — |
+| Manzana dorada | `GOLDEN_APPLE` | 1 | 90% | 1.96% | — |
+| Botella de XP | `EXPERIENCE_BOTTLE` | 3-9 | 90% | 2.94% | — |
+| Ojo de ender | `ENDER_EYE` | 1-2 | 75% | 1.23% | — |
+| Obsidiana | `OBSIDIAN` | 1-3 | 65% | 1.06% | — |
+| Espada de Hierro Lunar | `IRON_SWORD` | 1 | 45% | 0.981% | sharpness III · unbreaking II · looting I |
+| Hacha de Hierro Lunar | `IRON_AXE` | 1 | 45% | 0.981% | efficiency III · sharpness III · unbreaking II |
+| Pico de Hierro Lunar | `IRON_PICKAXE` | 1 | 45% | 0.981% | efficiency III · unbreaking II · fortune I |
+| Pala de Hierro Lunar | `IRON_SHOVEL` | 1 | 45% | 0.883% | efficiency III · unbreaking II · fortune I |
+| Azada de Hierro Lunar | `IRON_HOE` | 1 | 40% | 0.697% | efficiency III · unbreaking II · replanter I |
+| Arco de Hueso Lunar | `BOW` | 1 | 40% | 0.784% | power III · unbreaking III · punch I |
+| Ballesta de Hueso Lunar | `CROSSBOW` | 1 | 40% | 0.697% | unbreaking III · piercing II · quick_charge II |
+| Tridente de los Mares | `TRIDENT` | 1 | 30% | 0.327% | impaling III · unbreaking III · loyalty II · +1 |
+| Maza Pesada | `MACE` | 1 | 30% | 0.392% | unbreaking III · density II · breach I |
+| Casco de Hierro Lunar | `IRON_HELMET` | 1 | 40% | 0.610% | protection II · unbreaking II · respiration I |
+| Peto de Hierro Lunar | `IRON_CHESTPLATE` | 1 | 40% | 0.610% | protection II · unbreaking II |
+| Grebas de Hierro Lunar | `IRON_LEGGINGS` | 1 | 40% | 0.610% | protection II · unbreaking II |
+| Botas de Hierro Lunar | `IRON_BOOTS` | 1 | 40% | 0.610% | protection II · unbreaking II · feather_falling I |
+| Escudo Reforzado | `SHIELD` | 1 | 35% | 0.458% | unbreaking II |
 
 ### Raro (18)
 
@@ -298,7 +298,7 @@ loot:
 Salida de ejemplo (recortada):
 
 ```
-Tabla mob_horde · prob. base de drop: 60% · tiradas: 1-2
+Tabla mob_horde · prob. base de drop: 50% · tiradas: 1
 Común 59.55%
    - Carne 6.14%
    - Flechas 4.60%

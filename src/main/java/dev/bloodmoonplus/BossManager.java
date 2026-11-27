@@ -310,7 +310,7 @@ public final class BossManager {
         if (le == null) {
             spawningBoss = true;
             try {
-                le = plugin.events().spawn(loc, d.type(), d.health(), d.damage(), d.speed(), d.name(),
+                le = plugin.events().spawnBoss(loc, d.type(), d.health(), d.damage(), d.speed(), d.name(),
                         d.equipment(), 1.0, difficulty, null, target);
             } finally {
                 spawningBoss = false;
@@ -349,8 +349,8 @@ public final class BossManager {
         // Etiqueta para que el datapack anti-Wither exima a los jefes de la Luna de Sangre.
         le.addScoreboardTag(EventManager.BOSS_TAG);
         le.addScoreboardTag(EventManager.HORDE_TAG);
-        // Ocupa su hueco en el pozo ya: el vanilla lo hizo dentro de spawn(); el de Mythic, aquí.
-        if (mythicSpawned) plugin.events().countInPool(le);
+        // El jefe no ocupa el pozo ni el techo de 40 (tiene su cupo propio y prioritario), así que
+        // no suma nada aquí: solo sus esbirros, que nacen por spawnMinion.
         alive.put(le.getUniqueId(), new Instance(le.getUniqueId(), d, difficulty, world, mythicSpawned));
         return true;
     }

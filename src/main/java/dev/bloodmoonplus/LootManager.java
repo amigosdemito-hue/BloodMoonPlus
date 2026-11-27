@@ -263,9 +263,12 @@ public final class LootManager {
         return stack;
     }
 
+    /** Entrega al jugador y, si no cabe, lo tira a sus pies SIN la marca del evento: ese sobrante
+     *  ya es un ítem suyo y la limpieza no debe tocarlo (antes pasaba por dropAt y se marcaba). */
     public void giveOrDrop(Player p, ItemStack it) {
         Map<Integer, ItemStack> left = p.getInventory().addItem(it);
-        for (ItemStack l : left.values()) dropAt(p.getLocation(), l);
+        var world = p.getWorld();
+        for (ItemStack l : left.values()) world.dropItemNaturally(p.getLocation(), l);
     }
 
     /** Rareza etiquetada de un item; null si no la tiene. */
@@ -292,6 +295,10 @@ public final class LootManager {
         var world = loc.getWorld();
         if (world == null) return;
         Item drop = world.dropItemNaturally(loc, it);
+        // Marca de loot del evento: cleanup.* retira estos Items cuando llevan demasiado en el
+        // suelo. Es el ÚNICO sitio que marca, y solo lo llaman los drops de mobs y jefes de la
+        // Luna; lo que suelta un jugador (o el sobrante de giveOrDrop) nunca lleva la marca.
+        drop.getPersistentDataContainer().set(Keys.DROP, PersistentDataType.BYTE, (byte) 1);
         if (!it.hasItemMeta()) return;
         String rarity = it.getItemMeta().getPersistentDataContainer().get(Keys.ITEM_RARITY, PersistentDataType.STRING);
         if (rarity != null && plugin.getConfig().getStringList("loot.glow-rarities").stream().anyMatch(s -> Util.key(s).equals(rarity))) {

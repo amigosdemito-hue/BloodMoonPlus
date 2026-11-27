@@ -249,7 +249,7 @@ Cada muerte de un mob de la horda recorre **5 pasos**:
 
 ```
  [1] ¿suelta algo?      drop-chance de la tabla × dificultad
- [2] ¿cuántas tiradas?  rolls (1-2 en la horda, 4-6 en jefes)
+ [2] ¿cuántas tiradas?  rolls (1 en la horda, 4-6 en jefes)
  [3] ¿qué rareza?       peso de la rareza (+ suerte + pity)
  [4] ¿qué objeto?       peso del objeto dentro de la rareza
  [5] ¿sale?             drop-chance propio del objeto
@@ -259,19 +259,19 @@ Cada muerte de un mob de la horda recorre **5 pasos**:
 
 `probabilidad real = drop-chance × (1 + (dificultad − 1) × 0.25)`
 
-Con `mob_horde` al 60%: **x1 → 60%**, x2 → 75%, x3 → 90%, x10 → 100%.
+Con `mob_horde` al 50%: **x1 → 50%**, x2 → 62.5%, x3 → 75%, x10 → 100%.
 
 ### Paso 2 — ¿Cuántas tiradas?
 
-`mob_horde` tira **1-2** objetos (promedio 1.5); los élites y los supervivientes 2-3; los jefes
+`mob_horde` tira **1** objeto (solo la mitad de los mobs sueltan algo); los élites y los supervivientes 2-3; los jefes
 4-6. Cada tirada es independiente y no repite el mismo objeto que otra tirada del mismo lote.
 
 ### Paso 3 — Sorteo de la rareza
 
 | Rareza | Peso en `mob_horde` | % real por tirada | Aviso global |
 |---|---|---|---|
-| Común | 600 | **59.55%** | — |
-| Poco común | 260 | **25.81%** | — |
+| Común | 500 | **49.63%** | — |
+| Poco común | 360 | **35.73%** | — |
 | Raro | 110 | **10.92%** | — |
 | Épico | 32 | **3.18%** | — |
 | Legendario | 5 | **0.50%** | sí |
@@ -325,8 +325,8 @@ Cada tirada fallida de una rareza suma 1 punto **en esa tabla**; el peso se mult
 
 | Rareza | Objetos | Qué lleva |
 |---|---|---|
-| Común | 20 | materiales básicos y equipo de madera/cuero |
-| Poco común | 19 | materiales útiles y equipo de piedra/cadena |
+| Común | 20 | materiales básicos y equipo de hierro |
+| Poco común | 19 | materiales útiles y equipo de hierro |
 | Raro | 18 | diamantes, perlas y armas con 1-2 encantamientos custom |
 | Épico | 19 | tótem, netherita y piezas con 2-3 custom |
 | Legendario | 14 | una pieza por clase, 3-4 custom y anuncio global |
@@ -336,19 +336,19 @@ Cada tirada fallida de una rareza suma 1 punto **en esa tabla**; el peso se mult
 
 | Clase | Común | Poco común | Raro | Épico | Legendario | Mítico |
 |---|---|---|---|---|---|---|
-| **Espada** | Espada Oxidada | Espada de Piedra Lunar | Espada Sanguinaria, Daga de las Sombras | Espada de la Ruina | Colmillo Vampírico | Hoja del Eclipse Carmesí |
-| **Hacha** | Hacha Oxidada | Hacha de Piedra Lunar | Hacha Sangrienta | Hacha de la Ventisca, Hacha del Verdugo | Hacha del Abismo | Hacha del Apocalipsis |
-| **Pico** | Pico Oxidado | Pico de Piedra Lunar | Pico Umbrío | Pico del Abismo | Pico Espectral | Pico del Eclipse |
-| **Pala** | Pala Oxidada | Pala de Piedra Lunar | Pala Sangrienta | Pala del Abismo | Pala Espectral | Pala del Eclipse |
-| **Azada** | Azada Oxidada | Azada de Piedra Lunar | Azada Sangrienta | Azada del Abismo | Azada Espectral | Guadaña del Segador |
+| **Espada** | Espada Oxidada | Espada de Hierro Lunar | Espada Sanguinaria, Daga de las Sombras | Espada de la Ruina | Colmillo Vampírico | Hoja del Eclipse Carmesí |
+| **Hacha** | Hacha Oxidada | Hacha de Hierro Lunar | Hacha Sangrienta | Hacha de la Ventisca, Hacha del Verdugo | Hacha del Abismo | Hacha del Apocalipsis |
+| **Pico** | Pico Oxidado | Pico de Hierro Lunar | Pico Umbrío | Pico del Abismo | Pico Espectral | Pico del Eclipse |
+| **Pala** | Pala Oxidada | Pala de Hierro Lunar | Pala Sangrienta | Pala del Abismo | Pala Espectral | Pala del Eclipse |
+| **Azada** | Azada Oxidada | Azada de Hierro Lunar | Azada Sangrienta | Azada del Abismo | Azada Espectral | Guadaña del Segador |
 | **Arco** | Arco Astillado | Arco de Hueso Lunar | Arco Carmesí, Arco de la Tormenta | Arco del Abismo | Arco Lunar | Arco del Eclipse |
 | **Ballesta** | Ballesta Astillada | Ballesta de Hueso Lunar | Ballesta Carmesí | Ballesta del Abismo | Ballesta del Alba | Ballesta del Eclipse |
 | **Tridente** | Tridente Oxidado | Tridente de los Mares | Tridente Sangriento | Tridente Profundo | Tridente de la Tormenta | Tridente del Abismo Rojo |
 | **Maza** | Maza Oxidada | Maza Pesada | Maza de Hueso | Maza Carmesí | Martillo del Trueno | Maza del Coloso |
-| **Casco** | Casco de Cuero | Casco de Cadena Lunar | Casco de Hierro Carmesí | Yelmo del Cazador de Sangre | Yelmo del Eclipse | Corona de la Luna de Sangre |
-| **Peto** | Peto de Cuero | Peto de Cadena Lunar | Peto de Hierro Carmesí | Peto del Cazador de Sangre | Peto del Guardián Carmesí | Peto del Eclipse Carmesí |
-| **Grebas** | Grebas de Cuero | Grebas de Cadena Lunar | Grebas de Hierro Carmesí | Grebas del Cazador de Sangre | Grebas del Titán | Grebas del Eclipse |
-| **Botas** | Botas de Cuero | Botas de Cadena Lunar | Botas de Hierro Carmesí | Botas del Cazador de Sangre, Botas del Estrondo | Botas del Noctámbulo | Botas del Eclipse |
+| **Casco** | Casco de Hierro Gastado | Casco de Hierro Lunar | Casco de Hierro Carmesí | Yelmo del Cazador de Sangre | Yelmo del Eclipse | Corona de la Luna de Sangre |
+| **Peto** | Peto de Hierro Gastado | Peto de Hierro Lunar | Peto de Hierro Carmesí | Peto del Cazador de Sangre | Peto del Guardián Carmesí | Peto del Eclipse Carmesí |
+| **Grebas** | Grebas de Hierro Gastadas | Grebas de Hierro Lunar | Grebas de Hierro Carmesí | Grebas del Cazador de Sangre | Grebas del Titán | Grebas del Eclipse |
+| **Botas** | Botas de Hierro Gastadas | Botas de Hierro Lunar | Botas de Hierro Carmesí | Botas del Cazador de Sangre, Botas del Estrondo | Botas del Noctámbulo | Botas del Eclipse |
 | **Escudo** | Escudo Astillado | Escudo Reforzado | Escudo Carmesí | Escudo del Guardián | Égida Carmesí | Égida del Eclipse |
 
 ### Los 14 míticos

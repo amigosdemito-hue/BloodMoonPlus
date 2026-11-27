@@ -1,6 +1,6 @@
 # 🩸 BloodMoonPlus — Blood Moon · 1.0.6-beta
 
-A **Blood Moon** event plugin for Paper servers: **7 complete languages**, **10 bosses**, **45 items** spread across rarities, **protected Moon gear**, **vanilla-max enchantments plus ExcellentEnchants**, **progressive waves**, **placeholders**, **full immersion** (red fog, lightning, ambient sounds and announcements) and **rare-loot inventory delivery**.
+A **Blood Moon** event plugin for Paper servers: **7 complete languages**, **10 bosses**, **45 items** spread across rarities, **protected Moon gear**, **vanilla-max enchantments plus ExcellentEnchants**, **waves every 30 s**, **placeholders**, **full immersion** (red fog, lightning, ambient sounds and announcements) and **rare-loot inventory delivery**.
 
 Built to run smoothly on **40+ player** servers without changing the gameplay.
 
@@ -21,7 +21,7 @@ Built to run smoothly on **40+ player** servers without changing the gameplay.
 - **✅ No curses** — no Moon weapon, tool or armour piece carries the Curse of Vanishing or the Curse of Binding, whatever its rarity: gear drops on death like any other item. The automatic curse from 1.0.2 was removed and gear already handed out loses it on join, on pickup or with `/luna refresh`.
 - **📦 Rare loot delivery**: rare, epic, legendary and mythic drops go straight to the killer's inventory when there is one.
 - **⚔️ ExcellentEnchants integration**: every item ships vanilla enchantments at their max (level 5 on legendary and mythic gear, e.g. Protection 5) plus EE enchantments (`thunder`, `vampire`, `electrified_arrows`, `dragon_heart`…), with EE's own per-level chance settings. No custom ability engine.
-- **🌊 Progressive waves** — wave 1: 5 mobs, wave 2: 10, wave 3: 15… up to a configurable cap.
+- **🌊 Waves every 30 s** — 7 mobs per horde, no growth wave after wave: up to 40 alive per player (bosses included) and 1000 server-wide.
 - **🌫️ Immersion** — red fog, lightning when hordes/bosses appear, ambient sounds and periodic announcements. No rain, but thunder.
 - **📊 Stats & survivors** — who survived, who dealt the most damage, rankings and MVP rewards, all counted from real participation time instead of estimates.
 - **🔌 Optional integrations** with PlaceholderAPI, Multiverse-Core and WorldGuard (MythicMobs as an alternative boss mode).
@@ -159,7 +159,7 @@ The plugin already blocks the normal Wither on its own. If you also want a data-
 
 ## ⚡ Performance
 
-Designed for **~40 player** networks: local (not whole-world) entity scans, item-parse caching, one player lookup per boss per tick, capped particles and explosion work, and lock-free statistics reads. For very large servers you can tune `horde.wave-max-size`, the shared `horde.max-alive-total` pool (1000 horde mobs across the worlds with the event running, bosses and minions included) and the per-player ceiling `horde.max-alive-per-player` (80, useful when many players join from phones).
+Designed for **~40 player** networks: local (not whole-world) entity scans, item-parse caching, one player lookup per boss per tick, capped particles and explosion work, and lock-free statistics reads. For very large servers you can tune `horde.wave-max-size`, the shared `horde.max-alive-total` pool (1000 horde mobs and boss minions across the worlds with the event running) and the per-player ceiling `horde.max-alive-per-player` (40, minions included; bosses keep a separate priority quota). Projectile and ground-loot debris is swept every 45 s and again when the moon ends (`cleanup:`), because stuck arrows and tridents never despawn on their own.
 
 ---
 

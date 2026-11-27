@@ -8,6 +8,76 @@ Modrinth. Lines marked with ⭐ are the most eye-catching features for the
 project page.
 -->
 
+## [1.0.8-beta] — Nothing left lying around
+
+Skeletons, strays, bogged, pillagers and drowned kept shooting: every arrow and trident is an entity,
+and stuck arrows never despawn, so a 20-minute moon could leave thousands of them behind and drag
+the TPS down. The ground also filled with unclaimed loot.
+
+### Added
+- ⭐ **Event debris cleanup** (`cleanup:` section). Every `cleanup.interval-seconds` (45 s) the worlds
+  with an active moon drop the projectiles fired by Blood Moon mobs: arrows (skeleton, stray, bogged),
+  tridents (drowned), crossbow bolts (pillager) and fireballs. Stuck arrows go on the first pass, any
+  projectile older than `projectile-max-age-seconds` (20) goes too, and the world is kept under
+  `max-projectiles-per-world` (150) by removing the oldest ones. Player arrows are never touched.
+- ⭐ **Old loot is swept too.** Items dropped by the event that have been on the ground for more than
+  `item-min-age-seconds` (90) are removed. Only event loot carries the marker, so nothing a player
+  drops is ever deleted.
+- **Full cleanup when the moon ends:** projectiles and aged loot are purged on stop, again 2 s and
+  10 s later, and the chunk guard also removes them from chunks that were unloaded when the moon
+  ended.
+
+### Changed
+- **Fewer ranged mobs in the horde.** Skeletons 25→16, strays 10→6, bogged 9→6, drowned 14→10 and
+  pillagers 13→8; zombies 40→48, husks 10→12 and spiders 12→16. Ranged mobs go from ~45% to ~32% of
+  the horde, which cuts projectile spam at the source.
+- ⭐ **Bosses have their own quota.** The 40-per-player ceiling and the 1000-mob pool now count only
+  horde mobs and boss minions. A scheduled boss never waits for a free slot and never pushes a
+  player to 41; the minions it summons do count inside the 40.
+
+### Fixed
+- **Your own loot is never swept.** Overflow from a full inventory was dropped through the same path
+  that marks event loot, so the periodic cleanup could remove an item that already belonged to a
+  player. Only what an event mob or boss drops carries the marker now.
+- **Player arrows are never touched.** Projectiles are matched by their shooter, so an arrow you are
+  aiming with is not part of the sweep, no matter how old it is.
+
+### Compatibility
+- Paper **26.2** and **26.3**. Built with Java 25. Jar: `BloodMoonPlus-1.0.8-beta.jar`.
+- Existing `config.yml` is not overwritten: add the `cleanup:` section (and the new `horde.mobs`
+  weights if you want the rebalance), or delete the file so the defaults are regenerated.
+
+## [1.0.7-beta] — Seven at a time, forty at most
+
+One player alone could end up with hundreds of mobs and a flood of wooden and leather drops: the
+wave grew with every horde, boss summons had no per-player ceiling, and every kill rolled one or
+two items.
+
+### Changed
+- ⭐ **Fixed horde size: 7 mobs per horde.** `horde.base-size: 7` with `horde.wave-max-size: 7`,
+  so waves no longer grow (5, 10, 15… up to 30) as the event goes on.
+- ⭐ **One horde, then a 30-second wait.** `horde.interval-seconds: 30`.
+- ⭐ **40 mobs per player, minions included.** `horde.max-alive-per-player: 40` (was 80). The
+  per-player quota is now charged inside `spawn()`, the single spawn point, so boss `SUMMON`/`SWARM`
+  minions and MythicMobs bosses can no longer bypass it.
+- ⭐ **1000 active mobs server-wide is a hard ceiling.** Once the shared pool
+  (`horde.max-alive-total`) is full, `spawn()` creates nothing else, boss summons included.
+- **Comfortable band, no bursts:** a horde is always 7 mobs, so the field builds up to 30-40 per
+  player over the first few hordes and never spikes with a 30-mob dump.
+
+### Fixed
+- **No more junk loot.** Common and uncommon gear is now iron: the wooden tools and leather armour
+  and the stone tools and chainmail armour of the first two rarities were replaced by their iron
+  versions. Nothing below iron drops any more.
+- **Half the kills drop nothing, and each drop is a single item.** `mob_horde` goes from 60% with
+  1-2 rolls to **50% with 1 roll**, and commons are ~50% of the rarity draw, so a horde kill no
+  longer showers two or three items on the ground.
+
+### Compatibility
+- Paper **26.2** and **26.3**. Built with Java 25. Jar: `BloodMoonPlus-1.0.7-beta.jar`.
+- Existing `config.yml` and `loot.yml` are not overwritten: copy the new `horde` values and the
+  `mob_horde` numbers, or delete the old files so the defaults are regenerated.
+
 ## [1.0.6-beta] — The moon takes its mobs with it
 
 Mobs from an ended Blood Moon kept attacking, even with the event off, because the cleanup could

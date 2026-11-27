@@ -17,12 +17,15 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.Difficulty;
+import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -56,13 +59,14 @@ public final class EventManager {
         /** Jefes cuyo horario ya venció y esperan a la próxima oleada, donde se invocan con su
          *  hueco reservado en el pozo. */
         final List<String> dueBosses = new ArrayList<>();
-        /** Mobs de la Luna vivos en este mundo (horda + jefes + esbirros). Es lo que suma al pozo
-         *  compartido de horde.max-alive-total; lo resincroniza countHordeAlive cada ~2 s. */
+        /** Mobs de la Luna vivos en este mundo (horda + esbirros de jefe). Es lo que suma al pozo
+         *  compartido de horde.max-alive-total; los jefes NO, que tienen cupo propio. Lo
+         *  resincroniza countHordeAlive cada ~2 s. */
         int aliveTotal;
         /** Dificultad original del mundo, para restaurarla al terminar si fue forzada. */
         Difficulty originalDifficulty;
         long lastWaveMs;
-        /** Número de oleadas ya generadas (escalan 5, 10, 15... hasta horde.wave-max-size). */
+        /** Número de oleadas generadas (informativo): el tamaño ya NO escala con él. */
         int waveCount = 0;
         /** Última vez que se anunció un spawn de horda (para no spamear). */
         long lastHordeAnnounceMs = 0;
@@ -84,6 +88,8 @@ public final class EventManager {
          *  comprobaciones "now/1000 % N == 0" se cumplían durante todo un segundo (20 ticks),
          *  así que el sonido y las partículas salían 20 veces seguidas. */
         long lastAmbientCaveMs = 0, lastHeartbeatMs = 0, lastFogMs = 0;
+        /** Última pasada de limpieza de basura (flechas, tridentes, loot viejo). */
+        long lastCleanupMs = 0;
         /** Último jefe derrotado en este mundo (para el histórico de estadísticas). */
         String lastBossName = "";
         String lastBossType = "NONE";
@@ -121,7 +127,8 @@ public final class EventManager {
      *  arrancan y terminan juntas: es lo que hace que el evento sea GLOBAL. */
     private final Map<String, Session> sessions = new LinkedHashMap<>();
     private final List<MobDef> mobs = new ArrayList<>();
-    /** Mobs de la horda vivos POR JUGADOR (clave = UUID del dueño), jefes incluidos. Es el cupo
+    /** Mobs de la horda vivos POR JUGADOR (clave = UUID del dueño), esbirros incluidos y jefes
+     *  excluidos (tienen cupo propio). Es el cupo
      *  real del evento: lo ajustan spawn/onHordeMobKilled y lo reconstruye countHordeAlive desde
      *  las entidades del mundo cada ~2 s, así que una oleada no necesita recorrer entidades. */
     private final Map<UUID, Integer> aliveByPlayer = new HashMap<>();
@@ -151,6 +158,9 @@ public final class EventManager {
     private boolean forceDifficulty;
     private boolean protectTerrain;
     private boolean blockWitherSpawn;
+    /** Limpieza de basura del evento (cleanup.*): proyectiles de los mobs y loot viejo en el suelo. */
+    private boolean cleanupEnabled, cleanupProjectiles, cleanupItems;
+    private int cleanupIntervalSeconds, projectileMaxAgeSeconds, maxProjectilesPerWorld, itemMinAgeSeconds;
 
     EventManager(BloodMoonPlus plugin) { this.plugin = plugin; }
 
@@ -161,7 +171,7 @@ public final class EventManager {
         baseSize = c.getInt("horde.base-size", 5);
         waveMaxSize = Math.max(1, c.getInt("horde.wave-max-size", 30));
         maxAliveTotal = Math.max(1, c.getInt("horde.max-alive-total", 1000));
-        maxPerPlayer = Math.max(1, c.getInt("horde.max-alive-per-player", 80));
+        maxPerPlayer = Math.max(1, c.getInt("horde.max-alive-per-player", 40));
         minDist = c.getDouble("horde.spawn-distance.min", 14);
         maxDist = Math.max(minDist + 1, c.getDouble("horde.spawn-distance.max", 28));
         firstWaveDelay = c.getDouble("event.first-wave-delay-seconds", 10);
@@ -178,6 +188,13 @@ public final class EventManager {
         forceDifficulty = c.getBoolean("event.force-difficulty", true);
         protectTerrain = c.getBoolean("event.protect-terrain", true);
         blockWitherSpawn = c.getBoolean("event.block-wither-spawn", true);
+        cleanupEnabled = c.getBoolean("cleanup.enabled", true);
+        cleanupIntervalSeconds = Math.max(5, c.getInt("cleanup.interval-seconds", 45));
+        cleanupProjectiles = c.getBoolean("cleanup.projectiles", true);
+        projectileMaxAgeSeconds = Math.max(2, c.getInt("cleanup.projectile-max-age-seconds", 20));
+        maxProjectilesPerWorld = Math.max(10, c.getInt("cleanup.max-projectiles-per-world", 150));
+        cleanupItems = c.getBoolean("cleanup.items", true);
+        itemMinAgeSeconds = Math.max(0, c.getInt("cleanup.item-min-age-seconds", 90));
         rewardOnStop = c.getBoolean("event.reward-on-stop", false);
         cmdStart = c.getStringList("event.commands-on-start");
         cmdEnd = c.getStringList("event.commands-on-end");
@@ -480,11 +497,15 @@ public final class EventManager {
         // Por nombre, no por objeto: una sesión puede guardar un World que ya no existe (mundo
         // recargado) y entonces removeAll(World) no encontraba a sus jefes.
         plugin.bosses().removeAll(worldName);
+        World w = Bukkit.getWorld(worldName);
+        // Basura del evento: flechas y tridentes de la horda y el loot que ya lleva su tiempo en
+        // el suelo. Se retira SIEMPRE al acabar, aunque remove-mobs-on-end esté apagado, porque
+        // solo existe por la Luna de Sangre. El barrido de chunks cubre las zonas descargadas.
+        if (w != null && cleanupEnabled) cleanupDebris(w);
         // Los jefes se van siempre (barra y estado no deben sobrevivir al evento); la horda solo
         // si event.remove-mobs-on-end está activo, como estaba documentado. Sin esta guarda el
         // borrado inmediato ignoraba la opción y se llevaba los mobs igual.
         if (!removeOnEnd) return;
-        World w = Bukkit.getWorld(worldName);
         if (w != null) removeTagged(w);
         sweepWorlds.add(worldName);
         for (long delay : SWEEP_DELAYS) {
@@ -498,6 +519,75 @@ public final class EventManager {
         if (w == null || session(w) != null || !removeOnEnd) return;
         plugin.bosses().removeAll(worldName);
         removeTagged(w);
+        // Segunda y tercera pasada: en esos segundos caen los últimos esbirros y el loot cruza
+        // el umbral de edad, así que el mundo queda limpio de verdad.
+        if (cleanupEnabled) cleanupDebris(w);
+    }
+
+    /** Barrido de basura del evento: proyectiles disparados por mobs de la Luna y loot del evento
+     *  que lleva demasiado en el suelo. Deja una línea de consola solo si retiró algo. */
+    private void cleanupDebris(World w) {
+        int removed = 0;
+        if (cleanupProjectiles) removed += purgeProjectiles(w);
+        if (cleanupItems) removed += purgeLootItems(w);
+        if (removed > 0) plugin.getLogger().info("Limpieza de la Luna en '" + w.getName() + "': "
+                + removed + " entidades de basura retiradas (proyectiles y loot viejo).");
+    }
+
+    /** ¿Lo disparó un mob de la Luna? Se filtra por el tirador, así que una flecha de jugador
+     *  nunca entra en la limpieza. */
+    private static boolean isEventProjectile(Projectile pr) {
+        return pr.getShooter() instanceof Entity shooter && isTagged(shooter);
+    }
+
+    /** ¿Es loot del evento? Solo LootManager.dropAt marca los Items que suelta un mob; lo que
+     *  suelta un jugador no lleva la marca. */
+    private static boolean isEventLoot(Item drop) {
+        return drop.getPersistentDataContainer().has(Keys.DROP, PersistentDataType.BYTE);
+    }
+
+    /** Retira los proyectiles de los mobs de la Luna: flechas de esqueleto, stray y bogged,
+     *  tridentes de ahogado, virotes de saqueador, bolas de fuego... Los del jugador NO se tocan
+     *  (se filtra por el tirador). Se van las flechas clavadas al instante, las que superan
+     *  cleanup.projectile-max-age-seconds y, si aún hay más de cleanup.max-projectiles-per-world,
+     *  las más viejas. */
+    private int purgeProjectiles(World w) {
+        int removed = 0;
+        List<Projectile> live = new ArrayList<>();
+        long maxAge = projectileMaxAgeSeconds * 20L;
+        for (Projectile pr : w.getEntitiesByClass(Projectile.class)) {
+            if (!isEventProjectile(pr)) continue;
+            boolean stuck = pr instanceof AbstractArrow arrow && arrow.isInBlock();
+            if (stuck || pr.getTicksLived() > maxAge) {
+                pr.remove();
+                removed++;
+            } else {
+                live.add(pr);
+            }
+        }
+        int over = live.size() - maxProjectilesPerWorld;
+        if (over > 0) {
+            live.sort(Comparator.comparingInt(Entity::getTicksLived).reversed());
+            for (int i = 0; i < over; i++) {
+                live.get(i).remove();
+                removed++;
+            }
+        }
+        return removed;
+    }
+
+    /** Retira del suelo el loot del evento (Items marcados en LootManager.dropAt) que lleva más de
+     *  cleanup.item-min-age-seconds sin recogerse. Las rarezas altas van directas al inventario, así
+     *  que aquí solo queda lo que de verdad se acumula; el loot de los jugadores no lleva la marca. */
+    private int purgeLootItems(World w) {
+        int removed = 0;
+        long minAge = itemMinAgeSeconds * 20L;
+        for (Item drop : w.getEntitiesByClass(Item.class)) {
+            if (!isEventLoot(drop) || drop.getTicksLived() < minAge) continue;
+            drop.remove();
+            removed++;
+        }
+        return removed;
     }
 
     /** ¿Hay que borrar restos en este mundo? Lo consulta el guardia de ChunkLoadEvent; es una
@@ -515,6 +605,16 @@ public final class EventManager {
         if (chunk == null) return 0;
         int n = 0;
         for (Entity ent : chunk.getEntities()) {
+            // Basura del evento en el chunk: loot del evento en el suelo y proyectiles que disparó
+            // un mob de la Luna. Así una zona que estaba descargada no devuelve flechas al cargar.
+            if (ent instanceof Item drop) {
+                if (cleanupItems && isEventLoot(drop)) { drop.remove(); n++; }
+                continue;
+            }
+            if (ent instanceof Projectile pr) {
+                if (cleanupProjectiles && isEventProjectile(pr)) { pr.remove(); n++; }
+                continue;
+            }
             if (!isTagged(ent)) continue;
             if (plugin.bosses().isBoss(ent)) continue;
             UUID owner = ownerOf(ent);
@@ -706,6 +806,13 @@ public final class EventManager {
             }
         }
 
+        // Limpieza periódica de basura: un esqueleto dispara ~1 flecha/s y, con 40 mobs vivos, el
+        // mundo acaba con miles de entidades (las flechas clavadas ni siquiera desaparecen solas).
+        if (cleanupEnabled && now - global.lastCleanupMs >= cleanupIntervalSeconds * 1000L) {
+            global.lastCleanupMs = now;
+            cleanupDebris(w);
+        }
+
         double interval = Math.max(4, waveInterval / plugin.scaled(global.difficulty, "spawn-speed"));
         if (now - global.lastWaveMs >= interval * 1000) {
             global.lastWaveMs = now;
@@ -811,20 +918,20 @@ public final class EventManager {
     }
 
     /** ¿El pozo compartido está lleno? Lo consultan los esbirros de jefe antes de invocar, para
-     *  no pasarse del techo ni siquiera entre dos resyncs. */
+     *  no pasarse del techo ni siquiera entre dos resyncs. Los jefes no lo miran: son prioritarios. */
     public boolean poolFull() { return poolAlive() >= maxAliveTotal; }
 
-    /** Suma al pozo un mob que no pasó por {@link #spawn}: los jefes de MythicMobs los invoca
-     *  Mythic por su cuenta, y los mini-jefes de SWARM los crea BossManager. Así ocupan su hueco
-     *  en el mismo instante en que aparecen y no hay que esperar al resync de countHordeAlive.
-     *  Un mundo sin sesión no suma nada. */
+    /** Suma al pozo un esbirro que no pasó por {@link #spawn}: la cría de SWARM la crea BossManager
+     *  directamente con World#spawn. Así ocupa su hueco en el mismo instante en que aparece y no
+     *  hay que esperar al resync de countHordeAlive. Un mundo sin sesión no suma nada. */
     public void countInPool(Entity mob) {
         if (mob == null) return;
         Session s = session(mob.getWorld());
         if (s != null) s.aliveTotal++;
     }
 
-    /** Mobs de la Luna vivos en TODOS los mundos con evento activo (horda + jefes + esbirros).
+    /** Mobs de la Luna vivos en TODOS los mundos con evento activo (horda + esbirros; los jefes
+     *  tienen su cupo propio).
      *  Un mundo sin sesión no aporta nada: sus entidades no son del evento. */
     int poolAlive() {
         int n = 0;
@@ -842,19 +949,13 @@ public final class EventManager {
         return n;
     }
 
-    /** Invoca los jefes que vencieron su horario y esperaban turno. Se hace al inicio de la oleada
-     *  y se reserva su hueco: si el pozo está lleno, esperan a la siguiente. */
+    /** Invoca los jefes que vencieron su horario. No compiten por el pozo de la horda: su cupo es
+     *  propio y prioritario, así que un pozo lleno no los deja esperando turno. */
     private void spawnQueuedBosses(Session s) {
         if (s.dueBosses.isEmpty()) return;
         List<String> queue = new ArrayList<>(s.dueBosses);
         s.dueBosses.clear();
-        for (String id : queue) {
-            if (poolAlive() >= maxAliveTotal) {
-                s.dueBosses.add(id);
-                continue;
-            }
-            if (!plugin.bosses().spawn(s, id)) s.dueBosses.add(id);
-        }
+        for (String id : queue) if (!plugin.bosses().spawn(s, id)) s.dueBosses.add(id);
     }
 
     public int spawnWave(Session s) { return spawnWave(s, null); }
@@ -880,11 +981,14 @@ public final class EventManager {
         // Los jefes que ya vencieron su horario salen al inicio de esta oleada, no a mitad de tick.
         spawnQueuedBosses(s);
 
-        double sizeScale = plugin.scaled(s.difficulty, "horde-size");
-        // Oleadas progresivas por número de oleada: 1ª=5, 2ª=10, 3ª=15... hasta wave-max-size (30)
+        // Tamaño FIJO por horda: horde.base-size (7 por defecto), con wave-max-size como tope.
+        // Antes la oleada crecía con el número de oleada (5, 10, 15... hasta 30) y, con la
+        // dificultad, cada horda metía decenas de mobs de golpe: con un solo jugador el servidor
+        // acababa con cientos de mobs vivos. La progresión la marca el TIEMPO, no el tamaño:
+        // cada horde.interval-seconds cae otra horda de 7.
         s.waveCount++;
-        int dynamicBase = Math.min(waveMaxSize, baseSize * s.waveCount);
-        int perWave = Math.max(1, (int) Math.round(dynamicBase * sizeScale));
+        int perWave = Math.max(1, Math.min(waveMaxSize,
+                (int) Math.round(baseSize * plugin.scaled(s.difficulty, "horde-size"))));
         // Pozo compartido por los mundos con evento: el hueco libre se reparte entre los elegibles
         // de TODOS esos mundos, no solo los del mundo que tickea primero. Así nadie acapara y
         // quien entra tarde recibe su parte sin que se le quiten mobs a otro. Los mundos sin
@@ -898,9 +1002,12 @@ public final class EventManager {
         for (Player p : eligiblePlayers) {
             if (remaining <= 0) break;
             // Cuota de la oleada: su parte del pozo, su techo individual y lo que aún queda libre.
-            int room = Math.min(Math.min(share, maxPerPlayer - aliveByPlayer.getOrDefault(p.getUniqueId(), 0)),
-                    remaining);
+            int alive = aliveByPlayer.getOrDefault(p.getUniqueId(), 0);
+            int room = Math.min(Math.min(share, maxPerPlayer - alive), remaining);
             if (room <= 0) continue;
+            // Cada horda trae SIEMPRE sus mobs (7): no hay relleno extra de golpe. El suelo de
+            // 30 vivos por jugador se alcanza acumulando hordas (7 cada 30 s), no con un pico
+            // de 30 mobs de una sola vez. Nunca se pasa de maxPerPlayer.
             int amount = Math.min(perWave, room);
             // Rayo cinematográfico + anuncio de horda cayendo (como mucho uno cada 30 s)
             if (announceHorde) {
@@ -923,9 +1030,9 @@ public final class EventManager {
         return spawned;
     }
 
-    /** Spawnea hasta `amount` mobs de la horda alrededor de `p` y los anota como suyos.
-     *  Es el único camino de spawn de la oleada: los huecos que dejan las bajas los repone la
-     *  oleada siguiente, no un repoblado aparte. */
+    /** Spawnea hasta `amount` mobs de la horda alrededor de `p` (el cupo del dueño lo anota
+     *  spawn()). Es el único camino de spawn de la oleada: los huecos que dejan las bajas los
+     *  repone la oleada siguiente, no un repoblado aparte. */
     private int spawnBatch(Player p, Session s, int amount) {
         int spawned = 0;
         for (int i = 0; i < amount; i++) {
@@ -934,7 +1041,7 @@ public final class EventManager {
             if (i % 5 == 0) spawnEffect(p);
             if (spawnOne(p, s)) spawned++;
         }
-        if (spawned > 0) aliveByPlayer.merge(p.getUniqueId(), spawned, Integer::sum);
+        // El cupo del dueño lo lleva spawn(), el único punto por el que nace cada mob.
         return spawned;
     }
 
@@ -963,6 +1070,9 @@ public final class EventManager {
      *  tiene ocupan el techo hasta que muera. */
     public LivingEntity spawnMinion(Location loc, EntityType type, double diff, Player target) {
         if (poolFull()) return null;
+        // Los esbirros también ocupan el techo del jugador: sin esto un jefe con SUMMON podía
+        // añadir cientos de mobs por encima de los 40 aunque la horda ya estuviera a tope.
+        if (target != null && aliveByPlayer.getOrDefault(target.getUniqueId(), 0) >= maxPerPlayer) return null;
         for (MobDef d : mobs) {
             if (d.type() == type) {
                 return spawn(loc, type, d.health(), d.damage(), d.speed(), d.display(), d.equipment(), d.equipChance(), diff, d.table(), target);
@@ -971,15 +1081,28 @@ public final class EventManager {
         return spawn(loc, type, 0, 1, 1, (Component) null, Map.of(), 1, diff, null, target);
     }
 
-    /** Variante para textos sueltos (jefes): parsea el nombre una vez y delega en la de Component. */
-    public LivingEntity spawn(Location loc, EntityType type, double health, double dmg, double speed, String name,
-                              Map<EquipmentSlot, Material> equip, double equipChance, double diff, String table, Player target) {
+    /** Jefe del evento: parsea el nombre una vez y lo invoca con su cupo propio. Ni el techo de 40
+     *  por jugador ni el pozo global lo frenan (es prioritario); sus esbirros, en cambio, nacen por
+     *  spawnMinion y sí cuentan dentro de los 40. */
+    public LivingEntity spawnBoss(Location loc, EntityType type, double health, double dmg, double speed, String name,
+                                  Map<EquipmentSlot, Material> equip, double equipChance, double diff, String table, Player target) {
         return spawn(loc, type, health, dmg, speed, name == null ? null : Util.mini(name),
-                equip, equipChance, diff, table, target);
+                equip, equipChance, diff, table, target, true);
     }
 
     public LivingEntity spawn(Location loc, EntityType type, double health, double dmg, double speed, Component display,
                               Map<EquipmentSlot, Material> equip, double equipChance, double diff, String table, Player target) {
+        return spawn(loc, type, health, dmg, speed, display, equip, equipChance, diff, table, target, false);
+    }
+
+    private LivingEntity spawn(Location loc, EntityType type, double health, double dmg, double speed, Component display,
+                               Map<EquipmentSlot, Material> equip, double equipChance, double diff, String table,
+                               Player target, boolean boss) {
+        // Techo duro del evento en el ÚNICO punto por el que nacen la horda y los esbirros (SUMMON
+        // y SWARM). Los JEFES quedan fuera: tienen cupo propio y prioritario, así que ni el pozo ni
+        // el techo de 40 los bloquean ni los descuentan.
+        Session sess = session(loc.getWorld());
+        if (!boss && sess != null && poolAlive() >= maxAliveTotal) return null;
         Entity ent;
         try {
             ent = loc.getWorld().spawnEntity(loc, type);
@@ -997,9 +1120,12 @@ public final class EventManager {
         if (!(ent instanceof LivingEntity le)) { ent.remove(); return null; }
 
         // Suma al pozo del evento solo si el mundo tiene una sesión: un mob invocado a mano fuera
-        // de evento no consume presupuesto.
-        Session sess = session(loc.getWorld());
-        if (sess != null) sess.aliveTotal++;
+        // de evento no consume presupuesto. El cupo del dueño se lleva aquí, en el punto de
+        // spawn, para que los esbirros de un jefe también ocupen su hueco en el techo de 40.
+        if (sess != null && !boss) {
+            sess.aliveTotal++;
+            if (target != null) aliveByPlayer.merge(target.getUniqueId(), 1, Integer::sum);
+        }
 
         var pdc = le.getPersistentDataContainer();
         pdc.set(Keys.MOB, PersistentDataType.BYTE, (byte) 1);
@@ -1123,10 +1249,12 @@ public final class EventManager {
         Map<UUID, Integer> owned = new HashMap<>();
         for (LivingEntity le : w.getLivingEntities()) {
             if (!isTagged(le)) continue;
+            // El jefe no ocupa ni el pozo ni el techo de 40: tiene su cupo propio.
+            if (le.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) continue;
             total++;
+            n++;
             UUID owner = ownerOf(le);
             if (owner != null) owned.merge(owner, 1, Integer::sum);
-            if (!le.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) n++;
         }
         // Los jugadores del mundo se resincronizan con lo que hay de verdad: así un mob muerto,
         // despawnado o transformado no deja el cupo inflado para siempre. El pozo del mundo se
@@ -1157,6 +1285,8 @@ public final class EventManager {
      *  de su dueño. El hueco NO se rellena al instante: lo repone la siguiente oleada, de forma
      *  progresiva. Lo llama EventListener en EntityDeathEvent. */
     public void onHordeMobKilled(LivingEntity mob) {
+        // La muerte de un jefe no devuelve hueco: nunca ocupó el pozo ni el cupo de 40.
+        if (mob.getPersistentDataContainer().has(Keys.BOSS, PersistentDataType.STRING)) return;
         Session s = session(mob.getWorld());
         if (s != null && s.aliveTotal > 0) s.aliveTotal--;
 
