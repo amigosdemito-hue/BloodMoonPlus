@@ -50,13 +50,19 @@ discord:
 
 ### Qué se publica
 
-| Aviso | Cuándo | Ejemplo |
-|---|---|---|
-| Cuenta atrás | En cada valor de `warnings-minutes` | «La Luna de Sangre comienza en 30 min · lunes 21:30 (America/Mexico_City) · dificultad x1» |
-| Inicio | Al arrancar el evento (una sola vez aunque sean varios mundos) | «¡La Luna de Sangre ha comenzado en world! Dificultad x1 · dura 20 min» |
-| Fin | Al terminar sola o con `/luna stop` | «La Luna de Sangre ha terminado en world tras 20 min» |
+Cada aviso es un **embed** de Discord, no una línea de texto: emoji y título corto, una frase de
+ambientación y los datos en campos en línea (cuándo, dificultad, mundo, duración). Las horas usan
+marcas de tiempo de Discord (`<t:...:R>`), así que cada persona ve la cuenta atrás en vivo y en su
+propio idioma.
 
-- Los textos viven en `locales/<idioma>.yml` (`discord.warning`, `discord.start`, `discord.end`, `discord.stopped`), así que respetan el idioma activo del servidor.
+| Aviso | Cuándo | Qué muestra |
+|---|---|---|
+| Cuenta atrás | En cada valor de `warnings-minutes`, solo si no hay una luna en curso | Cuenta atrás en vivo, hora de inicio y dificultad |
+| Inicio | Al arrancar el evento (una sola vez aunque sean varios mundos) | Mundo, dificultad, duración y cuándo termina |
+| Fin | Al terminar sola o con `/luna stop` | Mundo, duración y resultado (`Amanecer` o `Detenida por un administrador`) |
+
+- Los textos viven en `locales/<idioma>.yml` (`discord.*`), así que respetan el idioma activo del servidor.
+- **Si ya hay una luna en marcha no se envía la cuenta atrás del siguiente hueco**: antes llegaba un «faltan 10 min» en mitad del evento.
 - El envío va en un hilo aparte: si Discord está lento, caído o limitando peticiones, el evento no se frena; solo queda un aviso en consola.
 - La URL se valida al cargar (solo `discord.com`, `canary`, `ptb` o `discordapp`). Una URL mal pegada deja la función apagada y lo dice en consola en vez de fallar en cada evento.
 - `allowed_mentions` va vacío: aunque un texto contenga `@everyone`, el mensaje nunca pingea al canal.

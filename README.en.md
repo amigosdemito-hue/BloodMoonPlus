@@ -50,13 +50,18 @@ discord:
 
 ### What gets posted
 
-| Alert | When | Example |
-|---|---|---|
-| Countdown | At every value in `warnings-minutes` | “The Blood Moon starts in 30 min · Monday 21:30 (America/Mexico_City) · difficulty x1” |
-| Start | When the event begins (once, even with several worlds) | “The Blood Moon has begun in world! Difficulty x1 · lasts 20 min” |
-| End | When it finishes on its own or via `/luna stop` | “The Blood Moon ended in world after 20 min” |
+Every alert is a Discord **embed**, not a line of text: emoji and a short title, one atmospheric
+line and the data in inline fields (when, difficulty, world, duration). Times use Discord
+timestamps (`<t:...:R>`), so each person sees a live countdown in their own language.
 
-- The texts live in `locales/<language>.yml` (`discord.warning`, `discord.start`, `discord.end`, `discord.stopped`), so they follow the server's active language.
+| Alert | When | What it shows |
+|---|---|---|
+| Countdown | At every `warnings-minutes` value, only while no moon is running | Live countdown, start time and difficulty |
+| Start | When the event begins (once, even with several worlds) | World, difficulty, duration and when it ends |
+| End | When it finishes on its own or via `/luna stop` | World, duration and result (`Dawn` or `Stopped by an administrator`) |
+
+- The texts live in `locales/<language>.yml` (`discord.*`), so they follow the server's active language.
+- **While a moon is already running the next countdown is not posted**: a “10 min left” used to arrive in the middle of the event.
 - Delivery runs off the main thread: a slow, down or rate-limited Discord never stalls the event; it only leaves a console warning.
 - The URL is validated on load (only `discord.com`, `canary`, `ptb` or `discordapp`). A bad paste disables the feature with a console warning instead of failing on every event.
 - `allowed_mentions` is empty, so a text containing `@everyone` never pings the channel.

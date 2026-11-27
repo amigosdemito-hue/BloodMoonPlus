@@ -8,6 +8,32 @@ Modrinth. Lines marked with ⭐ are the most eye-catching features for the
 project page.
 -->
 
+## [1.0.4-beta] — Discord embeds for the Blood Moon alerts
+
+The Discord webhook no longer posts a line of text: every alert is now an **embed** with a title, a
+short atmospheric line and the data laid out in fields. The countdown also stops firing while an
+event is already running.
+
+**Highlights**
+- ⭐ **Embed alerts**: each webhook message carries a coloured embed (deep wine → crimson → bright
+  red as the moon approaches, amber for the dawn, grey for a manual stop), inline fields for
+  countdown, start time, difficulty, world, duration and result, and a `BloodMoonPlus · …` footer.
+- ⭐ **Live Discord timestamps** (`<t:…:R>` / `<t:…:f>`): the countdown and the end time tick by
+  themselves and are shown in each reader's own language.
+- ⭐ **No countdown while the moon is up**: a scheduled warning that fired mid-event used to
+  announce the next moon to players standing inside the current one.
+
+### Added
+- 14 new `discord.*` keys in all seven locales. The four old one-line strings are now the embed's
+  flavour text, so existing locale files keep working (missing keys fall back to the jar).
+
+### Fixed
+- The scheduled warning now uses the exact slot it belongs to for its start time, instead of
+  always taking the next upcoming moon.
+
+### Compatibility
+- Paper **26.2** and **26.3**. Built with Java 25. Jar: `BloodMoonPlus-1.0.4-beta.jar`.
+
 ## [1.0.3-beta] — ExcellentEnchants replaces the custom item abilities
 
 Moon gear no longer carries above-vanilla enchant levels or the plugin's own item abilities. Every

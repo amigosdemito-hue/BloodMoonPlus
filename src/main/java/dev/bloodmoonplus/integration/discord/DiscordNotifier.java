@@ -11,21 +11,37 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Avisos al canal de Discord configurado usando un webhook (no hace falta un bot ni token).
  *
- * <p>Publica tres cosas: la cuenta atrás antes del evento, el inicio y el final. Todo el envío
- * ocurre en un hilo aparte, así que un Discord lento o caído nunca frena el tick del servidor;
- * si el webhook responde con error solo queda un aviso en consola y el evento sigue igual.
+ * <p>Publica tres cosas: la cuenta atrás antes del evento, el inicio y el final. Cada aviso es un
+ * <b>embed</b> con jerarquía clara: emoji + título corto, una línea de ambientación y los datos
+ * duros en campos en línea (cuándo, dificultad, mundo, duración). Las horas van como marcas de
+ * tiempo de Discord ({@code <t:...:R>}), así que cada persona ve la cuenta atrás en vivo y en su
+ * propio idioma sin que el plugin tenga que formatear nada.
  *
- * <p>Los textos salen de los locales ({@code discord.*}) para respetar el idioma elegido y se
- * convierten a texto plano: MiniMessage no existe en Discord y etiquetas como {@code <red>}
- * aparecerían literalmente en el mensaje.
+ * <p>Todo el envío ocurre en un hilo aparte, así que un Discord lento o caído nunca frena el tick
+ * del servidor; si el webhook responde con error solo queda un aviso en consola y el evento sigue.
+ *
+ * <p>Los textos salen de los locales ({@code discord.*}) y se convierten a texto plano: MiniMessage
+ * no existe en Discord y etiquetas como {@code <red>} aparecerían literalmente en el mensaje.
  */
 public final class DiscordNotifier {
+
+    /** Paleta del embed: el rojo se calienta a medida que la luna se acerca, el final es ámbar. */
+    static final int COLOR_FAR = 0x7F1D2B;
+    static final int COLOR_SOON = 0xC1121F;
+    static final int COLOR_IMMINENT = 0xE63946;
+    static final int COLOR_START = 0xB31217;
+    static final int COLOR_END = 0xE9A23B;
+    static final int COLOR_STOPPED = 0x6B7280;
+
+    /** Valor de un campo cuando el dato no existe (p. ej. cuenta atrás sin próxima luna). */
+    private static final String NONE = "—";
 
     private final BloodMoonPlus plugin;
     private final HttpClient http = HttpClient.newBuilder()
@@ -92,33 +108,76 @@ public final class DiscordNotifier {
         return enabled && notifyWarnings && warnMinutes.contains(minutes);
     }
 
-    public void warning(int minutes, double difficulty, String when) {
+    /** Color del embed según la urgencia: vino profundo lejos, carmesí cerca, rojo vivo al final. */
+    static int warningColor(int minutes) {
+        if (minutes <= 1) return COLOR_IMMINENT;
+        if (minutes <= 10) return COLOR_SOON;
+        return COLOR_FAR;
+    }
+
+    /**
+     * Cuenta atrás del próximo evento. {@code startsAt} es el epoch en segundos de la hora de
+     * inicio (0 si no se pudo calcular) y {@code when} el texto ya formateado de respaldo.
+     */
+    public void warning(int minutes, double difficulty, String when, long startsAt) {
         if (!wantsWarning(minutes)) return;
-        send(plain("discord.warning", "min", String.valueOf(minutes),
-                "when", when, "difficulty", Util.fmt(difficulty)));
+        // Con la luna ya en marcha no se anuncia la cuenta atrás del siguiente hueco: el canal
+        // recibía "faltan 10 min" justo cuando los jugadores ya estaban dentro del evento.
+        if (plugin.events().globalSession() != null) return;
+
+        String countdown = startsAt > 0 ? "<t:" + startsAt + ":R>" : textOr(when);
+        String begins = startsAt > 0 ? "<t:" + startsAt + ":f>" : textOr(when);
+        send(new Embed(
+                text("discord.warning-title"),
+                text("discord.warning"),
+                warningColor(minutes),
+                List.of(
+                        new Field(text("discord.field-left"), countdown, true),
+                        new Field(text("discord.field-when"), begins, true),
+                        new Field(text("discord.field-difficulty"), "**x" + Util.fmt(difficulty) + "**", true))));
     }
 
     public void started(String world, double difficulty, int minutes) {
         if (!enabled || !notifyStart) return;
-        send(plain("discord.start", "world", world,
-                "difficulty", Util.fmt(difficulty), "minutes", String.valueOf(minutes)));
+        int duration = Math.max(1, minutes);
+        long endsAt = Instant.now().plusSeconds(duration * 60L).getEpochSecond();
+        send(new Embed(
+                text("discord.start-title"),
+                text("discord.start"),
+                COLOR_START,
+                List.of(
+                        new Field(text("discord.field-world"), textOr(world), true),
+                        new Field(text("discord.field-difficulty"), "**x" + Util.fmt(difficulty) + "**", true),
+                        new Field(text("discord.field-duration"), "**" + duration + " min**", true),
+                        new Field(text("discord.field-end"), "<t:" + endsAt + ":R>", true))));
     }
 
     public void ended(String world, boolean natural, int minutes) {
         if (!enabled || !notifyEnd) return;
-        send(plain(natural ? "discord.end" : "discord.stopped",
-                "world", world, "minutes", String.valueOf(Math.max(0, minutes))));
+        send(new Embed(
+                text(natural ? "discord.end-title" : "discord.stopped-title"),
+                text(natural ? "discord.end" : "discord.stopped"),
+                natural ? COLOR_END : COLOR_STOPPED,
+                List.of(
+                        new Field(text("discord.field-world"), textOr(world), true),
+                        new Field(text("discord.field-duration"), "**" + Math.max(0, minutes) + " min**", true),
+                        new Field(text("discord.field-result"),
+                                text(natural ? "discord.result-ended" : "discord.result-stopped"), false))));
     }
 
     /** Texto plano del locale, sin etiquetas de color. */
-    private String plain(String key, String... kv) {
+    private String text(String key, String... kv) {
         String raw = plugin.locales().get(key, kv);
         return PlainTextComponentSerializer.plainText().serialize(Util.mini(raw)).trim();
     }
 
-    private void send(String content) {
-        if (content.isEmpty()) return;
-        String body = json(content, username, avatar);
+    private String textOr(String value) {
+        return value == null || value.isBlank() ? NONE : value.trim();
+    }
+
+    private void send(Embed embed) {
+        if (embed.title().isEmpty() && embed.description().isEmpty()) return;
+        String body = json(embed, username, avatar, text("discord.footer"));
         // Fuera del hilo principal: la petición HTTP puede tardar segundos y el evento no espera.
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> post(body));
     }
@@ -149,9 +208,38 @@ public final class DiscordNotifier {
         return one.length() > 200 ? one.substring(0, 200) + "…" : one;
     }
 
+    // ------------------------------------------------------------------ JSON
+
+    /** Un campo en línea del embed: nombre corto y valor ya resuelto. */
+    record Field(String name, String value, boolean inline) {}
+
+    /** Un embed completo. El pie de página lo pone siempre el llamador. */
+    record Embed(String title, String description, int color, List<Field> fields) {}
+
     /** Cuerpo JSON del webhook. Paquete-privado para poder probar el escapado sin red. */
-    static String json(String content, String username, String avatar) {
-        StringBuilder sb = new StringBuilder("{\"content\":\"").append(escape(content)).append('"');
+    static String json(Embed embed, String username, String avatar, String footer) {
+        StringBuilder sb = new StringBuilder("{\"embeds\":[{");
+        sb.append("\"title\":\"").append(escape(embed.title())).append('"');
+        if (embed.description() != null && !embed.description().isBlank()) {
+            sb.append(",\"description\":\"").append(escape(embed.description())).append('"');
+        }
+        sb.append(",\"color\":").append(embed.color());
+        if (!embed.fields().isEmpty()) {
+            sb.append(",\"fields\":[");
+            for (int i = 0; i < embed.fields().size(); i++) {
+                Field f = embed.fields().get(i);
+                if (i > 0) sb.append(',');
+                sb.append("{\"name\":\"").append(escape(f.name()))
+                        .append("\",\"value\":\"").append(escape(f.value()))
+                        .append("\",\"inline\":").append(f.inline()).append('}');
+            }
+            sb.append(']');
+        }
+        if (footer != null && !footer.isBlank()) {
+            sb.append(",\"footer\":{\"text\":\"").append(escape(footer)).append("\"}");
+        }
+        sb.append(",\"timestamp\":\"").append(Instant.now()).append('"');
+        sb.append("}]");
         if (username != null && !username.isBlank()) {
             sb.append(",\"username\":\"").append(escape(username)).append('"');
         }

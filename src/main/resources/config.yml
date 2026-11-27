@@ -117,14 +117,17 @@ announce:
 #  DISCORD — avisos al canal por webhook
 #  Crea el webhook en Discord: Ajustes del canal → Integraciones
 #  → Webhooks → Nuevo webhook → Copiar URL del webhook.
-#  No hace falta un bot ni un token. Efectivo con /luna reload
+#  No hace falta un bot ni un token. Efectivo con /luna reload.
+#  Cada aviso es un embed: título, cuenta atrás en vivo de Discord y campos.
+#  Mientras el evento esté activo no se envían cuentas atrás.
 # ------------------------------------------------------------
 discord:
   enabled: false
   webhook-url: ""                      # https://discord.com/api/webhooks/...
   username: "Luna de Sangre"           # nombre con el que firma el mensaje
   avatar-url: ""                       # opcional: avatar del webhook
-  warnings-minutes: [60, 30, 10, 5]    # cuenta atrás; lista vacía = sin cuenta atrás
+  warnings-minutes: [60, 30, 10, 5]    # cuenta atrás; lista vacía = sin cuenta atrás.
+                                       # No se manda si ya hay una luna en marcha.
   notify:
     warnings: true                     # "la luna empieza en X min"
     start: true                        # al arrancar el evento

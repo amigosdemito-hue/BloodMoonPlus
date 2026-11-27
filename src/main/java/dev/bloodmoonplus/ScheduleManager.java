@@ -173,7 +173,7 @@ public final class ScheduleManager {
                         String wkey = key + "/" + m;
                         if (until <= m * 60L && until > m * 60L - 30 && !warned.containsKey(wkey)) {
                             warned.put(wkey, System.currentTimeMillis());
-                            warn(slot, m);
+                            warn(slot, m, at);
                         }
                     }
                 }
@@ -262,16 +262,19 @@ public final class ScheduleManager {
         return out;
     }
 
-    /** Próximo evento en el texto ya formateado del idioma activo, para el aviso de Discord.
-     *  Se calcula en el hilo del servidor; el envío HTTP va aparte. */
-    private String nextLabel() {
+    /** Próximo evento para el aviso de Discord: el texto formateado y su hora exacta, que el
+     *  embed convierte en una cuenta atrás viva de Discord. Se calcula en el hilo del servidor;
+     *  el envío HTTP va aparte. */
+    private Upcoming nextUpcoming() {
         List<Upcoming> up = upcoming(1);
-        return up.isEmpty() ? "" : format(up.get(0));
+        return up.isEmpty() ? null : up.get(0);
     }
 
     private void warnInterval(int minutes) {
         double defDiff = plugin.getConfig().getDouble("difficulty.default", 1.0);
-        plugin.discord().warning(minutes, defDiff, nextLabel());
+        Upcoming next = nextUpcoming();
+        plugin.discord().warning(minutes, defDiff,
+                next == null ? "" : format(next), next == null ? 0 : next.at().toEpochSecond());
         for (World w : resolveWorlds(List.of())) {
             if (plugin.events().isActive(w)) continue;
             if (!plugin.messages().announce("warnings", false)) continue;
@@ -296,8 +299,8 @@ public final class ScheduleManager {
         if (!targets.isEmpty()) plugin.events().startIn(targets, slot.difficulty(), slot.duration());
     }
 
-    private void warn(Slot slot, int minutes) {
-        plugin.discord().warning(minutes, slot.difficulty(), nextLabel());
+    private void warn(Slot slot, int minutes, ZonedDateTime at) {
+        plugin.discord().warning(minutes, slot.difficulty(), format(new Upcoming(slot, at)), at.toEpochSecond());
         for (World w : resolveWorlds(slot.worlds())) {
             if (plugin.events().isActive(w)) continue;
             if (!plugin.messages().announce("warnings", false)) continue;

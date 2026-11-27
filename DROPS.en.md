@@ -1,4 +1,4 @@
-# Blood Moon Drops (v1.0.3-beta)
+# Blood Moon Drops (v1.0.4-beta)
 
 🌐 [Español](DROPS.md) · **English**
 
