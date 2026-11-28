@@ -29,6 +29,16 @@ worlds:
 #        MONDAY:
 #          - "14:00"
 #
+#  DOS CALENDARIOS LISTOS (mira schedule.days más abajo):
+#
+#    OPCIÓN 1 — la de por defecto: 2 lunas por semana,
+#               MIÉRCOLES 09:30 y SÁBADO 17:30 (hora México).
+#
+#    OPCIÓN 2 — una luna DÍA POR MEDIO (lunes, miércoles, viernes y domingo),
+#               el calendario de las versiones anteriores. Va comentada dentro de
+#               `days:`: para usarla, comenta el bloque de la OPCIÓN 1 y quita
+#               el "#" de la OPCIÓN 2.
+#
 #  MODO 2: "interval"
 #  Cada N horas reales (ej. cada 72h = cada 3 días reales).
 #  El temporizador corre aunque el servidor esté apagado.
@@ -54,31 +64,43 @@ schedule:
   skip-if-no-players: true      # no inicia el evento si el mundo está vacío
   warnings-minutes: [10, 5, 1]  # avisos antes de empezar
   days:
-    MONDAY:
-      - time: "21:30"
-        difficulty: 1          # x1 — arranque de semana (suave)
-        duration-minutes: 20
+    # ---- OPCIÓN 1 (ACTIVA, la de por defecto): 2 lunas por semana ----
     WEDNESDAY:
-      - time: "14:30"
-        difficulty: 1.5        # x1.5 — tarde del miércoles
+      - time: "09:30"
+        difficulty: 1.5        # x1.5 — mañana del miércoles
         duration-minutes: 20
-      - time: "23:00"
-        difficulty: 2          # x2 — noche del miércoles
-        duration-minutes: 20
-    FRIDAY:
-      - time: "13:40"
-        difficulty: 2          # x2 — tarde del viernes
-        duration-minutes: 20
-      - time: "20:40"
-        difficulty: 3          # x3 — evento estrella (viernes noche, más largo)
+    SATURDAY:
+      - time: "17:30"
+        difficulty: 2          # x2 — tarde del sábado (fin de semana)
         duration-minutes: 25
-    SUNDAY:
-      - time: "08:30"
-        difficulty: 2.5        # x2.5 — mañana del domingo
-        duration-minutes: 20
-      - time: "18:30"
-        difficulty: 3          # x3 — cierre del fin de semana (más largo)
-        duration-minutes: 25
+
+    # ---- OPCIÓN 2: una luna DÍA POR MEDIO (calendario de antes) ----
+    # Para usarla: comenta (o borra) la OPCIÓN 1 y quita el "#" de estas líneas.
+    # MONDAY:
+    #   - time: "21:30"
+    #     difficulty: 1          # x1 — arranque de semana (suave)
+    #     duration-minutes: 20
+    # WEDNESDAY:
+    #   - time: "14:30"
+    #     difficulty: 1.5        # x1.5 — tarde del miércoles
+    #     duration-minutes: 20
+    #   - time: "23:00"
+    #     difficulty: 2          # x2 — noche del miércoles
+    #     duration-minutes: 20
+    # FRIDAY:
+    #   - time: "13:40"
+    #     difficulty: 2          # x2 — tarde del viernes
+    #     duration-minutes: 20
+    #   - time: "20:40"
+    #     difficulty: 3          # x3 — evento estrella (viernes noche, más largo)
+    #     duration-minutes: 25
+    # SUNDAY:
+    #   - time: "08:30"
+    #     difficulty: 2.5        # x2.5 — mañana del domingo
+    #     duration-minutes: 20
+    #   - time: "18:30"
+    #     difficulty: 3          # x3 — cierre del fin de semana (más largo)
+    #     duration-minutes: 25
 
 # ------------------------------------------------------------
 #  EVENTO
@@ -134,7 +156,8 @@ discord:
   webhook-url: ""                      # https://discord.com/api/webhooks/...
   username: "Luna de Sangre"           # nombre con el que firma el mensaje
   avatar-url: ""                       # opcional: avatar del webhook
-  warnings-minutes: [60, 30, 10, 5]    # cuenta atrás; lista vacía = sin cuenta atrás.
+  warnings-minutes: [120, 60]          # cuenta atrás: 2 h y 1 h antes del evento.
+                                       # lista vacía = sin cuenta atrás.
                                        # No se manda si ya hay una luna en marcha.
   notify:
     warnings: true                     # "la luna empieza en X min"

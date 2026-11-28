@@ -110,18 +110,20 @@ schedule:
   mode: weekly
   timezone: America/Mexico_City
   days:
-    MONDAY:
-      - time: "21:30"
-        difficulty: 1
+    WEDNESDAY:
+      - time: "09:30"      # default: two moons a week
+        difficulty: 1.5
         duration-minutes: 20
-    FRIDAY:
-      - time: "13:40"
+    SATURDAY:
+      - time: "17:30"
         difficulty: 2
-        duration-minutes: 20
-      - time: "20:40"        # two runs on the same day
-        difficulty: 3
         duration-minutes: 25
 ```
+
+**Two ready-made calendars ship in `config.yml`:** **2 moons a week** (Wednesday 09:30 and
+Saturday 17:30) is the default, and **every other day** (Monday, Wednesday, Friday and Sunday,
+the previous calendar) is right below it, commented — swap the `#` to use it. Multiple runs on the
+same day still work.
 
 **Difficulty** is a continuous multiplier (0.1 – 10.0). It scales health, damage, speed, wave size, spawn rate, loot chance and rarity luck.
 

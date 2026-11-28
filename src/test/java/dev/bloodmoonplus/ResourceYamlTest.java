@@ -291,8 +291,16 @@ class ResourceYamlTest {
     /**
      * Valida la agenda por defecto del config.yml:
      *  - Días reconocidos, horas válidas y dificultad dentro del rango configurado.
-     *  - 7 eventos semanales (LUNES 1, MIÉRCOLES 2, VIERNES 2, DOMINGO 2).
+     *  - 2 eventos semanales por defecto: MIÉRCOLES 09:30 y SÁBADO 17:30.
      */
+    private static List<LocalTime> timesOf(org.bukkit.configuration.ConfigurationSection days, String key) {
+        List<LocalTime> out = new java.util.ArrayList<>();
+        for (Object o : days.getList(key, List.of())) {
+            out.add(o instanceof Map<?, ?> m ? ScheduleManager.parseTime(m.get("time")) : ScheduleManager.parseTime(o));
+        }
+        return out;
+    }
+
     @Test
     void defaultScheduleIsValid() {
         YamlConfiguration c = YamlConfiguration.loadConfiguration(res("config.yml"));
@@ -318,7 +326,11 @@ class ResourceYamlTest {
                 slots++;
             }
         }
-        assertEquals(7, slots, "Se esperaban 7 eventos semanales por defecto");
+        assertEquals(2, slots, "Se esperaban 2 eventos semanales por defecto");
+        assertEquals(List.of(LocalTime.of(9, 30)), timesOf(days, "WEDNESDAY"),
+                "Por defecto la luna del miércoles es a las 09:30");
+        assertEquals(List.of(LocalTime.of(17, 30)), timesOf(days, "SATURDAY"),
+                "Por defecto la luna del sábado es a las 17:30");
     }
 
     /**

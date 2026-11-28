@@ -8,11 +8,15 @@ Modrinth. Lines marked with ⭐ are the most eye-catching features for the
 project page.
 -->
 
-## [1.0.9-beta] — Narrow tooltips for every server
+## [1.0.9-beta] — Narrow tooltips, up-to-date configs and two moons a week
 
 The 1.0.8 tooltip rewrite only reached servers that deleted their `items.yml`. The plugin never
 overwrites that file, so upgraded servers kept the old four-enchantment lore line and every weapon
 tooltip was still wider than the screen. Now the plugin updates the descriptions in place.
+
+This version also ships a **new default calendar — two Blood Moons a week, Wednesday 09:30 and
+Saturday 17:30** — with the old every-other-day schedule kept one comment away, and the Discord
+countdown moves to **two hours and one hour before** the event.
 
 ### Added ⭐
 - ⭐ **`items.yml` gets the new descriptions without being deleted.** On startup the plugin reads the
@@ -33,6 +37,13 @@ tooltip was still wider than the screen. Now the plugin updates the descriptions
   `config-version` above the current one freezes `config.yml` the same way.
 
 ### Changed ⭐
+- ⭐ **New default calendar: two moons a week** — `WEDNESDAY 09:30` and `SATURDAY 17:30`
+  (`America/Mexico_City`). The old **every-other-day** schedule (Monday, Wednesday, Friday and
+  Sunday) ships right below it in `config.yml`, commented, so switching back is just moving the
+  `#`. Your existing `config.yml` is never rewritten: if you already run a calendar, it stays.
+- ⭐ **Discord countdown now warns two hours and one hour before** (`discord.warnings-minutes:
+  [120, 60]`, was `[60, 30, 10, 5]`). Chat warnings keep their own list
+  (`schedule.warnings-minutes`).
 - ⭐ **Every weapon, tool, armour piece and shield lore is now two lines at most:** one short
   flavour line (≤ 34 visible characters) and a single line with the signature ExcellentEnchants
   extras (≤ 44), tinted with the item's rarity colour. Real enchantments keep their own lines,

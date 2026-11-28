@@ -39,14 +39,18 @@ discord:
   webhook-url: "https://discord.com/api/webhooks/123456789/abcdef..."
   username: "Luna de Sangre"
   avatar-url: ""
-  warnings-minutes: [60, 30, 10, 5]
+  warnings-minutes: [120, 60]
   notify:
     warnings: true
     start: true
     end: true
 ```
 
-4. `/luna reload`. La consola confirma con `Avisos de Discord activados (antes: [60, 30, 10, 5] min)`.
+4. `/luna reload`. La consola confirma con `Avisos de Discord activados (antes: [120, 60] min)`.
+
+> `warnings-minutes` admite los minutos que quieras (`[120, 60]` = dos horas y una hora antes, el valor
+> por defecto; `[60, 30, 10, 5]` sigue valiendo). Los avisos que no sean de Discord —el chat— se
+> configuran aparte en `schedule.warnings-minutes`.
 
 ### Qué se publica
 
