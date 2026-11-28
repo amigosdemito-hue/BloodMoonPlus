@@ -141,6 +141,28 @@ public final class DataStore {
         }
     }
 
+    /** Luna de Sangre apagada con /luna disable. Se guarda en data.yml para que el apagado
+     *  sobreviva al reinicio del servidor (y no dependa de editar config.yml a mano). */
+    public boolean isDisabled() {
+        lock.lock();
+        try {
+            return cfg.getBoolean("disabled", false);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    void setDisabled(boolean disabled) {
+        lock.lock();
+        try {
+            // false borra la clave: data.yml queda limpio cuando la luna está activa.
+            cfg.set("disabled", disabled ? true : null);
+            dirty = true;
+        } finally {
+            lock.unlock();
+        }
+    }
+
     Long getLastIntervalFire() {
         lock.lock();
         try {

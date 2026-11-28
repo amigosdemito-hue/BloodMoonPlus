@@ -15,7 +15,8 @@ Built to run smoothly on **40+ player** servers without changing the gameplay.
 - **🌍 7 languages** — Spanish, English, Portuguese, French, German, Italian and Russian, complete and switchable in `locales/locales.yml` with `/luna reload` (no restart). An unknown code warns and falls back to English, and the build fails if a translation loses a key or a `{placeholder}`.
 - **🟩 New boss — Fauces del Cataclismo** (`creeper_cargado`): a charged creeper **twice as tall**, **320 HP**, immune to every explosion. It **absorbs** players with `VORTEX`, summons **Crías del Cataclismo** with `SWARM` and **detonates** itself every 50 s without dying — only in its enraged phase does the blast open a crater.
 - **🛡️ Moon gear cannot be stripped** — the grindstone is blocked for Blood Moon items (an unenchanted piece can still be repaired there), the anvil and smithing table can never return a result with fewer enchantments, and the gear players already own is **upgraded automatically when they join** (renamed items included). `/luna refresh <player|all>` forces it instantly.
-- **🗓️ Fixed schedules** — `weekly` mode (per weekday at a real time, configurable timezone, defaults to `America/Mexico_City`) or `interval` mode (every N hours). You can set **multiple runs on the same day**.
+- **🗓️ Fixed schedules** — `weekly` mode (per weekday at a real time, configurable timezone, defaults to `America/Mexico_City`) or `interval` mode (every N hours). You can set **multiple runs on the same day**. The default calendar is **two moons a week** (Wednesday 09:30 and Saturday 17:30), with the every-other-day one one comment away.
+- **🛑 Global on/off switch** — `/luna disable` stops every future moon (schedule, `/luna start`, Discord countdowns) until `/luna enable`; it is saved in `data.yml`, so a restart does not bring the event back.
 - **🌐 Server-wide event** — one Blood Moon for **every loaded world at the same time** (`event.global: true`): night, hordes, bosses, the boss bar and survivor rewards all run everywhere together. Set it to `false` to go back to a `worlds` list.
 - **👹 10 bosses** with custom health bars, **enrage** phases, minimum difficulty, abilities and their own loot.
 - **🎁 45 items** sorted by rarity: common (always drop), rare, epic, legendary and **mythic** (extremely rare, ~0.1%, max 3 per server with a serial number).
@@ -89,6 +90,7 @@ Main command: **`/luna`** (aliases: `/bm`, `/lunadesangre`, `/bloodmoon`).
 | `/luna items` | Lists the available items |
 | `/luna chances <table>` | Shows the real drop chances of a table |
 | `/luna reload` | Reloads the configuration and locales |
+| `/luna disable` · `/luna enable` | Turns the Blood Moon off or on **for the whole server**: no scheduled events and no countdowns until it is enabled again (the state survives restarts) |
 
 Spanish aliases work too: `/luna estado`, `/luna iniciar`, `/luna detener`, `/luna dificultad`, `/luna jefe`, `/luna horda`, `/luna actualizar`…
 

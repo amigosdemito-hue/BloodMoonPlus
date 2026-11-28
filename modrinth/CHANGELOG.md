@@ -36,6 +36,13 @@ countdown moves to **two hours and one hour before** the event.
 - **`settings.sync-lore: false`** turns the merge off completely (items.yml); setting
   `config-version` above the current one freezes `config.yml` the same way.
 
+### Added ⭐
+- ⭐ **`/luna disable` and `/luna enable`** turn the Blood Moon off and on **for the whole server**: no
+  scheduled event, no `/luna start`, no Discord countdown and no chat warning fires until it is
+  enabled again. The switch is stored in `data.yml`, so a restart does not bring the event back; a
+  moon already running finishes on its own (`/luna stop` to cut it). `/luna status` and `/luna next`
+  report the state. Spanish aliases: `/luna desactivar` and `/luna activar`.
+
 ### Changed ⭐
 - ⭐ **New default calendar: two moons a week** — `WEDNESDAY 09:30` and `SATURDAY 17:30`
   (`America/Mexico_City`). The old **every-other-day** schedule (Monday, Wednesday, Friday and

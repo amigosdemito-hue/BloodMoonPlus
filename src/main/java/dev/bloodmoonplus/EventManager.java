@@ -315,6 +315,9 @@ public final class EventManager {
      *  global se emite UNA sola vez, aunque arranquen varios mundos. */
     public boolean startIn(Collection<World> worlds, double diff, int minutes) {
         if (worlds == null || worlds.isEmpty()) return false;
+        // /luna disable vale para TODAS las vías (horario, /luna start, interval): sin esto la
+        // agenda quedaba apagada pero un arranque manual seguía lanzando el evento.
+        if (plugin.data().isDisabled()) return false;
         long now = System.currentTimeMillis();
         long endMs = now + Math.max(1, minutes) * 60_000L;
         List<String> started = new ArrayList<>();
@@ -650,12 +653,15 @@ public final class EventManager {
      *  Las claves de data.yml son nombres de mundo, así que el evento SOBREVIVE al reinicio. */
     public void resume() {
         long now = System.currentTimeMillis();
+        // Con la luna desactivada no se retoma nada: las sesiones que quedaron en data.yml se
+        // dan por cerradas y sus mobs se barren, en vez de revivir el evento al reiniciar.
+        boolean disabled = plugin.data().isDisabled();
         ConfigurationSection a = plugin.data().active();
         if (a != null) {
             for (String wn : new ArrayList<>(a.getKeys(false))) {
                 World w = Bukkit.getWorld(wn);
                 long end = a.getLong(wn + ".end");
-                if (w == null || end <= now) {
+                if (disabled || w == null || end <= now) {
                     plugin.data().clearActive(wn);
                     // Evento que caducó mientras el servidor estaba apagado: sus mobs siguen
                     // guardados en chunks que se cargarán más tarde, así que hay que barrerlos.

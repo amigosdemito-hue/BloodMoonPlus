@@ -12,11 +12,13 @@ public final class BloodMoonCommand implements TabExecutor {
     private static final Map<String, String> ALIASES = new LinkedHashMap<>();
     private static final List<String> USE_SUBS = List.of("next", "status");
     private static final List<String> ADMIN_SUBS = List.of("start", "stop", "difficulty", "boss", "horde",
-            "killmobs", "give", "items", "chances", "refresh", "reload");
+            "killmobs", "give", "items", "chances", "refresh", "reload", "enable", "disable");
 
     static {
         for (String s : new String[]{"status", "next", "start", "stop", "difficulty", "boss", "horde", "killmobs",
-                "give", "items", "chances", "refresh", "reload"}) ALIASES.put(s, s);
+                "give", "items", "chances", "refresh", "reload", "enable", "disable"}) ALIASES.put(s, s);
+        ALIASES.put("activar", "enable"); ALIASES.put("encender", "enable");
+        ALIASES.put("desactivar", "disable"); ALIASES.put("apagar", "disable");
         ALIASES.put("estado", "status");
         ALIASES.put("proxima", "next"); ALIASES.put("siguiente", "next");
         ALIASES.put("iniciar", "start"); ALIASES.put("detener", "stop"); ALIASES.put("parar", "stop");
@@ -79,6 +81,8 @@ public final class BloodMoonCommand implements TabExecutor {
             }
             case "refresh" -> refresh(s, a);
             case "reload" -> { plugin.reloadAll(); m().send(s, "cmd.reloaded"); }
+            case "enable" -> toggle(s, true);
+            case "disable" -> toggle(s, false);
             default -> m().send(s, "cmd.usage");
         }
         return true;
@@ -170,7 +174,28 @@ public final class BloodMoonCommand implements TabExecutor {
         return null;
     }
 
+    /** /luna disable | /luna enable: apaga o enciende la Luna de Sangre en TODO el servidor. El
+     *  estado se guarda en data.yml, así que sobrevive a los reinicios; mientras esté apagada la
+     *  agenda no dispara, no se mandan cuentas atrás y /luna start se rechaza. */
+    private void toggle(CommandSender s, boolean enable) {
+        boolean disabled = plugin.data().isDisabled();
+        if (enable == !disabled) {
+            m().send(s, enable ? "cmd.enable-noop" : "cmd.disable-noop");
+            return;
+        }
+        plugin.data().setDisabled(!enable);
+        // Guardado inmediato: si el servidor se reinicia en los próximos segundos, el cambio
+        // no se pierde esperando al volcado periódico de data.yml.
+        plugin.data().saveNow();
+        m().send(s, enable ? "cmd.enabled" : "cmd.disabled");
+        plugin.getLogger().info(enable
+                ? "Luna de Sangre ACTIVADA por " + s.getName() + ": los eventos vuelven al calendario."
+                : "Luna de Sangre DESACTIVADA por " + s.getName()
+                        + ": no habrá más eventos hasta /luna enable.");
+    }
+
     private void start(CommandSender s, String[] a) {
+        if (plugin.data().isDisabled()) { m().send(s, "cmd.start-disabled"); return; }
         Double diff = null;
         Integer minutes = null;
         String worldName = null;
@@ -369,10 +394,13 @@ public final class BloodMoonCommand implements TabExecutor {
     }
 
     private void status(CommandSender s) {
+        // Con la luna apagada no se anuncia la próxima hora: sería una hora que no va a ocurrir.
+        boolean disabled = plugin.data().isDisabled();
+        if (disabled) m().send(s, "cmd.status-disabled");
         var ses = plugin.events().globalSession();
         if (ses == null) {
             m().send(s, "cmd.status-none");
-            List<ScheduleManager.Upcoming> up = plugin.schedule().upcoming(1);
+            List<ScheduleManager.Upcoming> up = disabled ? List.<ScheduleManager.Upcoming>of() : plugin.schedule().upcoming(1);
             if (!up.isEmpty()) {
                 ScheduleManager.Upcoming u = up.get(0);
                 m().send(s, "cmd.next-line", "when", plugin.schedule().format(u),
@@ -383,7 +411,7 @@ public final class BloodMoonCommand implements TabExecutor {
         String worldLabel = plugin.events().activeWorlds() > 1 ? "global" : ses.world.getName();
         m().send(s, "cmd.status-line", "world", worldLabel,
                 "time", Util.dur((ses.endMs - System.currentTimeMillis()) / 1000), "difficulty", Util.fmt(ses.difficulty));
-        List<ScheduleManager.Upcoming> up = plugin.schedule().upcoming(1);
+        List<ScheduleManager.Upcoming> up = disabled ? List.<ScheduleManager.Upcoming>of() : plugin.schedule().upcoming(1);
         if (!up.isEmpty()) {
             ScheduleManager.Upcoming u = up.get(0);
             m().send(s, "cmd.next-line", "when", plugin.schedule().format(u),
@@ -392,6 +420,7 @@ public final class BloodMoonCommand implements TabExecutor {
     }
 
     private void next(CommandSender s) {
+        if (plugin.data().isDisabled()) { m().send(s, "cmd.next-disabled"); return; }
         List<ScheduleManager.Upcoming> up = plugin.schedule().upcoming(6);
         if (up.isEmpty()) { m().send(s, "cmd.next-none"); return; }
         m().send(s, "cmd.next-header");

@@ -65,7 +65,7 @@ item:
 
 # ==================== Commands ====================
 cmd:
-  usage: "<yellow>Uso: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
+  usage: "<yellow>Uso: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload|enable|disable>"
   reloaded: "<green>Configuração recarregada."
   usage-refresh: "<yellow>Uso: /luna refresh <jogador|all>"
   refreshed: "<green>Foram atualizados {count} item(ns) da Lua de {player}."
@@ -79,6 +79,13 @@ cmd:
   next-header: "<gold>Próximas Luas de Sangue:"
   next-entry: "<dark_gray>- <white>{when} <gray>· em {in} · <red>x{difficulty}"
   next-none: "<gray>Não há horários configurados."
+  disabled: "<yellow>Lua de Sangue desativada: não haverá mais eventos até usares <white>/luna enable<yellow>. As luas em curso terminam por si (usa /luna stop para as cortar)."
+  enabled: "<green>Lua de Sangue ativada: os eventos voltam ao calendário."
+  disable-noop: "<gray>A Lua de Sangue já estava desativada."
+  enable-noop: "<gray>A Lua de Sangue já estava ativada."
+  start-disabled: "<red>A Lua de Sangue está desativada: não é possível iniciar. Usa /luna enable."
+  status-disabled: "<red>Lua de Sangue DESATIVADA <gray>· nenhum evento até <white>/luna enable"
+  next-disabled: "<gray>A Lua de Sangue está desativada: não há próximos eventos."
   usage-difficulty: "<yellow>Uso: /luna difficulty <x3|x2|triple> [mundo]"
   difficulty-set: "<green>Dificuldade alterada para x{difficulty}. Afeta os mobs que aparecerem daqui em diante."
   usage-boss: "<yellow>Uso: /luna boss <id> [jogador]. Chefes: {bosses}"

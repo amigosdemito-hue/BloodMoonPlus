@@ -144,6 +144,9 @@ public final class ScheduleManager {
 
     public void tick() {
         if (!enabled) return;
+        // /luna disable apaga la agenda entera: ni dispara ni manda cuentas atrás (chat o
+        // Discord) de eventos que no van a ocurrir.
+        if (plugin.data().isDisabled()) return;
         if (mode == Mode.INTERVAL) { tickInterval(); return; }
         tickWeekly();
     }

@@ -73,6 +73,24 @@ timestamps (`<t:...:R>`), so each person sees a live countdown in their own lang
 
 ---
 
+## 🛑 Turning the Blood Moon off and on
+
+```
+/luna disable     → no more events until you enable it again
+/luna enable      → the normal calendar comes back
+```
+
+- Turns the event off **server-wide**: the schedule (weekly and interval) stops firing, and neither
+  the Discord countdown nor the 10/5/1-minute chat warning is sent.
+- `/luna start` is refused while it is disabled (the other admin commands keep working: `/luna boss`,
+  `/luna horde`, `/luna killmobs`, `/luna reload`…).
+- A moon **already running** finishes on its own; use `/luna stop` to cut it short.
+- The state lives in `data.yml`, so a restart does **not** switch it back on by itself. `/luna status`
+  and `/luna next` say that it is disabled. Spanish aliases: `/luna desactivar` and `/luna activar`.
+  Requires `bloodmoon.admin`.
+
+---
+
 # 🩸 PART 1 — BOSSES
 
 ## How bosses work

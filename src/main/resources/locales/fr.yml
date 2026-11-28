@@ -65,7 +65,7 @@ item:
 
 # ==================== Commands ====================
 cmd:
-  usage: "<yellow>Usage : /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
+  usage: "<yellow>Usage : /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload|enable|disable>"
   reloaded: "<green>Configuration rechargée."
   usage-refresh: "<yellow>Usage : /luna refresh <joueur|all>"
   refreshed: "<green>{count} objet(s) de la Lune de {player} mis à jour."
@@ -79,6 +79,13 @@ cmd:
   next-header: "<gold>Prochaines Lunes de Sang :"
   next-entry: "<dark_gray>- <white>{when} <gray>· dans {in} · <red>x{difficulty}"
   next-none: "<gray>Aucun horaire configuré."
+  disabled: "<yellow>Lune de Sang désactivée : plus aucun événement jusqu'à <white>/luna enable<yellow>. Les lunes en cours se terminent seules (/luna stop pour les interrompre)."
+  enabled: "<green>Lune de Sang activée : les événements reprennent leur calendrier."
+  disable-noop: "<gray>La Lune de Sang était déjà désactivée."
+  enable-noop: "<gray>La Lune de Sang était déjà activée."
+  start-disabled: "<red>La Lune de Sang est désactivée : impossible de la lancer. Utilisez /luna enable."
+  status-disabled: "<red>Lune de Sang DÉSACTIVÉE <gray>· aucun événement avant <white>/luna enable"
+  next-disabled: "<gray>La Lune de Sang est désactivée : aucun événement à venir."
   usage-difficulty: "<yellow>Usage : /luna difficulty <x3|x2|triple> [monde]"
   difficulty-set: "<green>Difficulté changée à x{difficulty}. Affecte les monstres qui apparaîtront désormais."
   usage-boss: "<yellow>Usage : /luna boss <id> [joueur]. Boss : {bosses}"

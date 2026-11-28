@@ -65,7 +65,7 @@ item:
 
 # ==================== Commands ====================
 cmd:
-  usage: "<yellow>Использование: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
+  usage: "<yellow>Использование: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload|enable|disable>"
   reloaded: "<green>Конфигурация перезагружена."
   usage-refresh: "<yellow>Использование: /luna refresh <игрок|all>"
   refreshed: "<green>Обновлено предметов Кровавой Луны у {player}: {count}."
@@ -79,6 +79,13 @@ cmd:
   next-header: "<gold>Ближайшие Кровавые Луны:"
   next-entry: "<dark_gray>- <white>{when} <gray>· через {in} · <red>x{difficulty}"
   next-none: "<gray>Расписание не настроено."
+  disabled: "<yellow>Кровавая луна отключена: событий больше не будет до <white>/luna enable<yellow>. Начавшиеся луны завершатся сами (/luna stop — прервать)."
+  enabled: "<green>Кровавая луна включена: события снова идут по расписанию."
+  disable-noop: "<gray>Кровавая луна уже была отключена."
+  enable-noop: "<gray>Кровавая луна уже была включена."
+  start-disabled: "<red>Кровавая луна отключена: запуск невозможен. Используйте /luna enable."
+  status-disabled: "<red>Кровавая луна ОТКЛЮЧЕНА <gray>· событий нет до <white>/luna enable"
+  next-disabled: "<gray>Кровавая луна отключена: предстоящих событий нет."
   usage-difficulty: "<yellow>Использование: /luna difficulty <x3|x2|triple> [мир]"
   difficulty-set: "<green>Сложность изменена на x{difficulty}. Влияет на мобов, которые появятся с этого момента."
   usage-boss: "<yellow>Использование: /luna boss <id> [игрок]. Боссы: {bosses}"

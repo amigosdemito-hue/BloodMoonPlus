@@ -74,6 +74,24 @@ propio idioma.
 
 ---
 
+## 🛑 Apagar y encender la Luna de Sangre
+
+```
+/luna disable     → no habrá más eventos hasta que la reactives
+/luna enable      → vuelve el calendario normal
+```
+
+- Apaga el evento **en todo el servidor**: la agenda (weekly e interval) deja de disparar y tampoco
+  se manda la cuenta atrás de Discord ni el aviso de chat de los 10/5/1 minutos.
+- `/luna start` se rechaza mientras esté desactivada (el resto de comandos de administración sigue
+  funcionando: `/luna boss`, `/luna horde`, `/luna killmobs`, `/luna reload`…).
+- Una luna **ya en marcha** termina sola; si quieres cortarla, `/luna stop`.
+- El estado se guarda en `data.yml`, así que un reinicio **no** vuelve a encenderla por su cuenta.
+  `/luna status` y `/luna next` avisan de que está desactivada. Alias en español: `/luna desactivar`
+  y `/luna activar`. Requiere `bloodmoon.admin`.
+
+---
+
 # 🩸 PARTE 1 — JEFES
 
 ## Cómo funcionan los jefes

@@ -65,7 +65,7 @@ item:
 
 # ==================== Commands ====================
 cmd:
-  usage: "<yellow>Benutzung: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
+  usage: "<yellow>Benutzung: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload|enable|disable>"
   reloaded: "<green>Konfiguration neu geladen."
   usage-refresh: "<yellow>Benutzung: /luna refresh <spieler|all>"
   refreshed: "<green>{count} Blutmond-Gegenstand(-stände) von {player} aktualisiert."
@@ -79,6 +79,13 @@ cmd:
   next-header: "<gold>Nächste Blutmonde:"
   next-entry: "<dark_gray>- <white>{when} <gray>· in {in} · <red>x{difficulty}"
   next-none: "<gray>Es sind keine Zeiten konfiguriert."
+  disabled: "<yellow>Blutmond deaktiviert: keine weiteren Events bis <white>/luna enable<yellow>. Laufende Blutmonde enden von selbst (/luna stop zum Abbrechen)."
+  enabled: "<green>Blutmond aktiviert: die Events folgen wieder dem Zeitplan."
+  disable-noop: "<gray>Der Blutmond war bereits deaktiviert."
+  enable-noop: "<gray>Der Blutmond war bereits aktiviert."
+  start-disabled: "<red>Der Blutmond ist deaktiviert: Start nicht möglich. Nutze /luna enable."
+  status-disabled: "<red>Blutmond DEAKTIVIERT <gray>· keine Events bis <white>/luna enable"
+  next-disabled: "<gray>Der Blutmond ist deaktiviert: keine kommenden Events."
   usage-difficulty: "<yellow>Benutzung: /luna difficulty <x3|x2|triple> [welt]"
   difficulty-set: "<green>Schwierigkeit auf x{difficulty} geändert. Betrifft alle neu erscheinenden Monster."
   usage-boss: "<yellow>Benutzung: /luna boss <id> [spieler]. Bosse: {bosses}"

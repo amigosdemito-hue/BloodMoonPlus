@@ -65,7 +65,7 @@ item:
 
 # ==================== Commands ====================
 cmd:
-  usage: "<yellow>Usage: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload>"
+  usage: "<yellow>Usage: /luna <status|next|start|stop|difficulty|boss|horde|killmobs|give|items|chances|refresh|reload|enable|disable>"
   reloaded: "<green>Configuration reloaded."
   usage-refresh: "<yellow>Usage: /luna refresh <player|all>"
   refreshed: "<green>Updated {count} Blood Moon item(s) for {player}."
@@ -79,6 +79,13 @@ cmd:
   next-header: "<gold>Upcoming Blood Moons:"
   next-entry: "<dark_gray>- <white>{when} <gray>· in {in} · <red>x{difficulty}"
   next-none: "<gray>No schedules configured."
+  disabled: "<yellow>Blood Moon disabled: no more events until you use <white>/luna enable<yellow>. Moons already running finish on their own (use /luna stop to cut them)."
+  enabled: "<green>Blood Moon enabled: events return to their schedule."
+  disable-noop: "<gray>The Blood Moon was already disabled."
+  enable-noop: "<gray>The Blood Moon was already enabled."
+  start-disabled: "<red>The Blood Moon is disabled: it cannot be started. Use /luna enable."
+  status-disabled: "<red>Blood Moon DISABLED <gray>· no events until <white>/luna enable"
+  next-disabled: "<gray>The Blood Moon is disabled: there are no upcoming events."
   usage-difficulty: "<yellow>Usage: /luna difficulty <x3|x2|triple> [world]"
   difficulty-set: "<green>Difficulty changed to x{difficulty}. Affects mobs that spawn from now on."
   usage-boss: "<yellow>Usage: /luna boss <id> [player]. Bosses: {bosses}"
