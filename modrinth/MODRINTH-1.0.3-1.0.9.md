@@ -21,6 +21,22 @@ todas con `loaders: paper` y `game_versions: [26.2, 26.3]`.
 Cada sección de abajo es el changelog exacto de esa versión, listo para pegar en el campo
 **Changelog** del formulario de Modrinth (`upload.ps1` lo toma solo de `modrinth/CHANGELOG.md`).
 
+## Dependencias desde 1.0.3-beta
+
+- **ExcellentEnchants 5.4.3 + NightCore 2.16.7 (opcional, muy recomendado).** Desde la **1.0.3-beta**
+  `plugin.yml` declara `ExcellentEnchants` en `softdepend`; la 1.0.2-beta no lo tenía (solo
+  PlaceholderAPI, Multiverse-Core y WorldGuard). Los encantamientos custom de los 104 objetos
+  (`vampire`, `thunder`, `tunnel`, `veinminer`, `dragon_heart`…) los aporta EE. **NightCore es
+  dependencia de EE, no de este plugin.**
+- En `items.yml` los encantamientos de EE se escriben **sin namespace** (`vampire: 2`): el plugin
+  resuelve primero el id vanilla y después `excellentenchants:<id>` en el registro vivo, así que no
+  compila contra la API de EE.
+- **Sin EE** el plugin arranca igual: los objetos **nuevos** se crean solo con vanilla y la consola
+  avisa una vez; los ya repartidos pierden los encantamientos de EE al entrar (Minecraft borra los
+  encantamientos desconocidos). Para quitarla, primero `/luna refresh <jugador|all>` con EE instalado.
+- `PlaceholderAPI` y `MythicMobs` siguen siendo opcionales y también van en `softdepend`.
+
+
 ---
 
 ## 1.0.3-beta

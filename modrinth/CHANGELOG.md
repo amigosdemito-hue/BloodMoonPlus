@@ -234,10 +234,14 @@ exactly as before.
   taken out of a chest**, and whenever you run `/luna refresh <player|all>`. Above-max levels are
   lowered, missing enchantments are added, the Curse of Vanishing is stripped and the old ability
   data is removed.
-- **ExcellentEnchants is optional to install, not to remove**: without it (and NightCore) the plugin
-  still starts, **new** items get just the vanilla enchantments and the console warns once. Do not
-  uninstall EE with gear already handed out: Minecraft deletes items whose enchantment is missing, so
-  run `/luna refresh <player|all>` with EE installed first if you ever need to drop it.
+- **ExcellentEnchants became a soft dependency in this very version (1.0.3-beta):** `plugin.yml`
+  now lists it in `softdepend` (1.0.2-beta listed only PlaceholderAPI, Multiverse-Core and
+  WorldGuard), because the custom enchantments on the 104 items are EE's (`vampire`, `thunder`,
+  `tunnel`, `veinminer`, `dragon_heart`…). It is optional to install, not to remove: without it
+  (and NightCore) the plugin still starts, **new** items get just the vanilla enchantments and the
+  console warns once. Do not uninstall EE with gear already handed out: Minecraft deletes items
+  whose enchantment is missing, so run `/luna refresh <player|all>` with EE installed first if you
+  ever need to drop it. NightCore is EE's own dependency, not this plugin's.
 
 ### Updating from 1.0.2 — your `items.yml` is NOT replaced
 
@@ -290,6 +294,9 @@ copy (Protection 4 and the removed ability lists). The refresh applies **that** 
   event end, `/luna stop` and the startup cleanup still remove them.
 - Enchantment lookup goes through the live registry (`RegistryAccess`) instead of the deprecated
   `Registry.ENCHANTMENT` field, so ExcellentEnchants enchantments are always current.
+- `items.yml` keeps writing EE enchantments **without a namespace** (`vampire: 2`): the lookup
+  tries the vanilla id first and then `excellentenchants:<id>` in the live registry, so the
+  plugin never compiles against EE's API.
 
 ### Added
 - `items.migrate-on-join` in `config.yml`.

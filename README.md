@@ -18,6 +18,9 @@ Todo lo que necesitas saber sobre los **10 jefes** de la Luna de Sangre y el **s
 | **MythicMobs** | 5.12+ | Opcional | Jefes con `mode: MYTHICMOBS` en `bosses.yml` | Se usa el jefe vanilla si `mythic-fallback: true`; con el fallback desactivado, ese jefe no aparece |
 
 - En `plugin.yml` van como `softdepend`, así que el orden de carga es correcto sin obligarte a instalarlos (ninguna dependencia dura).
+- **ExcellentEnchants es `softdepend` desde la 1.0.3-beta** (en la 1.0.2-beta no aparecía): los
+  encantamientos custom de los 104 objetos son suyos, así que sin EE los objetos nuevos se crean
+  solo con los vanilla y los ya repartidos pierden esos encantamientos al entrar.
 - **NightCore no se usa directamente**: es una dependencia de ExcellentEnchants, no de este plugin.
 - El puente con MythicMobs es por reflexión (versión 5.x): si instalas otra mayor, el plugin avisa y sigue funcionando con los jefes vanilla.
 

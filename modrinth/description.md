@@ -22,7 +22,9 @@ Built to run smoothly on **40+ player** servers without changing the gameplay.
 - **🎁 45 items** sorted by rarity: common (always drop), rare, epic, legendary and **mythic** (extremely rare, ~0.1%, max 3 per server with a serial number).
 - **✅ No curses** — no Moon weapon, tool or armour piece carries the Curse of Vanishing or the Curse of Binding, whatever its rarity: gear drops on death like any other item. The automatic curse from 1.0.2 was removed and gear already handed out loses it on join, on pickup or with `/luna refresh`.
 - **📦 Rare loot delivery**: rare, epic, legendary and mythic drops go straight to the killer's inventory when there is one.
-- **⚔️ ExcellentEnchants integration**: every item ships vanilla enchantments at their max (level 5 on legendary and mythic gear, e.g. Protection 5) plus EE enchantments (`thunder`, `vampire`, `electrified_arrows`, `dragon_heart`…), with EE's own per-level chance settings. No custom ability engine.
+- **⚔️ ExcellentEnchants integration**: every item ships vanilla enchantments at their max (level 5 on legendary and mythic gear, e.g. Protection 5) plus EE enchantments (`thunder`, `vampire`, `electrified_arrows`, `dragon_heart`…), with EE's own per-level chance settings. No custom ability engine. **ExcellentEnchants has been a
+`softdepend` since 1.0.3-beta**: without it the plugin still starts, but new gear is created with
+vanilla enchantments only.
 - **🌊 Waves every 30 s** — 7 mobs per horde, no growth wave after wave: up to 40 alive per player (bosses included) and 1000 server-wide.
 - **🌫️ Immersion** — red fog, lightning when hordes/bosses appear, ambient sounds and periodic announcements. No rain, but thunder.
 - **📊 Stats & survivors** — who survived, who dealt the most damage, rankings and MVP rewards, all counted from real participation time instead of estimates.

@@ -18,6 +18,9 @@ Everything you need to know about the **10 bosses** of the Blood Moon and the **
 | **MythicMobs** | 5.12+ | Optional | Bosses with `mode: MYTHICMOBS` in `bosses.yml` | The vanilla boss is used when `mythic-fallback: true`; with the fallback disabled that boss does not appear |
 
 - They are declared as `softdepend` in `plugin.yml`: load order is correct without forcing you to install them (no hard dependencies).
+- **ExcellentEnchants has been a `softdepend` since 1.0.3-beta** (1.0.2-beta did not list it): the
+  custom enchantments on the 104 items are EE's, so without it new items are created with vanilla
+  enchantments only and already-handed-out gear loses those enchantments on join.
 - **NightCore is not used directly**: it is a dependency of ExcellentEnchants, not of this plugin.
 - The MythicMobs bridge uses reflection (5.x): on another major version the plugin warns and keeps running with the vanilla bosses.
 
