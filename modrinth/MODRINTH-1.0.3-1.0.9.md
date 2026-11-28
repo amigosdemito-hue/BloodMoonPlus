@@ -3,10 +3,10 @@
 Modrinth tiene publicadas **1.0.0**, **1.0.1** y **1.0.2-beta**. Faltan estas siete versiones,
 todas con `loaders: paper` y `game_versions: [26.2, 26.3]`.
 
-> **Nota sobre 1.0.7-beta:** este jar se compiló el 2026-11-27 (`version: '1.0.7-beta'` en su
-> `plugin.yml`) pero nunca recibió tag ni release en GitHub: sus cambios quedaron dentro del
-> commit que publicó la 1.0.8-beta. Por eso en el repositorio no existe `v1.0.7-beta`, aunque el
-> jar sí es válido y se sube aquí como versión propia.
+> **Nota sobre 1.0.7-beta:** su jar se compiló el 2026-11-27 (`version: '1.0.7-beta'` en su
+> `plugin.yml`) sin un commit propio: sus cambios entraron en el commit que publicó la 1.0.8-beta.
+> Ya existe el tag `v1.0.7-beta` sobre ese commit (783eca3) y una release con el jar exacto; ese
+> tag incluye además el código de la 1.0.8. En Modrinth se sube igualmente como versión propia.
 
 | Versión | Canal | Jar | Bytes | SHA-256 |
 |---|---|---|---|---|
