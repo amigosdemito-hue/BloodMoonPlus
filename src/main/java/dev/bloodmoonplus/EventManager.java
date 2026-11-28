@@ -819,6 +819,11 @@ public final class EventManager {
             spawnWave(global);
         }
         plugin.bosses().tickSpawns(global, now);
+        // Sin oleadas no había quien consumiera la cola de jefes: spawnQueuedBosses() solo se
+        // llama desde spawnWave(), así que con horde.enabled: false (o sin mobs en
+        // horde.mobs) los jefes programados en bosses.yml > spawns NUNCA aparecían. Con la
+        // horda apagada se invocan en cuanto vence su horario.
+        if ((!hordeEnabled || mobs.isEmpty()) && hasEligiblePlayers(global)) spawnQueuedBosses(global);
         tickSpecialEvent(global, now);
     }
 

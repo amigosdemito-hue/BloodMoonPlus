@@ -8,6 +8,40 @@ Modrinth. Lines marked with ⭐ are the most eye-catching features for the
 project page.
 -->
 
+## [1.0.9-beta] — Narrow tooltips for every server
+
+The 1.0.8 tooltip rewrite only reached servers that deleted their `items.yml`. The plugin never
+overwrites that file, so upgraded servers kept the old four-enchantment lore line and every weapon
+tooltip was still wider than the screen. Now the plugin updates the descriptions in place.
+
+### Added ⭐
+- ⭐ **`items.yml` gets the new descriptions without being deleted.** On startup the plugin reads the
+  server's `items.yml` and, for every item that also exists in the jar catalogue, replaces **only**
+  its `lore:` block. Names, materials, rarities, enchantments, items you added by hand, comments and
+  the file's formatting stay exactly as they are, and an `items.yml.pre-vN.bak` copy is written
+  first.
+- **`config-version`** marks the content version of the file. An equal or higher number means the
+  file is left alone, so lore you edited yourself survives every update; lower or delete it to
+  force another sync.
+- **`settings.sync-lore: false`** turns the merge off completely.
+
+### Changed ⭐
+- ⭐ **Every weapon, tool, armour piece and shield lore is now two lines at most:** one short
+  flavour line (≤ 34 visible characters) and a single line with the signature ExcellentEnchants
+  extras (≤ 44), tinted with the item's rarity colour. Real enchantments keep their own lines,
+  drawn by Minecraft, so the tooltip no longer pushes past the edge of the screen.
+
+### Fixed
+- **Scheduled bosses never spawned with `horde.enabled: false`** (or with an empty `horde.mobs`).
+  The queue of bosses whose time had come was only drained when a wave spawned, so with waves off
+  it grew forever and no boss ever appeared. They are summoned as soon as their time comes.
+
+### Compatibility
+- Paper **26.2** and **26.3**. Built with Java 25. Jar: `BloodMoonPlus-1.0.9-beta.jar`.
+- **Nothing to edit by hand:** `items.yml` is updated in place (keep your backup), and an existing
+  `config.yml` keeps working with its defaults. Items already handed out refresh on join, on pickup
+  or with `/luna refresh <player|all>`.
+
 ## [1.0.8-beta] — Nothing left lying around
 
 Skeletons, strays, bogged, pillagers and drowned kept shooting: every arrow and trident is an entity,

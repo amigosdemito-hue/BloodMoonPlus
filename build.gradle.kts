@@ -1,7 +1,7 @@
 plugins { java }
 
 group = "dev.bloodmoonplus"
-version = "1.0.8-beta"
+version = "1.0.9-beta"
 
 repositories {
     mavenCentral()

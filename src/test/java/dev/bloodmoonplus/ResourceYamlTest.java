@@ -108,6 +108,24 @@ class ResourceYamlTest {
                 "items.yml: la Maldición de desaparición ya no existe; borra settings.vanishing-curse-min-rarity");
     }
 
+    /** El lore no debe ensanchar el tooltip: como MUCHO dos líneas, y ninguna de más de 44
+     *  caracteres visibles. Minecraft ya lista todos los encantamientos reales del objeto, así
+     *  que el lore solo lleva una frase corta y la línea de encantamientos insignia. */
+    @Test
+    void loreStaysNarrow() {
+        YamlConfiguration items = YamlConfiguration.loadConfiguration(res("items.yml"));
+        List<String> wide = new ArrayList<>();
+        for (String id : items.getConfigurationSection("items").getKeys(false)) {
+            List<String> lore = items.getStringList("items." + id + ".lore");
+            if (lore.size() > 2) wide.add(id + ": " + lore.size() + " líneas");
+            for (String line : lore) {
+                String plain = line.replaceAll("<[^<>]*>", "");
+                if (plain.codePointCount(0, plain.length()) > 44) wide.add(id + ": " + plain);
+            }
+        }
+        assertTrue(wide.isEmpty(), "Lore demasiado ancho (máx. 2 líneas de 44 caracteres): " + wide);
+    }
+
     /** Cada clase de arma, herramienta y armadura (espada, hacha, pico, pala, azada, arco,
      *  ballesta, tridente, maza, casco, peto, grebas, botas, escudo) tiene una versión de CADA
      *  rareza. La clase se deduce del sufijo del material (DIAMOND_SWORD -> SWORD). */

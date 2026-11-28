@@ -1,4 +1,4 @@
-# 🩸 BloodMoonPlus — Blood Moon · 1.0.6-beta
+# 🩸 BloodMoonPlus — Blood Moon · 1.0.9-beta
 
 A **Blood Moon** event plugin for Paper servers: **7 complete languages**, **10 bosses**, **45 items** spread across rarities, **protected Moon gear**, **vanilla-max enchantments plus ExcellentEnchants**, **waves every 30 s**, **placeholders**, **full immersion** (red fog, lightning, ambient sounds and announcements) and **rare-loot inventory delivery**.
 
@@ -11,6 +11,7 @@ Built to run smoothly on **40+ player** servers without changing the gameplay.
 
 ## ✨ Highlights
 
+- **📖 Tooltips that fit the screen, and they arrive on their own.** Every weapon, tool, armour piece and shield carries two lore lines at most: one short flavour line and one line with its signature ExcellentEnchants extras. On startup the plugin updates **only the `lore:` blocks** of your existing `items.yml` — your items, enchantments and comments stay untouched, and a backup is written first.
 - **🌍 7 languages** — Spanish, English, Portuguese, French, German, Italian and Russian, complete and switchable in `locales/locales.yml` with `/luna reload` (no restart). An unknown code warns and falls back to English, and the build fails if a translation loses a key or a `{placeholder}`.
 - **🟩 New boss — Fauces del Cataclismo** (`creeper_cargado`): a charged creeper **twice as tall**, **320 HP**, immune to every explosion. It **absorbs** players with `VORTEX`, summons **Crías del Cataclismo** with `SWARM` and **detonates** itself every 50 s without dying — only in its enraged phase does the blast open a crater.
 - **🛡️ Moon gear cannot be stripped** — the grindstone is blocked for Blood Moon items (an unenchanted piece can still be repaired there), the anvil and smithing table can never return a result with fewer enchantments, and the gear players already own is **upgraded automatically when they join** (renamed items included). `/luna refresh <player|all>` forces it instantly.

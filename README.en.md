@@ -438,6 +438,12 @@ and your current pity in that table.
 to 5 on legendaries and mythics, and the catalogue grows to **104 items**. Your server's
 `items.yml` is **not replaced automatically**: the plugin only writes it when it does not exist.
 
+> Since **1.0.9** the descriptions no longer need to be copied by hand: on startup the plugin
+> merges **only the `lore:` blocks** of the catalogue into your `items.yml` (names, enchantments,
+> rarities, your own items and your comments stay as they are) and writes an
+> `items.yml.pre-vN.bak` copy first. That automatic step covers the text only; for any other
+> catalogue change, the steps below still apply.
+
 1. Stop the server and back up `plugins/BloodMoonPlus/items.yml`.
 2. Replace it with the one inside the `.jar` (or rename it and start once) and re-apply your
    customizations.

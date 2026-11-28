@@ -441,6 +441,12 @@ La 1.0.3 sustituye las habilidades propias por encantamientos de ExcellentEnchan
 tope vanilla en legendarios y míticos, y el catálogo pasa a **104 objetos**. El `items.yml` de tu
 servidor **no se reemplaza solo**: el plugin solo lo escribe si no existe.
 
+> Desde la **1.0.9** las descripciones ya no hay que copiarlas a mano: al arrancar, el plugin
+> fusiona **solo los bloques `lore:`** del catálogo sobre tu `items.yml` (nombres, encantamientos,
+> rarezas, tus ítems y tus comentarios se quedan igual) y guarda antes un `items.yml.pre-vN.bak`.
+> Lo que se hace solo es el texto; para el resto de cambios del catálogo sigue valiendo lo de
+> abajo.
+
 1. Detén el servidor y guarda una copia de `plugins/BloodMoonPlus/items.yml`.
 2. Sustituye tu `items.yml` por el del `.jar` (o renómbralo y arranca una vez) y vuelve a aplicar
    tus personalizaciones.

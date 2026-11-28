@@ -49,6 +49,11 @@ public final class BloodMoonPlus extends JavaPlugin {
                 }
             }
         }
+        // Puesta al día del lore de items.yml SIN borrar el archivo: los servidores que ya lo
+        // tenían se quedaban con las descripciones viejas (y el tooltip ancho) para siempre,
+        // porque el plugin nunca sobrescribe el archivo del admin. Va antes de crear los
+        // managers para que ItemFactory cargue ya el lore fusionado.
+        ContentUpdater.run(this);
         locales = new LocaleManager(this);
         locales.init();
         worldConfigs = new WorldConfigRegistry(this);
