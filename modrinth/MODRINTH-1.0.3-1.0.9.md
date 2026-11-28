@@ -3,6 +3,11 @@
 Modrinth tiene publicadas **1.0.0**, **1.0.1** y **1.0.2-beta**. Faltan estas siete versiones,
 todas con `loaders: paper` y `game_versions: [26.2, 26.3]`.
 
+> **Nota sobre 1.0.7-beta:** este jar se compiló el 2026-11-27 (`version: '1.0.7-beta'` en su
+> `plugin.yml`) pero nunca recibió tag ni release en GitHub: sus cambios quedaron dentro del
+> commit que publicó la 1.0.8-beta. Por eso en el repositorio no existe `v1.0.7-beta`, aunque el
+> jar sí es válido y se sube aquí como versión propia.
+
 | Versión | Canal | Jar | Bytes | SHA-256 |
 |---|---|---|---|---|
 | `1.0.3-beta` | beta | `BloodMoonPlus-1.0.3-beta.jar` | 227949 | `65738cc88ce7c35f93e686d59e4e9d4040426f1b68cb8c6a05fd34055bcd35a2` |
