@@ -86,8 +86,9 @@ timestamps (`<t:...:R>`), so each person sees a live countdown in their own lang
   `/luna horde`, `/luna killmobs`, `/luna reload`…).
 - A moon **already running** finishes on its own; use `/luna stop` to cut it short.
 - The state lives in `data.yml`, so a restart does **not** switch it back on by itself. `/luna status`
-  and `/luna next` say that it is disabled. Spanish aliases: `/luna desactivar` and `/luna activar`.
-  Requires `bloodmoon.admin`.
+  and `/luna next` say that it is disabled, as do the `%bloodmoon_next%` placeholders (`_when`,
+  `_in`, `_in_seconds`, `_difficulty`) and `%bloodmoon_disabled%`. Spanish aliases:
+  `/luna desactivar` and `/luna activar`. Requires `bloodmoon.admin`.
 
 ---
 

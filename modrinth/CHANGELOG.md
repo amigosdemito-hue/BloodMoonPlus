@@ -57,6 +57,11 @@ countdown moves to **two hours and one hour before** the event.
   drawn by Minecraft, so the tooltip no longer pushes past the edge of the screen.
 
 ### Fixed
+- **The schedule placeholders follow `/luna disable`.** `%bloodmoon_next%` and its variants
+  (`%bloodmoon_next_when%`, `%bloodmoon_next_in%`, `%bloodmoon_next_in_seconds%`,
+  `%bloodmoon_next_difficulty%`) return the disabled text and `0` seconds instead of a date that
+  will never arrive, and the new `%bloodmoon_disabled%` reports the server-wide switch, so scoreboards
+  and holograms stop counting down to a moon that will not happen.
 - **Scheduled bosses never spawned with `horde.enabled: false`** (or with an empty `horde.mobs`).
   The queue of bosses whose time had come was only drained when a wave spawned, so with waves off
   it grew forever and no boss ever appeared. They are summoned as soon as their time comes.

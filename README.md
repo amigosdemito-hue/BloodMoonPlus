@@ -87,8 +87,9 @@ propio idioma.
   funcionando: `/luna boss`, `/luna horde`, `/luna killmobs`, `/luna reload`…).
 - Una luna **ya en marcha** termina sola; si quieres cortarla, `/luna stop`.
 - El estado se guarda en `data.yml`, así que un reinicio **no** vuelve a encenderla por su cuenta.
-  `/luna status` y `/luna next` avisan de que está desactivada. Alias en español: `/luna desactivar`
-  y `/luna activar`. Requiere `bloodmoon.admin`.
+  `/luna status` y `/luna next` avisan de que está desactivada, igual que los placeholders
+  `%bloodmoon_next%` (y `_when`, `_in`, `_in_seconds`, `_difficulty`) y `%bloodmoon_disabled%`.
+  Alias en español: `/luna desactivar` y `/luna activar`. Requiere `bloodmoon.admin`.
 
 ---
 

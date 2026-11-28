@@ -76,6 +76,10 @@ public final class PapiHook extends PlaceholderExpansion {
 
         return switch (p) {
             case "active" -> active ? "true" : "false";
+            // /luna disable apaga la luna en todo el servidor: los placeholders de la agenda
+            // tienen que decirlo y no anunciar una hora que no va a ocurrir.
+            case "disabled" -> String.valueOf(plugin.data().isDisabled());
+            case "next" -> nextPlaceholder(rest);
             case "activeformatted" -> active
                     ? plugin.locales().get("placeholder.active")
                     : plugin.locales().get("placeholder.inactive");
@@ -200,6 +204,37 @@ public final class PapiHook extends PlaceholderExpansion {
             case "event" -> sub.equals("elapsed")
                     ? Util.dur(session != null ? session.elapsedSeconds() : 0)
                     : null;
+            default -> null;
+        };
+    }
+
+    /** %bloodmoon_next% y familia: %bloodmoon_next_when%, _in%, _in_seconds%, _difficulty%.
+     *  Con /luna disable no hay próxima luna, así que devuelve el texto de desactivado (y 0
+     *  segundos) en lugar de una fecha que nunca va a llegar. */
+    private String nextPlaceholder(String rest) {
+        boolean disabled = plugin.data().isDisabled();
+        if (disabled) {
+            return switch (rest) {
+                case "in_seconds", "seconds" -> "0";
+                case "", "when", "formatted", "day", "in", "difficulty" ->
+                        plugin.locales().get("placeholder.next-disabled");
+                default -> null;
+            };
+        }
+        java.util.List<ScheduleManager.Upcoming> up = plugin.schedule().upcoming(1);
+        if (up.isEmpty()) {
+            return switch (rest) {
+                case "in_seconds", "seconds" -> "0";
+                default -> plugin.locales().get(rest.equals("difficulty")
+                        ? "placeholder.none" : "placeholder.next-none");
+            };
+        }
+        ScheduleManager.Upcoming u = up.get(0);
+        return switch (rest) {
+            case "", "when", "formatted", "day" -> plugin.schedule().format(u);
+            case "in" -> Util.human(plugin.schedule().secondsUntil(u));
+            case "in_seconds", "seconds" -> String.valueOf(plugin.schedule().secondsUntil(u));
+            case "difficulty" -> "x" + Util.fmt(u.slot().difficulty());
             default -> null;
         };
     }

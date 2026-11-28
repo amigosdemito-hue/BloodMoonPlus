@@ -152,7 +152,7 @@ Every boss has a health bar, an **enrage** phase below 40% health, its own abili
 
 ## 🧩 Placeholders
 
-With **PlaceholderAPI** installed (namespace `%bloodmoon_*%`): event status, time left, next moon, difficulty, live bosses (name, health, percentage, state), current wave, participants, survivors, real participation seconds/percent, per-player stats and lifetime history — 40+ placeholders, including long names such as `%bloodmoon_last_event_death_count%` or `%bloodmoon_boss_health_percent%`.
+With **PlaceholderAPI** installed (namespace `%bloodmoon_*%`): event status, time left, next moon, difficulty, live bosses (name, health, percentage, state), current wave, participants, survivors, real participation seconds/percent, per-player stats and lifetime history — 40+ placeholders, including long names such as `%bloodmoon_last_event_death_count%` or `%bloodmoon_boss_health_percent%`. The schedule family is `%bloodmoon_next%` with `_when`, `_in`, `_in_seconds` and `_difficulty`; while the moon is off (`/luna disable`) they report the disabled state instead of an hour that will not arrive, and `%bloodmoon_disabled%` returns the switch.
 
 ---
 

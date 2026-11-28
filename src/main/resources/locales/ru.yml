@@ -114,6 +114,8 @@ placeholder:
   active: "Активна"
   inactive: "Неактивна"
   none: "Нет"
+  next-none: "Нет расписания"
+  next-disabled: "Отключена"
   eligible: "Подходит"
   disqualified: "Дисквалифицирован"
   not-participating: "Не участвует"

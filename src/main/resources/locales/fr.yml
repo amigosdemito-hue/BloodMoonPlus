@@ -114,6 +114,8 @@ placeholder:
   active: "Active"
   inactive: "Inactive"
   none: "Aucun"
+  next-none: "Aucun horaire"
+  next-disabled: "Désactivée"
   eligible: "Éligible"
   disqualified: "Disqualifié"
   not-participating: "Ne participe pas"
