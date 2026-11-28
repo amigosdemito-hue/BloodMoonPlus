@@ -447,6 +447,11 @@ servidor **no se reemplaza solo**: el plugin solo lo escribe si no existe.
 > Lo que se hace solo es el texto; para el resto de cambios del catálogo sigue valiendo lo de
 > abajo.
 
+> Lo mismo con **`config.yml`**: al arrancar se **añaden** las claves nuevas (`cleanup`, `discord`,
+> `items.migrate-on-join`…) al final de su sección, con sus comentarios, y se guarda un
+> `config.yml.pre-vN.bak`. Tus valores, tus comentarios y tus claves propias no se tocan, y el
+> resultado se valida antes de guardarlo (si algo tuyo cambiara, no se escribe nada).
+
 1. Detén el servidor y guarda una copia de `plugins/BloodMoonPlus/items.yml`.
 2. Sustituye tu `items.yml` por el del `.jar` (o renómbralo y arranca una vez) y vuelve a aplicar
    tus personalizaciones.

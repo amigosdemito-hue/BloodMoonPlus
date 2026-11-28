@@ -443,6 +443,12 @@ to 5 on legendaries and mythics, and the catalogue grows to **104 items**. Your 
 > rarities, your own items and your comments stay as they are) and writes an
 > `items.yml.pre-vN.bak` copy first. That automatic step covers the text only; for any other
 > catalogue change, the steps below still apply.
+>
+> The same happens with **`config.yml`**: on startup the new keys (`cleanup`, `discord`,
+> `items.migrate-on-join`…) are **appended** to the end of their section, with their comments, and a
+> `config.yml.pre-vN.bak` copy is written first. Your values, comments and own keys are never
+> touched, and the result is validated before saving (if any of your values would change, nothing
+> is written).
 
 1. Stop the server and back up `plugins/BloodMoonPlus/items.yml`.
 2. Replace it with the one inside the `.jar` (or rename it and start once) and re-apply your

@@ -54,6 +54,9 @@ public final class BloodMoonPlus extends JavaPlugin {
         // porque el plugin nunca sobrescribe el archivo del admin. Va antes de crear los
         // managers para que ItemFactory cargue ya el lore fusionado.
         ContentUpdater.run(this);
+        // Lo mismo con config.yml: añade SOLO las claves nuevas (cleanup, discord, items...) a
+        // los archivos antiguos, sin tocar lo que el admin ya ajustó y con copia previa.
+        ConfigUpdater.run(this);
         locales = new LocaleManager(this);
         locales.init();
         worldConfigs = new WorldConfigRegistry(this);

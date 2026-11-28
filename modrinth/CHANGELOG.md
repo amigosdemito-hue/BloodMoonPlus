@@ -23,7 +23,14 @@ tooltip was still wider than the screen. Now the plugin updates the descriptions
 - **`config-version`** marks the content version of the file. An equal or higher number means the
   file is left alone, so lore you edited yourself survives every update; lower or delete it to
   force another sync.
-- **`settings.sync-lore: false`** turns the merge off completely.
+- ⭐ **The same in-place update for `config.yml`.** Old configs receive the keys they never had —
+  `cleanup`, `items.migrate-on-join`, `discord`, `announce` entries and any other new key — appended to
+  the end of their section with the comments that document them. Everything you already set (values,
+  your own keys, your comments, the file's order) stays exactly as it is, and a
+  `config.yml.pre-v2.bak` copy is written first. The result is validated before saving: if any of your
+  values would change, nothing is written.
+- **`settings.sync-lore: false`** turns the merge off completely (items.yml); setting
+  `config-version` above the current one freezes `config.yml` the same way.
 
 ### Changed ⭐
 - ⭐ **Every weapon, tool, armour piece and shield lore is now two lines at most:** one short
@@ -38,9 +45,9 @@ tooltip was still wider than the screen. Now the plugin updates the descriptions
 
 ### Compatibility
 - Paper **26.2** and **26.3**. Built with Java 25. Jar: `BloodMoonPlus-1.0.9-beta.jar`.
-- **Nothing to edit by hand:** `items.yml` is updated in place (keep your backup), and an existing
-  `config.yml` keeps working with its defaults. Items already handed out refresh on join, on pickup
-  or with `/luna refresh <player|all>`.
+- **Nothing to edit by hand:** `items.yml` (lore) and `config.yml` (new keys) are updated in place,
+  each with its own `.pre-vN.bak` copy, so an old config keeps your settings and gains the new
+  sections. Items already handed out refresh on join, on pickup or with `/luna refresh <player|all>`.
 
 ## [1.0.8-beta] — Nothing left lying around
 

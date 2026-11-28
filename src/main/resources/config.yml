@@ -1,6 +1,14 @@
 # ============================================================
 #  BloodMoonPlus - configuración principal
+#
+#  ACTUALIZACIONES: este archivo NO se sobrescribe al actualizar el plugin. Al
+#  arrancar se AÑADEN las claves nuevas de esta versión (cleanup, items,
+#  discord… con sus comentarios) al final de su sección, y antes se guarda un
+#  config.yml.pre-vN.bak. Tus valores, tus comentarios y tus claves propias no
+#  se tocan nunca. `config-version` marca la versión del archivo: con el mismo
+#  número o mayor no se añade nada (súbelo a mano si quieres congelarlo).
 # ============================================================
+config-version: 2
 
 # Mundos donde ocurre el evento (si un horario no define los suyos).
 worlds:
